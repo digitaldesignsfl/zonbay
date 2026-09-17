@@ -82,10 +82,29 @@ function generateEbayCsvString(product) {
 
     // Collect public images (pipe-separated)
     let images = [];
-    if (Array.isArray(product.alternateImages) && product.alternateImages.length > 0) {
+    if (Array.isArray(product.imageList) && product.imageList.length > 0) {
+        images = product.imageList
+            .filter(img => !img.isExcluded)
+            .sort((a, b) => (a.isHero ? -1 : (b.isHero ? 1 : 0)))
+            .map(img => {
+                if (img.hostedUrl && img.hostedUrl.startsWith('http') && !img.hostedUrl.includes('localhost')) {
+                    return img.hostedUrl;
+                }
+                if (typeof img.url === 'string' && img.url.startsWith('http') && !img.url.includes('localhost')) {
+                    return img.url;
+                }
+                if (typeof img.originalUrl === 'string' && img.originalUrl.startsWith('http') && !img.originalUrl.includes('localhost')) {
+                    return img.originalUrl;
+                }
+                return null;
+            })
+            .filter(url => url && !url.toLowerCase().includes('.svg'));
+    }
+
+    if (images.length === 0 && Array.isArray(product.alternateImages) && product.alternateImages.length > 0) {
         images = product.alternateImages.filter(url => typeof url === 'string' && url.startsWith('http') && !url.includes('localhost') && !url.toLowerCase().includes('.svg'));
     }
-    if (images.length === 0 && product.mainImgUrl && !product.mainImgUrl.includes('localhost') && !product.mainImgUrl.toLowerCase().includes('.svg')) {
+    if (images.length === 0 && product.mainImgUrl && typeof product.mainImgUrl === 'string' && product.mainImgUrl.startsWith('http') && !product.mainImgUrl.includes('localhost') && !product.mainImgUrl.toLowerCase().includes('.svg')) {
         images = [product.mainImgUrl];
     }
     const picUrl = images.slice(0, 12).join('|');

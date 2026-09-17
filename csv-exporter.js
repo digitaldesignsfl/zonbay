@@ -43,8 +43,22 @@ function getSpecificValue(specifics, keyNames, defaultValue = '') {
 function resolvePublicImages(packageData, rawData = {}) {
     let images = [];
 
+    // Check imageList from Studio editor if present
+    if (Array.isArray(rawData.imageList) && rawData.imageList.length > 0) {
+        images = rawData.imageList
+            .filter(img => !img.isExcluded)
+            .sort((a, b) => (a.isHero ? -1 : (b.isHero ? 1 : 0)))
+            .map(img => {
+                if (img.hostedUrl && img.hostedUrl.startsWith('http') && !img.hostedUrl.includes('localhost')) return img.hostedUrl;
+                if (typeof img.url === 'string' && img.url.startsWith('http') && !img.url.includes('localhost')) return img.url;
+                if (typeof img.originalUrl === 'string' && img.originalUrl.startsWith('http') && !img.originalUrl.includes('localhost')) return img.originalUrl;
+                return null;
+            })
+            .filter(url => url && !url.toLowerCase().includes('.svg'));
+    }
+
     // Check raw scraped data for live web CDN images
-    if (Array.isArray(rawData.alternateImages) && rawData.alternateImages.length > 0) {
+    if (images.length === 0 && Array.isArray(rawData.alternateImages) && rawData.alternateImages.length > 0) {
         images = rawData.alternateImages.filter(url => typeof url === 'string' && url.startsWith('http') && !url.includes('localhost') && !url.toLowerCase().includes('.svg'));
     }
 

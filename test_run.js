@@ -184,6 +184,45 @@ async function runTest() {
         const editorRes = await axios.get(`${baseUrl}/editor`);
         assert("GET /editor serves Studio HTML", editorRes.status === 200 && editorRes.data.includes("Zonbay Reseller Studio"));
 
+        // Test 15: POST /api/save-edited-image (Canvas edited image disk persistence)
+        const sampleBase64 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=";
+        const saveImgRes = await axios.post(`${baseUrl}/api/save-edited-image`, {
+            dataUrl: sampleBase64,
+            filename: "test_edited_photo"
+        });
+        assert("Save edited image POST /api/save-edited-image returns 200", saveImgRes.status === 200 && saveImgRes.data.success);
+        assert("Save edited image creates file on disk", fs.existsSync(saveImgRes.data.localPath));
+        const hostedImgRes = await axios.get(saveImgRes.data.hostedUrl);
+        assert("Static route serves saved edited image via HTTP", hostedImgRes.status === 200);
+
+        // Test 16: CSV Exporter preserves public URL when photos are edited via Canvas
+        const mockEditedProduct = {
+            title: "MOTOPOWER MP00205A 12V 800mA Fully Automatic Battery Charger",
+            price: "24.99",
+            imageList: [
+                {
+                    url: sampleBase64, // Edited canvas data URL
+                    originalUrl: "https://m.media-amazon.com/images/I/71xyz.jpg",
+                    isHero: true,
+                    isExcluded: false,
+                    isEdited: true
+                },
+                {
+                    url: "https://m.media-amazon.com/images/I/81abc.jpg",
+                    originalUrl: "https://m.media-amazon.com/images/I/81abc.jpg",
+                    isHero: false,
+                    isExcluded: false,
+                    isEdited: false
+                }
+            ]
+        };
+        const editedCsv = generateEbayCsvString(mockEditedProduct);
+        assert("CSV Exporter excludes data URLs and falls back to public CDN", editedCsv.includes("https://m.media-amazon.com/images/I/71xyz.jpg") && !editedCsv.includes("data:image"));
+
+        // Test 17: GET /editor.js serves updated Studio logic
+        const editorJsRes = await axios.get(`${baseUrl}/editor.js`);
+        assert("GET /editor.js contains photo download and toast helpers", editorJsRes.status === 200 && editorJsRes.data.includes("downloadEditedImage") && editorJsRes.data.includes("showToast"));
+
     } catch (err) {
         console.error("❌ Unexpected test exception:", err.message);
         testsFailed++;

@@ -1,4 +1,5 @@
 node_modules/
 ebay_tokens.json
+downloads/
 .DS_Store
 Thumbs.db

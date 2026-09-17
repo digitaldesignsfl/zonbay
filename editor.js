@@ -159,16 +159,29 @@ function applyLoadedProduct(data) {
     document.getElementById('descriptionEditor').value = product.longDescription || '';
 
     // Images
-    const rawImgs = Array.isArray(product.alternateImages) && product.alternateImages.length > 0
-        ? product.alternateImages
-        : (product.mainImgUrl ? [product.mainImgUrl] : []);
+    if (Array.isArray(product.imageList) && product.imageList.length > 0) {
+        imageList = product.imageList.map(img => ({
+            url: img.url,
+            originalUrl: img.originalUrl || img.url,
+            isHero: Boolean(img.isHero),
+            isExcluded: Boolean(img.isExcluded),
+            isEdited: Boolean(img.isEdited || (typeof img.url === 'string' && img.url.startsWith('data:'))),
+            hostedUrl: img.hostedUrl || null
+        }));
+    } else {
+        const rawImgs = Array.isArray(product.alternateImages) && product.alternateImages.length > 0
+            ? product.alternateImages
+            : (product.mainImgUrl ? [product.mainImgUrl] : []);
 
-    imageList = rawImgs.map((url, idx) => ({
-        url: url,
-        originalUrl: url,
-        isHero: idx === 0,
-        isExcluded: false
-    }));
+        imageList = rawImgs.map((url, idx) => ({
+            url: url,
+            originalUrl: url,
+            isHero: idx === 0,
+            isExcluded: false,
+            isEdited: typeof url === 'string' && url.startsWith('data:'),
+            hostedUrl: null
+        }));
+    }
 
     renderPhotoGrid();
     renderSpecificsTable();
@@ -194,10 +207,12 @@ function renderPhotoGrid() {
 
         card.innerHTML = `
             ${img.isHero ? '<div class="hero-badge">⭐ HERO</div>' : ''}
+            ${img.isEdited ? '<div class="edited-badge" title="Image adjustments applied">✨ EDITED</div>' : ''}
             <img src="${img.url}" class="photo-thumb" alt="Product Image" data-index="${idx}">
             <div class="photo-toolbar">
                 <button class="btn-icon btn-hero" data-index="${idx}" title="Set as Hero / Main Photo">⭐</button>
                 <button class="btn-icon btn-edit" data-index="${idx}" title="Edit Brightness/Contrast">🎨</button>
+                ${img.isEdited ? `<button class="btn-icon btn-download" data-index="${idx}" title="Download Edited JPG to Computer">📥</button>` : ''}
                 <button class="btn-icon btn-exclude" data-index="${idx}" title="${img.isExcluded ? 'Include Photo' : 'Exclude Photo'}">
                     ${img.isExcluded ? '➕' : '❌'}
                 </button>
@@ -228,12 +243,43 @@ function renderPhotoGrid() {
         });
     });
 
+    container.querySelectorAll('.btn-download').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const idx = parseInt(e.target.dataset.index);
+            downloadEditedImage(idx);
+        });
+    });
+
     container.querySelectorAll('.photo-thumb').forEach(thumb => {
         thumb.addEventListener('click', (e) => {
             const idx = parseInt(e.target.dataset.index);
             openPhotoEditor(idx);
         });
     });
+}
+
+function downloadEditedImage(index) {
+    const img = imageList[index];
+    if (!img) return;
+    const a = document.createElement('a');
+    a.href = img.url;
+    a.download = `edited-product-photo-${index + 1}.jpg`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showToast(`📥 Downloaded photo #${index + 1} to your computer!`);
+}
+
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toastBanner');
+    if (!toast) return;
+    toast.innerText = message;
+    toast.style.background = (type === 'error') ? '#dc3545' : '#28a745';
+    toast.style.display = 'block';
+    clearTimeout(window.toastTimer);
+    window.toastTimer = setTimeout(() => {
+        toast.style.display = 'none';
+    }, 3500);
 }
 
 function setHeroImage(index) {
@@ -453,6 +499,7 @@ function compileCurrentProduct() {
 
         mainImgUrl: heroImg ? heroImg.url : '',
         alternateImages: alternateImgs,
+        imageList: imageList,
         bulletPoints: bullets,
         productSpecs: specs,
         longDescription: document.getElementById('descriptionEditor').value.trim()
@@ -612,13 +659,36 @@ function setupEventListeners() {
         document.getElementById('photoEditorModal').style.display = 'none';
     });
 
-    document.getElementById('applyPhotoEditsBtn').addEventListener('click', () => {
+    document.getElementById('applyPhotoEditsBtn').addEventListener('click', async () => {
         const canvas = document.getElementById('editorCanvas');
         const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
         if (activeImageIndex !== null && imageList[activeImageIndex]) {
-            imageList[activeImageIndex].url = dataUrl;
+            const targetImg = imageList[activeImageIndex];
+            targetImg.url = dataUrl;
+            targetImg.dataUrl = dataUrl;
+            targetImg.isEdited = true;
+
+            // Attempt saving to local server disk if server is running
+            try {
+                const filename = `item_${product.sourceId || 'draft'}_img${activeImageIndex + 1}_${Date.now()}`;
+                const res = await fetch('http://localhost:3000/api/save-edited-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ dataUrl, filename })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.hostedUrl) {
+                        targetImg.hostedUrl = data.hostedUrl;
+                    }
+                }
+            } catch (err) {
+                // Offline fallback - keeps dataUrl intact
+            }
+
             renderPhotoGrid();
             triggerAutoSave();
+            showToast("✨ Photo brightness and adjustments saved to draft!");
         }
         document.getElementById('photoEditorModal').style.display = 'none';
     });

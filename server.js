@@ -8,7 +8,8 @@ const { appendHistory, getHistory } = require('./logger');
 const app = express();
 const PORT = 3000;
 
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use('/images', express.static(path.join(__dirname, 'downloads')));
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -210,6 +211,30 @@ app.post('/api/export-custom-csv', (req, res) => {
     } catch (err) {
         appendHistory('ERROR', { endpoint: '/api/export-custom-csv', message: err.message });
         res.status(400).json({ error: err.message });
+    }
+});
+
+app.post('/api/save-edited-image', (req, res) => {
+    try {
+        const { dataUrl, filename } = req.body;
+        if (!dataUrl || !dataUrl.startsWith('data:image')) {
+            return res.status(400).json({ error: "Invalid image data format." });
+        }
+        const base64Data = dataUrl.replace(/^data:image\/\w+;base64,/, "");
+        const buffer = Buffer.from(base64Data, 'base64');
+        const editedDir = path.join(__dirname, 'downloads', 'edited');
+        if (!fs.existsSync(editedDir)) {
+            fs.mkdirSync(editedDir, { recursive: true });
+        }
+        const safeName = (filename || `edited_${Date.now()}`).replace(/[^a-zA-Z0-9_-]/g, '_') + '.jpg';
+        const targetPath = path.join(editedDir, safeName);
+        fs.writeFileSync(targetPath, buffer);
+        const hostedUrl = `http://localhost:3000/images/edited/${safeName}`;
+        res.status(200).json({ success: true, localPath: targetPath, hostedUrl });
+    } catch (err) {
+        console.error("Save edited image error:", err.message);
+        appendHistory('ERROR', { endpoint: '/api/save-edited-image', message: err.message });
+        res.status(500).json({ error: err.message });
     }
 });
 

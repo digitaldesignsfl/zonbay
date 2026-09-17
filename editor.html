@@ -221,6 +221,39 @@
       font-weight: bold;
       padding: 2px 6px;
       border-radius: 4px;
+      z-index: 2;
+    }
+    .edited-badge {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: #28a745;
+      color: white;
+      font-size: 10px;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 4px;
+      z-index: 2;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .toast-banner {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #28a745;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 13px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      z-index: 9999;
+      display: none;
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     /* Policy Controls Section */
@@ -680,7 +713,7 @@
         <button id="applyPhotoEditsBtn" class="btn btn-success">💾 Save & Apply to Listing</button>
       </div>
     </div>
-  </div>
+  <div id="toastBanner" class="toast-banner"></div>
 
   <script src="exporters/ebay-csv.js"></script>
   <script src="editor.js"></script>
