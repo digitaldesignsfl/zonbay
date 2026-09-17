@@ -162,6 +162,28 @@ async function runTest() {
         assert("Temu CSV contains clean SKU", temuCsv.includes('TEMU-601099'));
         assert("Temu CSV includes HTML description with specs", temuCsv.includes('Cordless Screwdriver'));
 
+        // Test 13: Dynamic Policy Configuration in CSV Exporter
+        const mockPolicyItem = {
+            title: "Heavy Duty Power Inverter 1000W Pure Sine Wave",
+            price: "129.00",
+            shippingService: "FedExHomeDelivery",
+            shippingCost: "9.99",
+            shippingType: "Flat",
+            dispatchTimeMax: "1",
+            location: "Miami, FL 33101",
+            immediatePayRequired: "1",
+            returnsAcceptedOption: "ReturnsAccepted"
+        };
+        const policyCsv = generateEbayCsvString(mockPolicyItem);
+        assert("CSV reflects custom shipping service", policyCsv.includes("FedExHomeDelivery"));
+        assert("CSV reflects custom shipping cost", policyCsv.includes("9.99"));
+        assert("CSV reflects custom handling time", policyCsv.includes(",1,ReturnsAccepted"));
+        assert("CSV reflects custom item location", policyCsv.includes("Miami, FL 33101"));
+
+        // Test 14: GET /editor (Full-Screen Reseller Studio route)
+        const editorRes = await axios.get(`${baseUrl}/editor`);
+        assert("GET /editor serves Studio HTML", editorRes.status === 200 && editorRes.data.includes("Zonbay Reseller Studio"));
+
     } catch (err) {
         console.error("❌ Unexpected test exception:", err.message);
         testsFailed++;

@@ -105,12 +105,22 @@ function generateEbayCsvString(product) {
     const category = product.categoryId || '67779'; // default safe electronics/supplies or user-selected
     const descriptionHtml = product.htmlDescription || buildEbayDescriptionHtml(product);
 
+    const conditionId = product.conditionId || '1000';
+    const quantity = product.quantity ? String(product.quantity) : '1';
+    const immediatePay = product.immediatePayRequired !== undefined ? String(product.immediatePayRequired) : (product.immediatePay !== undefined ? String(product.immediatePay) : '1');
+    const location = product.location || 'United States';
+    const shippingType = product.shippingType || 'Flat';
+    const shippingService = product.shippingService || 'USPSGroundAdvantage';
+    const shippingCost = product.shippingCost !== undefined ? String(product.shippingCost).replace(/[^0-9.]/g, '') : '0.00';
+    const dispatchTime = product.dispatchTimeMax !== undefined ? String(product.dispatchTimeMax) : (product.shippingPolicy?.handlingTimeDays !== undefined ? String(product.shippingPolicy.handlingTimeDays) : '3');
+    const returnsAccepted = product.returnsAcceptedOption || (product.returnPolicy?.returnsAccepted ? 'ReturnsAccepted' : 'ReturnsNotAccepted');
+
     const row = [
         'Add',
         sku,
         category,
         cleanTitle,
-        '1000', // Brand New
+        conditionId,
         brand,
         mpn,
         type,
@@ -121,14 +131,14 @@ function generateEbayCsvString(product) {
         'FixedPrice',
         'GTC',
         price,
-        '1',
-        '1',
-        'United States',
-        'Flat',
-        'USPSGroundAdvantage',
-        '0.00',
-        '3',
-        'ReturnsNotAccepted'
+        quantity,
+        immediatePay,
+        location,
+        shippingType,
+        shippingService,
+        shippingCost,
+        dispatchTime,
+        returnsAccepted
     ];
 
     const rows = [

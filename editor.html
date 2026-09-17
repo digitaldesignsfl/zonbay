@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zonbay Reseller Studio - Full Listing Editor</title>
+  <style>
+    :root {
+      --primary: #0046af;
+      --primary-dark: #002c77;
+      --secondary: #0064d2;
+      --success: #28a745;
+      --danger: #dc3545;
+      --warning: #ffc107;
+      --dark: #212529;
+      --light: #f8f9fa;
+      --border: #dee2e6;
+      --card-bg: #ffffff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f4f6f9;
+      color: var(--dark);
+      line-height: 1.5;
+    }
+
+    /* Top Sticky Header */
+    header.studio-header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .badge-source {
+      background: rgba(255,255,255,0.2);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+    }
+    .btn-light { background: white; color: var(--primary); }
+    .btn-light:hover { background: #e9ecef; }
+    .btn-outline-light { background: transparent; border-color: rgba(255,255,255,0.6); color: white; }
+    .btn-outline-light:hover { background: rgba(255,255,255,0.1); }
+    .btn-success { background: var(--success); color: white; }
+    .btn-success:hover { background: #218838; }
+    .btn-primary { background: var(--secondary); color: white; }
+    .btn-primary:hover { background: #0053b3; }
+    .btn-sm { padding: 4px 10px; font-size: 11px; }
+
+    /* Layout */
+    .studio-container {
+      max-width: 1400px;
+      margin: 20px auto;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: 460px 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 1024px) {
+      .studio-container { grid-template-columns: 1fr; }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 0 0 16px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    /* Form Controls */
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #495057;
+      margin-bottom: 4px;
+    }
+    .label-meta {
+      float: right;
+      font-weight: normal;
+      color: #6c757d;
+      font-size: 11px;
+    }
+    input[type="text"], input[type="number"], select, textarea {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: 13px;
+      color: var(--dark);
+      background: white;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--secondary);
+      box-shadow: 0 0 0 2px rgba(0,100,210,0.15);
+    }
+    .form-row {
+      display: flex;
+      gap: 12px;
+    }
+    .form-col {
+      flex: 1;
+    }
+
+    /* Photo Grid Studio */
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .photo-card {
+      position: relative;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      background: white;
+      transition: border-color 0.15s;
+    }
+    .photo-card.is-hero {
+      border-color: #ff9800;
+      box-shadow: 0 0 0 1px #ff9800;
+    }
+    .photo-card.is-excluded {
+      opacity: 0.35;
+      filter: grayscale(80%);
+    }
+    .photo-thumb {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      display: block;
+      cursor: pointer;
+    }
+    .photo-toolbar {
+      padding: 4px 6px;
+      background: #f8f9fa;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+    .btn-icon {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 2px 4px;
+      font-size: 13px;
+      border-radius: 3px;
+    }
+    .btn-icon:hover { background: #e2e6ea; }
+    .hero-badge {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      background: #ff9800;
+      color: white;
+      font-size: 10px;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* Policy Controls Section */
+    .policy-box {
+      background: #f1f5fa;
+      border-left: 4px solid var(--primary);
+      padding: 16px;
+      border-radius: 0 6px 6px 0;
+      margin-bottom: 16px;
+    }
+    .policy-box-title {
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 10px;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Profit Dashboard */
+    .profit-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      background: #f8f9fa;
+      padding: 14px;
+      border-radius: 6px;
+      margin-top: 12px;
+      text-align: center;
+    }
+    .profit-stat-val {
+      font-size: 16px;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+    .text-success { color: var(--success); }
+    .text-danger { color: var(--danger); }
+
+    /* Specifics Table */
+    .specifics-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .specifics-table th, .specifics-table td {
+      padding: 6px 8px;
+      border: 1px solid var(--border);
+    }
+    .specifics-table th {
+      background: #f8f9fa;
+      text-align: left;
+      width: 35%;
+    }
+
+    /* Photo Editor Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    .modal-dialog {
+      background: white;
+      width: 900px;
+      max-width: 95vw;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      max-height: 90vh;
+    }
+    .modal-header {
+      padding: 14px 20px;
+      background: var(--primary);
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+    }
+    .modal-body {
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 20px;
+      overflow-y: auto;
+    }
+    .canvas-container {
+      background: #1e1e1e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      min-height: 400px;
+      overflow: hidden;
+    }
+    canvas#editorCanvas {
+      max-width: 100%;
+      max-height: 460px;
+      object-fit: contain;
+    }
+    .slider-group {
+      margin-bottom: 16px;
+    }
+    .slider-group label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    .modal-footer {
+      padding: 12px 20px;
+      background: #f8f9fa;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sticky Top Actions Bar -->
+  <header class="studio-header">
+    <div class="header-left">
+      <div class="header-title">⚡ Zonbay Reseller Studio</div>
+      <div id="sourcePlatformBadge" class="badge-source">Checking Source...</div>
+      <span id="saveStatus" style="font-size: 11px; opacity: 0.85;">Draft ready</span>
+    </div>
+    <div class="header-actions">
+      <button id="saveDraftBtn" class="btn btn-outline-light btn-sm">💾 Save Draft</button>
+      <button id="syncServerBtn" class="btn btn-outline-light btn-sm">🔄 Sync to Server</button>
+      <button id="exportCsvBtn" class="btn btn-light">📥 Download eBay CSV</button>
+      <button id="autoUploadBtn" class="btn btn-success">⚡ 1-Click Upload to eBay</button>
+    </div>
+  </header>
+
+  <div class="studio-container">
+
+    <!-- LEFT COLUMN: Media & Photos Studio -->
+    <div class="studio-left">
+      
+      <!-- Photos Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>🖼️ Photo Studio (<span id="photoCountDisplay">0</span>)</span>
+          <div style="display:flex; gap:6px;">
+            <button id="selectAllPhotosBtn" class="btn btn-sm btn-light">Select All</button>
+            <button id="deselectAllPhotosBtn" class="btn btn-sm btn-light">Clear</button>
+          </div>
+        </div>
+        <p style="font-size: 12px; color: #6c757d; margin: 0 0 10px 0;">
+          ⭐ Star to set hero photo. ❌ to exclude supplier watermarks. 🎨 to adjust brightness/contrast.
+        </p>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <input type="text" id="newPhotoUrlInput" placeholder="Paste extra image URL (https://...)">
+          <button id="addPhotoBtn" class="btn btn-sm btn-primary" style="white-space:nowrap;">+ Add</button>
+        </div>
+
+        <div class="photo-grid" id="photoGridContainer">
+          <!-- Dynamically populated photo cards -->
+        </div>
+      </div>
+
+      <!-- Scraped Source Data Summary -->
+      <div class="card">
+        <div class="card-title">🔍 Original Sourcing Metadata</div>
+        <div class="form-group">
+          <label>Original Source URL</label>
+          <input type="text" id="sourceUrlDisplay" readonly style="background:#e9ecef; font-size:11px;">
+        </div>
+        <div class="form-row">
+          <div class="form-col">
+            <label>Source Item ID / ASIN</label>
+            <input type="text" id="sourceIdDisplay" readonly style="background:#e9ecef;">
+          </div>
+          <div class="form-col">
+            <label>Scraped Raw Cost</label>
+            <input type="text" id="sourceCostDisplay" readonly style="background:#e9ecef;">
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: Listing Configuration, Policies & Specifics -->
+    <div class="studio-right">
+
+      <!-- Title & Category Card -->
+      <div class="card">
+        <div class="card-title">📝 Listing Title & Classification</div>
+
+        <div class="form-group">
+          <label>
+            eBay Listing Title (Max 80 Characters)
+            <span id="titleCounter" class="label-meta">0 / 80</span>
+          </label>
+          <input type="text" id="listingTitle" maxlength="80" placeholder="High ranking search title...">
+          <div style="display: flex; gap: 8px; margin-top: 6px;">
+            <button id="cleanTitleBtn" class="btn btn-sm btn-light">🧹 Strip Supplier Fluff</button>
+            <button id="capitalizeTitleBtn" class="btn btn-sm btn-light">🔠 Title Case</button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-col">
+            <label>eBay Category</label>
+            <select id="listingCategory">
+              <option value="67779">Power Strips & Surge Protectors (#67779)</option>
+              <option value="179471">Automotive Battery Chargers (#179471)</option>
+              <option value="184655">Cordless Drills & Tools (#184655)</option>
+              <option value="172008">Consumer Electronics (#172008)</option>
+              <option value="11700">Home & Garden (#11700)</option>
+              <option value="custom">-- Custom Category ID --</option>
+            </select>
+            <input type="text" id="customCategoryId" placeholder="Enter eBay Category ID" style="display:none; margin-top:6px;">
+          </div>
+          <div class="form-col">
+            <label>Custom SKU / Inventory Label</label>
+            <input type="text" id="customSku" placeholder="e.g. BIN4-AMZ-01">
+          </div>
+          <div class="form-col">
+            <label>Item Condition</label>
+            <select id="listingCondition">
+              <option value="1000" selected>1000 - Brand New</option>
+              <option value="1500">1500 - New other (see details)</option>
+              <option value="2000">2000 - Certified Refurbished</option>
+              <option value="3000">3000 - Used</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- eBay Policy Controls Card (Core Focus) -->
+      <div class="card">
+        <div class="card-title">🛡️ eBay Store Policies (Shipping, Payment & Returns)</div>
+
+        <!-- Shipping Policy Box -->
+        <div class="policy-box">
+          <div class="policy-box-title">🚚 Shipping Policy & Fulfillment</div>
+          <div class="form-row">
+            <div class="form-col">
+              <label>Shipping Carrier Service</label>
+              <select id="shippingService">
+                <option value="USPSGroundAdvantage" selected>USPS Ground Advantage (2-5 business days)</option>
+                <option value="USPSPriority">USPS Priority Mail (1-3 business days)</option>
+                <option value="USPSPriorityFlatRateEnvelope">USPS Priority Flat Rate Envelope</option>
+                <option value="UPSGround">UPS Ground (1-5 business days)</option>
+                <option value="FedExHomeDelivery">FedEx Home Delivery</option>
+              </select>
+            </div>
+            <div class="form-col" style="flex: 0 0 160px;">
+              <label>Shipping Type</label>
+              <select id="shippingType">
+                <option value="Flat" selected>Flat Rate</option>
+                <option value="Free">Free Shipping</option>
+              </select>
+            </div>
+            <div class="form-col" style="flex: 0 0 130px;">
+              <label>Shipping Cost ($)</label>
+              <input type="number" id="shippingCost" value="0.00" step="0.01">
+            </div>
+          </div>
+
+          <div class="form-row" style="margin-top: 10px;">
+            <div class="form-col">
+              <label>Handling Time (*DispatchTimeMax)</label>
+              <select id="dispatchTimeMax">
+                <option value="0">0 Business Days (Same Day Handling)</option>
+                <option value="1">1 Business Day</option>
+                <option value="2">2 Business Days</option>
+                <option value="3" selected>3 Business Days (Standard)</option>
+                <option value="5">5 Business Days</option>
+              </select>
+            </div>
+            <div class="form-col">
+              <label>Item Location (*Location: City, State, Zip)</label>
+              <input type="text" id="itemLocation" value="United States" placeholder="e.g. Miami, FL 33101">
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment & Return Policy Box -->
+        <div class="form-row">
+          <!-- Payment Policy -->
+          <div class="form-col policy-box" style="margin-bottom:0;">
+            <div class="policy-box-title">💳 Payment Policy</div>
+            <label>Immediate Payment Required</label>
+            <select id="immediatePayRequired">
+              <option value="1" selected>1 - Required (Eliminates non-paying buyers)</option>
+              <option value="0">0 - Optional</option>
+            </select>
+          </div>
+
+          <!-- Return Policy -->
+          <div class="form-col policy-box" style="margin-bottom:0;">
+            <div class="policy-box-title">🔄 Return Policy</div>
+            <label>Returns Accepted</label>
+            <select id="returnsAcceptedOption">
+              <option value="ReturnsAccepted">Returns Accepted (Boosts search rank)</option>
+              <option value="ReturnsNotAccepted" selected>Returns Not Accepted (All sales final)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pricing & Profit Engine Card -->
+      <div class="card">
+        <div class="card-title">💰 Pricing, Margins & Fee Calculation</div>
+        <div class="form-row" style="align-items: center;">
+          <div class="form-col">
+            <label>Target Profit Markup</label>
+            <select id="marginSelect">
+              <option value="20">+20% Markup</option>
+              <option value="35">+35% Markup</option>
+              <option value="40" selected>+40% Markup</option>
+              <option value="50">+50% Markup</option>
+              <option value="75">+75% Markup</option>
+              <option value="100">+100% (2x Sourcing Cost)</option>
+            </select>
+          </div>
+          <div class="form-col">
+            <label>eBay Listing Price ($)</label>
+            <input type="number" id="listingPrice" step="0.01" style="font-size:16px; font-weight:bold;">
+          </div>
+          <div class="form-col">
+            <label>Quantity Available</label>
+            <input type="number" id="listingQuantity" value="1" min="1">
+          </div>
+        </div>
+
+        <!-- Financial Summary Bar -->
+        <div class="profit-stats">
+          <div>
+            <label style="margin:0;">Sourcing Cost</label>
+            <div id="statCost" class="profit-stat-val">$0.00</div>
+          </div>
+          <div>
+            <label style="margin:0;">Sale Price</label>
+            <div id="statPrice" class="profit-stat-val">$0.00</div>
+          </div>
+          <div>
+            <label style="margin:0;">Est. eBay Fees (13.25% + $0.30)</label>
+            <div id="statFee" class="profit-stat-val text-danger">-$0.00</div>
+          </div>
+          <div>
+            <label style="margin:0;">Est. Net Profit</label>
+            <div id="statNetProfit" class="profit-stat-val text-success">+$0.00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Item Specifics Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>🏷️ Item Specifics (eBay Filters)</span>
+          <button id="addSpecificBtn" class="btn btn-sm btn-light">+ Add Specific</button>
+        </div>
+        <table class="specifics-table" id="specificsTable">
+          <thead>
+            <tr>
+              <th>Specific Name</th>
+              <th>Specific Value</th>
+              <th style="width: 40px;"></th>
+            </tr>
+          </thead>
+          <tbody id="specificsTbody">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Description & Features Card -->
+      <div class="card">
+        <div class="card-title">📄 Product Overview & Features</div>
+        
+        <div class="form-group">
+          <label>Feature Bullet Points (One per line)</label>
+          <textarea id="bulletsEditor" rows="5" placeholder="Bullet 1&#10;Bullet 2"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Long Description / Product Narrative</label>
+          <textarea id="descriptionEditor" rows="6" placeholder="Detailed product narrative..."></textarea>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- In-Browser Canvas Photo Editor Modal -->
+  <div class="modal-overlay" id="photoEditorModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <span>🎨 Zonbay Photo Editor Studio</span>
+        <button id="closeModalBtn" class="btn-icon" style="color:white; font-size:18px;">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="canvas-container">
+          <canvas id="editorCanvas"></canvas>
+        </div>
+        <div class="editor-controls">
+          <h4 style="margin: 0 0 14px 0; color: var(--primary);">Photo Adjustments</h4>
+
+          <div class="slider-group">
+            <label>
+              <span>Brightness</span>
+              <span id="brightnessVal">0%</span>
+            </label>
+            <input type="range" id="brightnessSlider" min="-100" max="100" value="0">
+          </div>
+
+          <div class="slider-group">
+            <label>
+              <span>Contrast</span>
+              <span id="contrastVal">0%</span>
+            </label>
+            <input type="range" id="contrastSlider" min="-100" max="100" value="0">
+          </div>
+
+          <div class="slider-group">
+            <label>
+              <span>Saturation</span>
+              <span id="saturationVal">100%</span>
+            </label>
+            <input type="range" id="saturationSlider" min="0" max="200" value="100">
+          </div>
+
+          <div style="margin-bottom: 16px;">
+            <label>Orientation</label>
+            <div style="display: flex; gap: 8px;">
+              <button id="rotateLeftBtn" class="btn btn-sm btn-light" style="flex:1;">↺ Rotate Left</button>
+              <button id="rotateRightBtn" class="btn btn-sm btn-light" style="flex:1;">↻ Rotate Right</button>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 16px;">
+            <button id="whitenBgBtn" class="btn btn-sm btn-primary" style="width:100%;">✨ Whiten Background</button>
+          </div>
+
+          <div>
+            <button id="resetAdjustmentsBtn" class="btn btn-sm btn-light" style="width:100%;">🔄 Reset to Original</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="cancelModalBtn" class="btn btn-light">Cancel</button>
+        <button id="applyPhotoEditsBtn" class="btn btn-success">💾 Save & Apply to Listing</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="exporters/ebay-csv.js"></script>
+  <script src="editor.js"></script>
+</body>
+</html>

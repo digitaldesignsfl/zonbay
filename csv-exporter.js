@@ -75,7 +75,7 @@ function convertProductToCsvRow(packageData, rawData = {}) {
     }
     const rawTitle = (packageData.title || rawData.title || 'Product');
     const title = (category ? rawTitle : `[REVIEW CATEGORY] ${rawTitle}`).substring(0, 80);
-    const conditionId = '1000'; // Brand New
+    const conditionId = packageData.conditionId || '1000';
     const brand = getSpecificValue(specifics, ['Brand', 'Manufacturer'], 'Unbranded');
     const mpn = getSpecificValue(specifics, ['MPN', 'Item model number', 'Model Number'], 'Does Not Apply');
     const type = getSpecificValue(specifics, ['Type', 'Product Type'], '');
@@ -86,14 +86,14 @@ function convertProductToCsvRow(packageData, rawData = {}) {
     const format = 'FixedPrice';
     const duration = 'GTC';
     const price = packageData.price ? String(packageData.price).replace(/[^0-9.]/g, '') : '0.00';
-    const quantity = '1';
-    const immediatePay = '1';
-    const location = 'United States';
-    const shippingType = 'Flat';
-    const shippingService = 'USPSGroundAdvantage';
-    const shippingCost = '0.00';
-    const dispatchTime = packageData.shippingPolicy?.handlingTimeDays || 3;
-    const returnsAccepted = packageData.returnPolicy?.returnsAccepted ? 'ReturnsAccepted' : 'ReturnsNotAccepted';
+    const quantity = packageData.quantity ? String(packageData.quantity) : '1';
+    const immediatePay = packageData.immediatePayRequired !== undefined ? String(packageData.immediatePayRequired) : (packageData.immediatePay !== undefined ? String(packageData.immediatePay) : '1');
+    const location = packageData.location || 'United States';
+    const shippingType = packageData.shippingType || 'Flat';
+    const shippingService = packageData.shippingService || 'USPSGroundAdvantage';
+    const shippingCost = packageData.shippingCost !== undefined ? String(packageData.shippingCost).replace(/[^0-9.]/g, '') : '0.00';
+    const dispatchTime = packageData.dispatchTimeMax !== undefined ? String(packageData.dispatchTimeMax) : (packageData.shippingPolicy?.handlingTimeDays !== undefined ? String(packageData.shippingPolicy.handlingTimeDays) : '3');
+    const returnsAccepted = packageData.returnsAcceptedOption || (packageData.returnPolicy?.returnsAccepted ? 'ReturnsAccepted' : 'ReturnsNotAccepted');
 
     const rowValues = [
         action,

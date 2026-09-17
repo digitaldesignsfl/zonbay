@@ -207,7 +207,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         return catSelect.value;
     }
 
-    // 4. Download CSV Action
+    // 4. Open Full-Screen Reseller Studio
+    document.getElementById('openStudioBtn').addEventListener('click', async () => {
+        if (!currentProduct) {
+            showStatus("Please extract a product first.", "error");
+            return;
+        }
+
+        const titleVal = document.getElementById('listingTitle').value.trim();
+        const priceVal = document.getElementById('listingPrice').value.trim();
+        const categoryId = getSelectedCategoryId();
+
+        const payload = {
+            ...currentProduct,
+            title: titleVal,
+            price: priceVal,
+            categoryId: categoryId
+        };
+
+        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+            await chrome.storage.local.set({ lastScrapedProduct: payload });
+            await chrome.tabs.create({ url: 'editor.html' });
+        } else {
+            window.open('http://localhost:3000/editor', '_blank');
+        }
+    });
+
+    // 5. Download CSV Action
     document.getElementById('downloadCsvBtn').addEventListener('click', () => {
         if (!currentProduct) {
             showStatus("Please extract a product first.", "error");

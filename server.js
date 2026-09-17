@@ -22,6 +22,16 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+app.get('/editor', (req, res) => {
+    res.sendFile(path.join(__dirname, 'editor.html'));
+});
+
+app.get('/editor.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'editor.js'));
+});
+
+app.use('/exporters', express.static(path.join(__dirname, 'exporters')));
+
 let mockStoreDatabase = [
     { itemId: 'v1-29472940294-0', title: '12V 6A Smart Battery Charger Trickle Maintainer Car Motorcycle Marine AGM', price: '34.99' },
     { itemId: 'v1-84027502941-0', title: 'Surge Protector Power Strip - Tower 12 Outlets, 6 USB Ports, 6ft Extension Cord', price: '24.95' },
