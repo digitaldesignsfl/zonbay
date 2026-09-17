@@ -10,6 +10,7 @@
     "upload-images": "node upload-images.js"
   },
   "dependencies": {
+    "@modelcontextprotocol/server-filesystem": "^2026.8.31",
     "axios": "^1.20.0",
     "express": "^5.2.1",
     "form-data": "^4.0.6"
