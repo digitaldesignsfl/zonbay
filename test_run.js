@@ -223,6 +223,70 @@ async function runTest() {
         const editorJsRes = await axios.get(`${baseUrl}/editor.js`);
         assert("GET /editor.js contains photo download and toast helpers", editorJsRes.status === 200 && editorJsRes.data.includes("downloadEditedImage") && editorJsRes.data.includes("showToast"));
 
+        // Test 18: GET /cleaner.js and GET /templates.js
+        const cleanerRes = await axios.get(`${baseUrl}/cleaner.js`);
+        assert("GET /cleaner.js returns 200", cleanerRes.status === 200 && cleanerRes.data.includes("ZonbayCleaner"));
+        const templatesRes = await axios.get(`${baseUrl}/templates.js`);
+        assert("GET /templates.js returns 200", templatesRes.status === 200 && templatesRes.data.includes("renderStorefrontShowcase"));
+
+        // Test 19: ZonbayCleaner Unit Tests (Clutter purge & normalization)
+        const { cleanProductData, getSpecificPriority } = require('./cleaner');
+        const dirtyMockItem = {
+            title: "MOTOPOWER MP00205A 12V 800mA Automatic Battery Charger Prime Sale New 2026",
+            brand: "MOTOPOWER",
+            productSpecs: {
+                "ASIN": "B06XWDZ2KQ",
+                "Best Sellers Rank": "#176 in Automotive",
+                "Customer Reviews": "4.5 out of 5 stars (16,611) var dpAcrHasRegisteredArcLinkClickAction; P.when('A', 'ready').execute...",
+                "Date First Available": "January 15, 2021",
+                "Item model number": "MP00205A",
+                "Amperage": "800 milliamps",
+                "Color": "Black"
+            },
+            bulletPoints: [
+                "Desulfates and maintains 12V lead-acid batteries",
+                "100% money back guarantee if not satisfied",
+                "Spark proof and reverse polarity protected"
+            ],
+            longDescription: "Product Overview\\n\\nMP00205A MX1000 Add to Cart Buying Options Customer Reviews 4.5 out of 5 stars 16,611 Price $13.47\\n\\nReal features of the charger."
+        };
+        const cleanedMock = cleanProductData(dirtyMockItem);
+        assert("Cleaner purges Customer Reviews and JS", !cleanedMock.productSpecs['Customer Reviews']);
+        assert("Cleaner purges Best Sellers Rank", !cleanedMock.productSpecs['Best Sellers Rank']);
+        assert("Cleaner removes ASIN from specifics", !cleanedMock.productSpecs['ASIN']);
+        assert("Cleaner maps Item model number to MPN", cleanedMock.productSpecs['MPN'] === 'MP00205A');
+        assert("Cleaner purges spam words from title", !cleanedMock.title.toLowerCase().includes('prime') && !cleanedMock.title.includes('2026'));
+        assert("Cleaner purges money back guarantee from bullets", cleanedMock.bulletPoints.length === 2);
+        assert("Cleaner strips comparison matrix and Add to Cart from description", !cleanedMock.longDescription.includes('Add to Cart'));
+
+        // Test 20: Taxonomy priority tiers
+        assert("Brand is essential priority", getSpecificPriority('Brand') === 'essential');
+        assert("MPN is essential priority", getSpecificPriority('MPN') === 'essential');
+        assert("Type is essential priority", getSpecificPriority('Type') === 'essential');
+        assert("Voltage is recommended priority", getSpecificPriority('Voltage') === 'recommended');
+        assert("Color is recommended priority", getSpecificPriority('Color') === 'recommended');
+
+        // Test 21: ZonbayTemplates Storefront Showcase (User's Preferred Layout)
+        const { renderStorefrontShowcase } = require('./templates');
+        const customStoreConfig = {
+            storeName: "Digital Designs Florida",
+            storeUrl: "https://www.ebay.com/str/digitaldesignsfl",
+            storeTagline: "Top Rated Plus • Same Day Shipping • Quality Guaranteed"
+        };
+        const templateHtml = renderStorefrontShowcase(cleanedMock, customStoreConfig);
+        assert("Template includes Header Showcase Banner", templateHtml.includes("<!-- ZONBAY STOREFRONT SHOWCASE TEMPLATE -->") && templateHtml.includes("MOTOPOWER"));
+        assert("Template includes Product Overview & Practical Usage", templateHtml.includes("Product Overview & Practical Usage"));
+        assert("Template includes Item Specifics & Technical Details", templateHtml.includes("Item Specifics & Technical Details"));
+        assert("Template includes What's In The Box", templateHtml.includes("What's In The Box"));
+        assert("Template includes Store Showcase Footer Ad with custom store name", templateHtml.includes("Digital Designs Florida") && templateHtml.includes("https://www.ebay.com/str/digitaldesignsfl"));
+
+        // Test 22: CSV Export reflects rendered Template in Description
+        const csvWithTemplate = generateEbayCsvString({
+            ...cleanedMock,
+            htmlDescription: templateHtml
+        });
+        assert("CSV exporter incorporates Storefront Showcase HTML in *Description", csvWithTemplate.includes("ZONBAY STOREFRONT SHOWCASE TEMPLATE") && csvWithTemplate.includes("Digital Designs Florida"));
+
     } catch (err) {
         console.error("❌ Unexpected test exception:", err.message);
         testsFailed++;

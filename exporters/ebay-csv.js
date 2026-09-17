@@ -14,6 +14,18 @@ function escapeCsvField(val) {
 }
 
 function buildEbayDescriptionHtml(item) {
+    if (item.htmlDescription && typeof item.htmlDescription === 'string' && item.htmlDescription.trim().length > 50) {
+        return item.htmlDescription;
+    }
+    if (typeof ZonbayTemplates !== 'undefined' && ZonbayTemplates.renderStorefrontShowcase) {
+        return ZonbayTemplates.renderStorefrontShowcase(item, item.storeConfig || {});
+    }
+    if (typeof require !== 'undefined') {
+        try {
+            const { renderStorefrontShowcase } = require('../templates');
+            return renderStorefrontShowcase(item, item.storeConfig || {});
+        } catch (e) {}
+    }
     const title = item.title || 'Product Details';
     const bullets = Array.isArray(item.bulletPoints) ? item.bulletPoints : [];
     const specs = item.productSpecs || {};

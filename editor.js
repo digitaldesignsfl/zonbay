@@ -104,7 +104,11 @@ async function loadInitialData() {
 }
 
 function applyLoadedProduct(data) {
-    product = { ...product, ...data };
+    if (typeof ZonbayCleaner !== 'undefined') {
+        product = ZonbayCleaner.cleanProductData({ ...product, ...data });
+    } else {
+        product = { ...product, ...data };
+    }
 
     // Badge
     const badge = document.getElementById('sourcePlatformBadge');
@@ -153,10 +157,32 @@ function applyLoadedProduct(data) {
     if (product.immediatePayRequired !== undefined) document.getElementById('immediatePayRequired').value = product.immediatePayRequired;
     if (product.returnsAcceptedOption) document.getElementById('returnsAcceptedOption').value = product.returnsAcceptedOption;
 
-    // Bullets & Description
+    // Bullets & Description / Template
     const bullets = Array.isArray(product.bulletPoints) ? product.bulletPoints : [];
     document.getElementById('bulletsEditor').value = bullets.join('\n');
-    document.getElementById('descriptionEditor').value = product.longDescription || '';
+
+    if (product.storeConfig) {
+        if (product.storeConfig.storeName && document.getElementById('storeNameInput')) {
+            document.getElementById('storeNameInput').value = product.storeConfig.storeName;
+        }
+        if (product.storeConfig.storeUrl && document.getElementById('storeUrlInput')) {
+            document.getElementById('storeUrlInput').value = product.storeConfig.storeUrl;
+        }
+    }
+    if (product.templateStyle && document.getElementById('templateStyleSelect')) {
+        document.getElementById('templateStyleSelect').value = product.templateStyle;
+    }
+
+    let desc = product.htmlDescription || product.longDescription || '';
+    if ((!desc || !desc.includes('<!-- ZONBAY')) && typeof ZonbayTemplates !== 'undefined') {
+        const storeConfig = {
+            storeName: document.getElementById('storeNameInput') ? document.getElementById('storeNameInput').value.trim() : 'Our Official Store',
+            storeUrl: document.getElementById('storeUrlInput') ? document.getElementById('storeUrlInput').value.trim() : 'https://www.ebay.com/usr'
+        };
+        const templateKey = document.getElementById('templateStyleSelect') ? document.getElementById('templateStyleSelect').value : 'storefront_showcase';
+        desc = ZonbayTemplates.renderEbayTemplate(templateKey, product, storeConfig);
+    }
+    document.getElementById('descriptionEditor').value = desc;
 
     // Images
     if (Array.isArray(product.imageList) && product.imageList.length > 0) {
@@ -388,16 +414,45 @@ function renderSpecificsTable() {
     tbody.innerHTML = '';
 
     const specs = product.productSpecs || {};
-    // Ensure standard keys exist
     if (!specs['Brand']) specs['Brand'] = product.brand || 'Unbranded';
     if (!specs['MPN']) specs['MPN'] = 'Does Not Apply';
 
-    Object.entries(specs).forEach(([k, v]) => {
+    // Sort keys: Essential first, Recommended second, Others third
+    const keys = Object.keys(specs).sort((a, b) => {
+        const prioA = typeof ZonbayCleaner !== 'undefined' ? ZonbayCleaner.getSpecificPriority(a) : 'optional';
+        const prioB = typeof ZonbayCleaner !== 'undefined' ? ZonbayCleaner.getSpecificPriority(b) : 'optional';
+
+        const weight = { 'essential': 1, 'recommended': 2, 'optional': 3 };
+        const diff = (weight[prioA] || 3) - (weight[prioB] || 3);
+        if (diff !== 0) return diff;
+        return a.localeCompare(b);
+    });
+
+    keys.forEach(k => {
+        const v = specs[k];
+        const prio = typeof ZonbayCleaner !== 'undefined' ? ZonbayCleaner.getSpecificPriority(k) : 'optional';
         const tr = document.createElement('tr');
+        
+        let rowClass = '';
+        let badgeHtml = '';
+        if (prio === 'essential') {
+            rowClass = 'spec-row-essential';
+            badgeHtml = `<span class="spec-badge spec-badge-essential" title="Essential requirement for eBay listings">⭐ ESSENTIAL</span>`;
+        } else if (prio === 'recommended') {
+            rowClass = 'spec-row-recommended';
+            badgeHtml = `<span class="spec-badge spec-badge-recommended" title="Recommended filter field on eBay">⭐ RECOMMENDED</span>`;
+        }
+        
+        tr.className = rowClass;
         tr.innerHTML = `
-            <td><input type="text" class="spec-key" value="${escapeHtml(k)}"></td>
+            <td>
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                    <input type="text" class="spec-key" value="${escapeHtml(k)}" style="flex:1;">
+                    ${badgeHtml}
+                </div>
+            </td>
             <td><input type="text" class="spec-val" value="${escapeHtml(String(v))}"></td>
-            <td><button class="btn-icon delete-spec-btn">❌</button></td>
+            <td><button class="btn-icon delete-spec-btn" title="Delete specific">❌</button></td>
         `;
         tbody.appendChild(tr);
     });
@@ -502,7 +557,13 @@ function compileCurrentProduct() {
         imageList: imageList,
         bulletPoints: bullets,
         productSpecs: specs,
-        longDescription: document.getElementById('descriptionEditor').value.trim()
+        longDescription: document.getElementById('descriptionEditor').value.trim(),
+        htmlDescription: document.getElementById('descriptionEditor').value.trim(),
+        templateStyle: document.getElementById('templateStyleSelect') ? document.getElementById('templateStyleSelect').value : 'storefront_showcase',
+        storeConfig: {
+            storeName: document.getElementById('storeNameInput') ? document.getElementById('storeNameInput').value.trim() : 'Our Official Store',
+            storeUrl: document.getElementById('storeUrlInput') ? document.getElementById('storeUrlInput').value.trim() : 'https://www.ebay.com/usr'
+        }
     };
 }
 
@@ -573,12 +634,85 @@ function setupEventListeners() {
         triggerAutoSave();
     });
 
-    // Policy change triggers auto-save
-    ['shippingService', 'shippingType', 'shippingCost', 'dispatchTimeMax', 'itemLocation', 'immediatePayRequired', 'returnsAcceptedOption', 'listingCondition', 'customSku', 'listingQuantity', 'bulletsEditor', 'descriptionEditor']
+    // Policy & Template changes trigger auto-save
+    ['shippingService', 'shippingType', 'shippingCost', 'dispatchTimeMax', 'itemLocation', 'immediatePayRequired', 'returnsAcceptedOption', 'listingCondition', 'customSku', 'listingQuantity', 'bulletsEditor', 'descriptionEditor', 'templateStyleSelect', 'storeNameInput', 'storeUrlInput']
         .forEach(id => {
             const el = document.getElementById(id);
-            if (el) el.addEventListener('input', triggerAutoSave);
+            if (el) {
+                el.addEventListener('input', triggerAutoSave);
+                el.addEventListener('change', triggerAutoSave);
+            }
         });
+
+    // Clutter cleaner button
+    const cleanBtn = document.getElementById('cleanClutterBtn');
+    if (cleanBtn) {
+        cleanBtn.addEventListener('click', () => {
+            if (typeof ZonbayCleaner !== 'undefined') {
+                const current = compileCurrentProduct();
+                const cleaned = ZonbayCleaner.cleanProductData(current);
+                product.productSpecs = cleaned.productSpecs;
+                product.bulletPoints = cleaned.bulletPoints;
+                product.title = cleaned.title;
+                document.getElementById('listingTitle').value = cleaned.title;
+                document.getElementById('bulletsEditor').value = cleaned.bulletPoints.join('\n');
+                renderSpecificsTable();
+                updateTitleCounter();
+                triggerAutoSave();
+                showToast("🧹 Clutter removed: Amazon junk purged & eBay specifics prioritized!");
+            }
+        });
+    }
+
+    // AI Revise & Apply Template button
+    const aiBtn = document.getElementById('aiReviseBtn');
+    if (aiBtn) {
+        aiBtn.addEventListener('click', () => {
+            if (typeof ZonbayTemplates !== 'undefined') {
+                const current = compileCurrentProduct();
+                const storeConfig = {
+                    storeName: document.getElementById('storeNameInput') ? document.getElementById('storeNameInput').value.trim() : 'Our Official Store',
+                    storeUrl: document.getElementById('storeUrlInput') ? document.getElementById('storeUrlInput').value.trim() : 'https://www.ebay.com/usr'
+                };
+                const templateStyle = document.getElementById('templateStyleSelect') ? document.getElementById('templateStyleSelect').value : 'storefront_showcase';
+                const revisedHtml = ZonbayTemplates.renderEbayTemplate(templateStyle, current, storeConfig);
+                document.getElementById('descriptionEditor').value = revisedHtml;
+                triggerAutoSave();
+                showToast("🤖 AI-revised listing template generated & applied!");
+            }
+        });
+    }
+
+    // Buyer Live Preview Modal
+    const previewBtn = document.getElementById('previewBuyerBtn');
+    if (previewBtn) {
+        previewBtn.addEventListener('click', () => {
+            let currentHtml = document.getElementById('descriptionEditor').value.trim();
+            if ((!currentHtml || !currentHtml.includes('<!-- ZONBAY')) && typeof ZonbayTemplates !== 'undefined') {
+                const current = compileCurrentProduct();
+                const storeConfig = {
+                    storeName: document.getElementById('storeNameInput') ? document.getElementById('storeNameInput').value.trim() : 'Our Official Store',
+                    storeUrl: document.getElementById('storeUrlInput') ? document.getElementById('storeUrlInput').value.trim() : 'https://www.ebay.com/usr'
+                };
+                const templateStyle = document.getElementById('templateStyleSelect') ? document.getElementById('templateStyleSelect').value : 'storefront_showcase';
+                currentHtml = ZonbayTemplates.renderEbayTemplate(templateStyle, current, storeConfig);
+                document.getElementById('descriptionEditor').value = currentHtml;
+            }
+            const container = document.getElementById('buyerPreviewContainer');
+            if (container) container.innerHTML = currentHtml;
+            const modal = document.getElementById('buyerPreviewModal');
+            if (modal) modal.style.display = 'flex';
+        });
+    }
+
+    const closePrevBtn = document.getElementById('closePreviewBtn');
+    if (closePrevBtn) closePrevBtn.addEventListener('click', () => {
+        document.getElementById('buyerPreviewModal').style.display = 'none';
+    });
+    const closePrevFooter = document.getElementById('closePreviewFooterBtn');
+    if (closePrevFooter) closePrevFooter.addEventListener('click', () => {
+        document.getElementById('buyerPreviewModal').style.display = 'none';
+    });
 
     // Photo additions & selections
     document.getElementById('addPhotoBtn').addEventListener('click', () => {

@@ -96,7 +96,15 @@ function convertProductToCsvRow(packageData, rawData = {}) {
     const model = getSpecificValue(specifics, ['Model', 'Item model number'], '');
     const color = getSpecificValue(specifics, ['Color'], '');
     const picUrl = resolvePublicImages(packageData, rawData);
-    const description = packageData.htmlDescription || rawData.longDescription || `<p>${title}</p>`;
+    let description = packageData.htmlDescription;
+    if (!description || description.length < 50) {
+        try {
+            const { renderStorefrontShowcase } = require('./templates');
+            description = renderStorefrontShowcase({ ...rawData, ...packageData });
+        } catch (e) {
+            description = rawData.longDescription || `<p>${title}</p>`;
+        }
+    }
     const format = 'FixedPrice';
     const duration = 'GTC';
     const price = packageData.price ? String(packageData.price).replace(/[^0-9.]/g, '') : '0.00';

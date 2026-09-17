@@ -31,6 +31,14 @@ app.get('/editor.js', (req, res) => {
     res.sendFile(path.join(__dirname, 'editor.js'));
 });
 
+app.get('/cleaner.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'cleaner.js'));
+});
+
+app.get('/templates.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'templates.js'));
+});
+
 app.use('/exporters', express.static(path.join(__dirname, 'exporters')));
 
 let mockStoreDatabase = [

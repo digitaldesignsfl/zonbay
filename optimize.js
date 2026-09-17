@@ -78,19 +78,21 @@ function detectEbayCategory(titleText = '') {
     return { id: '', name: 'NEEDS_MANUAL_CATEGORY', verified: false };
 }
 
+const { cleanProductData } = require('./cleaner');
+const { renderStorefrontShowcase } = require('./templates');
+
 function mapItemSpecifics(specs = {}) {
-    const ebaySpecifics = [];
-    const mappingGuide = { 'Brand': 'Brand', 'Item model number': 'MPN', 'Model Number': 'MPN', 'Color': 'Color' };
-    for (const [amazonKey, value] of Object.entries(specs || {})) {
-        const ebayKey = mappingGuide[amazonKey] || amazonKey;
-        ebaySpecifics.push({ name: ebayKey, value: String(value) });
-    }
-    return ebaySpecifics;
+    const cleaned = cleanProductData({ productSpecs: specs }).productSpecs;
+    return Object.entries(cleaned).map(([name, value]) => ({ name, value: String(value) }));
 }
 
-function generateHtmlDescription(title, bullets = [], longDesc = '') {
-    let bulletListhtml = (bullets || []).map(b => `<li>${b}</li>`).join('');
-    return `<div style="font-family: Arial, sans-serif; padding: 20px;"><h1 style="color:#333;">${title}</h1>${bulletListhtml ? `<h3>Features</h3><ul>${bulletListhtml}</ul>` : ''}<h3>Description</h3><p>${longDesc || 'No extended description provided.'}</p></div>`;
+function generateHtmlDescription(title, bullets = [], longDesc = '', specs = {}) {
+    return renderStorefrontShowcase({
+        title,
+        bulletPoints: bullets,
+        longDescription: longDesc,
+        productSpecs: specs
+    });
 }
 
 async function processProduct() {
@@ -110,7 +112,8 @@ async function processProduct() {
             return null;
         }
 
-        const rawTitle = rawData.title || "Product";
+        const cleaned = cleanProductData(rawData);
+        const rawTitle = cleaned.title || "Product";
         const folderId = rawTitle.substring(0, 10).replace(/[^a-zA-Z0-9]/g, "_") || "item";
         
         // Support alternateImages array or fallback to mainImgUrl
@@ -122,16 +125,23 @@ async function processProduct() {
         }
 
         const downloadedImages = await downloadImages(candidateImages, folderId);
-        const optimizedTitle = optimizeTitle(rawTitle, rawData.productSpecs);
+        const optimizedTitle = optimizeTitle(rawTitle, cleaned.productSpecs);
         const cat = detectEbayCategory(optimizedTitle);
+        const htmlDesc = renderStorefrontShowcase({
+            ...cleaned,
+            title: optimizedTitle
+        }, {
+            storeName: rawData.storeName || 'Official Seller Store',
+            storeUrl: rawData.storeUrl || 'https://www.ebay.com/usr'
+        });
 
         const optimizedPackage = {
             title: optimizedTitle,
             categoryId: cat.id,
             categoryName: cat.name,
             price: rawData.price ? String(rawData.price).replace(/[^0-9.]/g, '') : "0.00",
-            itemSpecifics: mapItemSpecifics(rawData.productSpecs),
-            htmlDescription: generateHtmlDescription(optimizedTitle, rawData.bulletPoints, rawData.longDescription),
+            itemSpecifics: Object.entries(cleaned.productSpecs).map(([name, value]) => ({ name, value: String(value) })),
+            htmlDescription: htmlDesc,
             localImages: downloadedImages,
             shippingPolicy: { type: "Standard", handlingTimeDays: 3, cost: 0.00 },
             returnPolicy: { returnsAccepted: false },

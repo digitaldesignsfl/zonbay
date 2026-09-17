@@ -308,6 +308,40 @@
       text-align: left;
       width: 35%;
     }
+    .spec-row-essential {
+      background: #fffdf5;
+      border-left: 3px solid #ff9800 !important;
+    }
+    .spec-row-essential input.spec-key {
+      font-weight: 700;
+      color: #b25e00;
+    }
+    .spec-row-recommended {
+      background: #f8faff;
+      border-left: 3px solid #0064d2 !important;
+    }
+    .spec-row-recommended input.spec-key {
+      font-weight: 600;
+      color: #0046af;
+    }
+    .spec-badge {
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 5px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      margin-left: 4px;
+    }
+    .spec-badge-essential {
+      background: #ff9800;
+      color: white;
+    }
+    .spec-badge-recommended {
+      background: #0064d2;
+      color: white;
+    }
 
     /* Photo Editor Modal */
     .modal-overlay {
@@ -619,8 +653,14 @@
       <div class="card">
         <div class="card-title">
           <span>🏷️ Item Specifics (eBay Filters)</span>
-          <button id="addSpecificBtn" class="btn btn-sm btn-light">+ Add Specific</button>
+          <div style="display:flex; gap:6px;">
+            <button id="cleanClutterBtn" class="btn btn-sm btn-primary" title="Purge Amazon/Temu clutter and prioritize eBay specifics">🧹 Auto-Clean Clutter</button>
+            <button id="addSpecificBtn" class="btn btn-sm btn-light">+ Add Specific</button>
+          </div>
         </div>
+        <p style="font-size: 11px; color: #6c757d; margin: 0 0 10px 0;">
+          <span class="spec-badge spec-badge-essential">⭐ ESSENTIAL</span> and <span class="spec-badge spec-badge-recommended">⭐ RECOMMENDED</span> specifics are prioritized below to maximize your eBay search visibility.
+        </p>
         <table class="specifics-table" id="specificsTable">
           <thead>
             <tr>
@@ -637,16 +677,40 @@
 
       <!-- Description & Features Card -->
       <div class="card">
-        <div class="card-title">📄 Product Overview & Features</div>
-        
-        <div class="form-group">
-          <label>Feature Bullet Points (One per line)</label>
-          <textarea id="bulletsEditor" rows="5" placeholder="Bullet 1&#10;Bullet 2"></textarea>
+        <div class="card-title">
+          <span>📄 Listing Template & Buyer Presentation</span>
+          <div style="display:flex; gap:8px;">
+            <button id="aiReviseBtn" class="btn btn-sm btn-success">🤖 AI Revise & Apply Template</button>
+            <button id="previewBuyerBtn" class="btn btn-sm btn-light">👁️ Live Buyer Preview</button>
+          </div>
+        </div>
+
+        <div class="form-row" style="margin-bottom: 14px;">
+          <div class="form-col" style="flex: 1.2;">
+            <label>eBay Listing Template Style</label>
+            <select id="templateStyleSelect">
+              <option value="storefront_showcase" selected>🌟 Storefront Showcase (Title, Usage, Specs, Box & Store Ad)</option>
+              <option value="modern_minimalist">✨ Modern Minimalist (Clean & Mobile Focused)</option>
+            </select>
+          </div>
+          <div class="form-col">
+            <label>Seller Store Name (Footer Banner)</label>
+            <input type="text" id="storeNameInput" placeholder="e.g. Precision Store" value="Our Official Store">
+          </div>
+          <div class="form-col">
+            <label>Store / Profile URL</label>
+            <input type="text" id="storeUrlInput" placeholder="https://www.ebay.com/usr/..." value="https://www.ebay.com/usr">
+          </div>
         </div>
 
         <div class="form-group">
-          <label>Long Description / Product Narrative</label>
-          <textarea id="descriptionEditor" rows="6" placeholder="Detailed product narrative..."></textarea>
+          <label>Feature Bullet Points (One per line)</label>
+          <textarea id="bulletsEditor" rows="4" placeholder="Bullet 1&#10;Bullet 2"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Compiled eBay HTML Description</label>
+          <textarea id="descriptionEditor" rows="7" placeholder="Detailed product narrative or compiled HTML..."></textarea>
         </div>
       </div>
 
@@ -713,8 +777,28 @@
         <button id="applyPhotoEditsBtn" class="btn btn-success">💾 Save & Apply to Listing</button>
       </div>
     </div>
+  </div>
+
+  <!-- Live Buyer Preview Modal -->
+  <div class="modal-overlay" id="buyerPreviewModal">
+    <div class="modal-dialog" style="width: 1020px; max-width: 95vw; height: 88vh;">
+      <div class="modal-header">
+        <span>👁️ Live Buyer View Preview (Simulated eBay Listing)</span>
+        <button id="closePreviewBtn" class="btn-icon" style="color:white; font-size:20px; cursor:pointer;">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 24px; overflow-y: auto; background: #f8f9fa; display: block;">
+        <div id="buyerPreviewContainer" style="max-width: 960px; margin: 0 auto;"></div>
+      </div>
+      <div class="modal-footer">
+        <button id="closePreviewFooterBtn" class="btn btn-light">Close Preview</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toastBanner" class="toast-banner"></div>
 
+  <script src="cleaner.js"></script>
+  <script src="templates.js"></script>
   <script src="exporters/ebay-csv.js"></script>
   <script src="editor.js"></script>
 </body>
