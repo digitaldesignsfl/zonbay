@@ -2,300 +2,833 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>eBay Listing & Management Control Center</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zonbay - Reseller & Dropshipper Control Center</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        header { background: #0046af; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
-        .tab-btn { padding: 10px 20px; background: #e9ecef; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        .tab-btn.active { background: #0046af; color: white; }
+        :root {
+            --primary: #0046af;
+            --primary-dark: #002c77;
+            --secondary: #0064d2;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --dark: #212529;
+            --light: #f8f9fa;
+            --border: #dee2e6;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+            color: var(--dark);
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 18px 24px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .header-title h2 { margin: 0; font-size: 22px; display: flex; align-items: center; gap: 8px; }
+        .header-title p { margin: 4px 0 0 0; opacity: 0.85; font-size: 13px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 10px; flex-wrap: wrap; }
+        .tab-btn {
+            padding: 10px 18px;
+            background: #e9ecef;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .tab-btn:hover { background: #dde2e6; }
+        .tab-btn.active { background: var(--primary); color: white; }
         .view-panel { display: none; }
         .view-panel.active { display: block; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
         .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-        label { font-weight: bold; display: block; margin-bottom: 5px; color: #555; }
-        input[type="text"], textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; margin-bottom: 15px; }
-        textarea { height: 180px; }
+        @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+        label { font-weight: 600; display: block; margin-bottom: 5px; color: #495057; font-size: 13px; }
+        input[type="text"], input[type="number"], select, textarea {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 14px;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 2px rgba(0,100,210,0.15);
+        }
+        textarea { height: 140px; font-family: inherit; }
         .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
-        .gallery img { width: 100%; border-radius: 4px; height: 100px; object-fit: cover; }
-        .btn { background: #28a745; color: white; border: none; padding: 12px 20px; border-radius: 4px; font-size: 16px; cursor: pointer; font-weight: bold; }
-        .btn-blue { background: #0046af; }
-        .inventory-list { display: flex; flex-direction: column; gap: 15px; }
-        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 6px; }
-        .item-info h4 { margin: 0 0 5px 0; color: #222; }
-        .item-info p { margin: 0; color: #666; font-size: 13px; }
+        .gallery img { width: 100%; border-radius: 6px; height: 100px; object-fit: cover; border: 1px solid #ddd; }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: opacity 0.15s ease;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn-blue { background: var(--primary); }
+        .btn-secondary { background: var(--secondary); }
+        .btn-outline { background: white; border: 1px solid #ced4da; color: var(--dark); }
+        .btn-danger { background: var(--danger); }
+        .btn-sm { padding: 6px 12px; font-size: 11px; }
+
+        /* Metric Cards */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .metric-card {
+            background: white;
+            padding: 16px 18px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+        }
+        .metric-title { font-size: 12px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; }
+        .metric-value { font-size: 24px; font-weight: 700; color: var(--dark); margin-top: 6px; }
+        .metric-sub { font-size: 11px; color: #6c757d; margin-top: 4px; }
+        .text-green { color: var(--success) !important; }
+        .text-blue { color: var(--primary) !important; }
+
+        /* Inventory Filter Bar */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .toolbar-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+        /* Inventory Table */
+        .inventory-table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+        .inventory-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            font-size: 13px;
+        }
+        .inventory-table th {
+            background: #f8f9fa;
+            color: #495057;
+            font-weight: 700;
+            text-align: left;
+            padding: 12px 14px;
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+        .inventory-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        .inventory-table tr:hover { background: #fbfcfe; }
+        .item-thumb {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            background: #f8f9fa;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .badge-live { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .badge-approved { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .badge-draft { background: #e2e3e5; color: #383d41; border: 1px solid #d6d8db; }
+        .badge-platform {
+            background: #eef4ff;
+            color: var(--primary);
+            border: 1px solid #d4e2ff;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .modal-box {
+            background: white;
+            border-radius: 10px;
+            width: 580px;
+            max-width: 92vw;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            overflow: hidden;
+        }
+        .modal-header {
+            background: var(--primary);
+            color: white;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+        }
+        .modal-body { padding: 20px; }
+        .modal-footer {
+            padding: 12px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h2>📦 eBay Automated Control Center</h2>
+            <div class="header-title">
+                <h2>⚡ Zonbay Reseller & Dropshipper Control Center</h2>
+                <p>📦 eBay Automated Control Center: All-in-one multi-platform import/export, store inventory syncer, and direct eBay publisher</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary" onclick="window.open('/editor', '_blank')">🖥️ Open Reseller Studio</button>
+            </div>
         </header>
 
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchView('scraperPanel')">➕ Scrape & Optimize</button>
+            <button class="tab-btn active" onclick="switchView('inventoryPanel')">📦 Inventory Base & Store Tracker</button>
+            <button class="tab-btn" onclick="switchView('scraperPanel')">➕ Sourced Product Optimizer</button>
             <button class="tab-btn" onclick="switchView('manualPanel')">✍️ Manual Product Entry</button>
-            <button class="tab-btn" onclick="switchView('inventoryPanel')">🏪 Live eBay Listings</button>
-            <button class="tab-btn" onclick="switchView('historyPanel')">📜 History Ledger</button>
-            <button class="tab-btn" style="background:#0046af; color:white;" onclick="window.open('/editor', '_blank')">🖥️ Open Full-Screen Studio</button>
+            <button class="tab-btn" onclick="switchView('historyPanel')">📜 Activity Ledger</button>
         </div>
 
-        <div id="scraperPanel" class="view-panel active">
+        <!-- 1. INVENTORY BASE & STORE TRACKER PANEL -->
+        <div id="inventoryPanel" class="view-panel active">
+            <!-- Business Metrics -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <span class="metric-title">Total Products / SKUs</span>
+                    <span class="metric-value text-blue" id="statTotalItems">0</span>
+                    <span class="metric-sub" id="statLiveCount">0 Live on eBay</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-title">Capital Invested</span>
+                    <span class="metric-value" id="statTotalCost">$0.00</span>
+                    <span class="metric-sub">Total inventory cost</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-title">Potential Revenue</span>
+                    <span class="metric-value" id="statTotalValue">$0.00</span>
+                    <span class="metric-sub">Retail storefront value</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-title">Projected Net Profit</span>
+                    <span class="metric-value text-green" id="statTotalProfit">$0.00</span>
+                    <span class="metric-sub" id="statAvgMargin">Margin: 0.0%</span>
+                </div>
+            </div>
+
+            <!-- Toolbar & Controls -->
+            <div class="card" style="padding: 16px 20px;">
+                <div class="toolbar">
+                    <div class="toolbar-group">
+                        <input type="text" id="inventorySearchInput" placeholder="🔍 Search title, SKU, or Item ID..." style="width: 260px; margin-bottom: 0;">
+                        <select id="filterPlatformSelect" style="width: 160px; margin-bottom: 0;">
+                            <option value="ALL">All Platforms</option>
+                            <option value="eBay Store">eBay Store</option>
+                            <option value="Amazon">Amazon</option>
+                            <option value="Temu">Temu</option>
+                            <option value="Manual Entry">Manual Entry</option>
+                        </select>
+                        <select id="filterStatusSelect" style="width: 160px; margin-bottom: 0;">
+                            <option value="ALL">All Statuses</option>
+                            <option value="LIVE_ON_EBAY">🟢 Live on eBay</option>
+                            <option value="APPROVED">🟡 Approved</option>
+                            <option value="DRAFT">⚪ Draft</option>
+                        </select>
+                    </div>
+                    <div class="toolbar-group">
+                        <button class="btn btn-blue btn-sm" onclick="openEbaySyncModal()">🔄 Sync eBay Store</button>
+                        <button class="btn btn-outline btn-sm" onclick="openCsvImportModal()">📁 Import eBay CSV</button>
+                        <button class="btn btn-sm" onclick="switchView('manualPanel')">➕ New Product</button>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="inventory-table-wrap">
+                    <table class="inventory-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 60px;">Photo</th>
+                                <th>Product Details & SKU</th>
+                                <th>Platform</th>
+                                <th>Qty</th>
+                                <th>Cost</th>
+                                <th>Price</th>
+                                <th>Net Profit</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryTableBody">
+                            <tr>
+                                <td colspan="9" style="text-align: center; padding: 30px; color: #6c757d;">
+                                    Loading inventory database...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. SOURCED PRODUCT OPTIMIZER PANEL -->
+        <div id="scraperPanel" class="view-panel">
             <div class="grid">
                 <div class="card">
-                    <h3>📝 Optimize Scraped Product Details</h3>
-                    <label>eBay Title</label>
+                    <h3>📝 Optimize Sourced Product</h3>
+                    <label>Listing Title</label>
                     <input type="text" id="ebayTitle">
-                    <label>Auto-Detected eBay Category</label>
+                    <label>Detected Category</label>
                     <input type="text" id="ebayCategory" readonly style="background:#e9ecef;">
                     <label>Target Price ($)</label>
                     <input type="text" id="ebayPrice" style="width: 150px;">
-                    <label>Product HTML Description</label>
+                    <label>HTML Description</label>
                     <textarea id="ebayDesc"></textarea>
                     <div style="display: flex; gap: 10px; margin-top: 10px;">
                         <button class="btn" id="loadDataBtn">🔄 Load Last Scraped</button>
-                        <button class="btn" style="background:#0064d2;" id="exportCsvBtn">📥 Export to eBay Seller Hub CSV</button>
+                        <button class="btn btn-secondary" id="exportCsvBtn">📥 Export CSV</button>
+                        <button class="btn btn-blue" onclick="window.open('/editor', '_blank')">🖥️ Open in Studio</button>
                     </div>
                 </div>
                 <div>
                     <div class="card">
-                        <h3>🖼️ Image Gallery</h3>
+                        <h3>🖼️ Sourced Gallery</h3>
                         <div class="gallery" id="imageGallery"></div>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- 3. MANUAL PRODUCT ENTRY PANEL -->
         <div id="manualPanel" class="view-panel">
-            <div class="card">
+            <div class="card" style="max-width: 800px; margin: 0 auto;">
                 <h3>✍️ Enter Product Details Manually</h3>
-                <label>Raw Item Title</label>
-                <input type="text" id="manualTitle" placeholder="Generic Product Title">
-                <label>Item Price ($)</label>
-                <input type="text" id="manualPrice" placeholder="29.99" style="width: 150px;">
-                <label>Main Image URL</label>
-                <input type="text" id="manualImageUrl" placeholder="https://example.com">
+                <p style="font-size: 13px; color: #6c757d; margin-top: -10px; margin-bottom: 16px;">
+                    Directly saves to your inventory database with margin calculations and makes ready for 1-click eBay publishing.
+                </p>
+
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px;">
+                    <div>
+                        <label>Product Title</label>
+                        <input type="text" id="manualTitle" placeholder="e.g. 12V 6A Smart Battery Charger Trickle Maintainer">
+                    </div>
+                    <div>
+                        <label>Custom SKU (Optional)</label>
+                        <input type="text" id="manualSku" placeholder="e.g. SKU-BAT-01">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                    <div>
+                        <label>Sourcing Cost ($)</label>
+                        <input type="number" step="0.01" id="manualCost" placeholder="15.00">
+                    </div>
+                    <div>
+                        <label>Target Selling Price ($)</label>
+                        <input type="number" step="0.01" id="manualPrice" placeholder="29.99">
+                    </div>
+                    <div>
+                        <label>Stock Quantity</label>
+                        <input type="number" id="manualQty" value="1">
+                    </div>
+                </div>
+
+                <label>Main Photo URL (Direct image link)</label>
+                <input type="text" id="manualImageUrl" placeholder="https://example.com/image.jpg">
+
                 <label>Product Features / Bullets (One per line)</label>
-                <textarea id="manualBullets" placeholder="Feature 1\nFeature 2" style="height: 100px;"></textarea>
-                <label>Long Description / Product Overview</label>
-                <textarea id="manualDesc" placeholder="Enter details here..."></textarea>
+                <textarea id="manualBullets" placeholder="Microprocessor controlled charging
+Compatible with AGM, GEL, SLA batteries
+LCD display with voltage readout"></textarea>
+
+                <label>Detailed Description</label>
+                <textarea id="manualDesc" placeholder="Enter complete product description..."></textarea>
+
                 <div style="display: flex; gap: 10px; margin-top: 10px;">
-                    <button class="btn btn-blue" id="submitManualBtn">⚙️ Process and Compile to eBay Package</button>
-                    <button class="btn" style="background:#0064d2;" id="exportManualCsvBtn">📥 Export Manual Item as CSV</button>
+                    <button class="btn btn-blue" id="submitManualBtn">💾 Save to Inventory Database</button>
+                    <button class="btn btn-secondary" id="exportManualCsvBtn">📥 Export CSV</button>
                 </div>
             </div>
         </div>
 
-        <div id="inventoryPanel" class="view-panel">
-            <div class="card">
-                <h3>📋 Active eBay Inventory Storefront Manager</h3>
-                <div class="inventory-list" id="activeListingsContainer"></div>
-            </div>
-            <div class="card" id="editModal" style="display:none; border-top: 4px solid #0046af;">
-                <h3>✏️ Edit Live Listing: <span id="editingItemId" style="color:#0046af;"></span></h3>
-                <label>Listing Title</label>
-                <input type="text" id="editItemTitle">
-                <label>Listing Price ($)</label>
-                <input type="text" id="editItemPrice" style="width: 150px;">
-                <button class="btn btn-blue" id="pushEditsBtn">⚡ Push Edits Live to eBay</button>
-            </div>
-        </div>
-
+        <!-- 4. ACTIVITY LEDGER PANEL -->
         <div id="historyPanel" class="view-panel">
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3 style="margin: 0;">📜 Item History & Activity Ledger (history.log)</h3>
-                    <button class="btn btn-blue" onclick="fetchHistory()" style="padding: 8px 16px; font-size: 14px;">🔄 Refresh Ledger</button>
+                    <h3 style="margin: 0;">📜 Item History & Activity Ledger</h3>
+                    <button class="btn btn-blue btn-sm" onclick="fetchHistory()">🔄 Refresh Ledger</button>
                 </div>
-                <pre id="historyLogs" style="background: #1e1e1e; color: #4af626; padding: 15px; border-radius: 6px; overflow-x: auto; max-height: 450px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.5; white-space: pre-wrap; margin: 0;"></pre>
+                <pre id="historyLogs" style="background: #1e1e1e; color: #4af626; padding: 16px; border-radius: 6px; overflow-x: auto; max-height: 450px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.5; white-space: pre-wrap; margin: 0;"></pre>
             </div>
         </div>
     </div>
+
+    <!-- MODAL: EBAY STORE SYNC -->
+    <div class="modal-overlay" id="ebaySyncModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span>🔄 Sync eBay Store Inventory Listing by Listing</span>
+                <button onclick="closeEbaySyncModal()" style="background:none; border:none; color:white; font-size:18px; cursor:pointer;">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 13px; color: #495057; margin-top: 0;">
+                    Sync your entire active catalog from eBay into your unified inventory base to edit, re-price, and manage listings without using eBay's editor.
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
+                    <div style="border: 1px solid var(--border); border-radius: 8px; padding: 14px; background: #f8f9fa;">
+                        <h4 style="margin: 0 0 6px 0; color: var(--primary);">⚡ Method 1: 1-Click Seller Hub Sync (Extension)</h4>
+                        <p style="margin: 0 0 10px 0; font-size: 12px; color: #6c757d;">
+                            Opens your active listings in eBay Seller Hub. The Zonbay content script automatically extracts each active listing and transmits it to your database.
+                        </p>
+                        <button class="btn btn-blue btn-sm" onclick="triggerSellerHubSyncTab()">🚀 Open Seller Hub Active Listings</button>
+                    </div>
+
+                    <div style="border: 1px solid var(--border); border-radius: 8px; padding: 14px; background: #f8f9fa;">
+                        <h4 style="margin: 0 0 6px 0; color: var(--primary);">📁 Method 2: Import eBay Active Listings CSV Report</h4>
+                        <p style="margin: 0 0 10px 0; font-size: 12px; color: #6c757d;">
+                            Download your Active Listings report from Seller Hub Reports, then import it directly into Zonbay.
+                        </p>
+                        <button class="btn btn-outline btn-sm" onclick="closeEbaySyncModal(); openCsvImportModal();">📁 Import CSV File</button>
+                    </div>
+
+                    <div style="border: 1px solid var(--border); border-radius: 8px; padding: 14px; background: #f8f9fa;">
+                        <h4 style="margin: 0 0 6px 0; color: var(--primary);">🔑 Method 3: Official eBay API Direct Sync</h4>
+                        <p style="margin: 0 0 10px 0; font-size: 12px; color: #6c757d;">
+                            Fetches your store items directly via eBay Trading API (<code style="background:#e9ecef; padding:2px 4px;">GetMyeBaySelling</code>).
+                        </p>
+                        <button class="btn btn-secondary btn-sm" id="apiSyncBtn" onclick="triggerApiSync()">⚡ Execute API Sync</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeEbaySyncModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CSV IMPORT -->
+    <div class="modal-overlay" id="csvImportModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span>📁 Import eBay Active Listings CSV Report</span>
+                <button onclick="closeCsvImportModal()" style="background:none; border:none; color:white; font-size:18px; cursor:pointer;">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 13px; color: #495057; margin-top: 0;">
+                    Select or paste your exported eBay Seller Hub Active Listings CSV to import all listings into your database:
+                </p>
+                <input type="file" id="csvFileInput" accept=".csv,text/csv" style="margin-bottom: 12px;">
+                <label>Or Paste CSV Contents:</label>
+                <textarea id="csvTextarea" placeholder="Paste raw CSV text here..." style="height: 160px; font-family: monospace; font-size: 11px;"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeCsvImportModal()">Cancel</button>
+                <button class="btn btn-blue" id="submitCsvImportBtn" onclick="submitCsvImport()">📥 Ingest into Inventory Base</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_BASE = (window.location.protocol === 'file:' || !window.location.port) ? 'http://localhost:3000' : '';
-        let currentEditingId = null;
+        let allInventoryItems = [];
 
         function switchView(viewId) {
             document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
-            if (event && event.target) event.target.classList.add('active');
+            const target = document.getElementById(viewId);
+            if (target) target.classList.add('active');
+            if (event && event.target && event.target.classList.contains('tab-btn')) {
+                event.target.classList.add('active');
+            }
             if (viewId === 'inventoryPanel') { fetchLiveInventory(); }
             if (viewId === 'historyPanel') { fetchHistory(); }
         }
 
+        async function fetchLiveInventory() {
+            const tbody = document.getElementById('inventoryTableBody');
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 25px; color:#6c757d;">Fetching inventory items...</td></tr>';
+            try {
+                const res = await fetch(`${API_BASE}/api/inventory`);
+                const data = await res.json();
+                allInventoryItems = data.items || [];
+                renderInventoryStats(data.stats);
+                applyInventoryFilters();
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--danger); padding: 20px;">Failed connecting to server: ${err.message}</td></tr>`;
+            }
+        }
+
+        function renderInventoryStats(stats) {
+            if (!stats) return;
+            document.getElementById('statTotalItems').innerText = stats.totalItems || 0;
+            document.getElementById('statLiveCount').innerText = `${stats.liveCount || 0} Live on eBay | ${stats.approvedCount || 0} Approved`;
+            document.getElementById('statTotalCost').innerText = `$${stats.totalCost || '0.00'}`;
+            document.getElementById('statTotalValue').innerText = `$${stats.totalValue || '0.00'}`;
+            document.getElementById('statTotalProfit').innerText = `$${stats.totalProfit || '0.00'}`;
+            document.getElementById('statAvgMargin').innerText = `Avg Margin: ${stats.avgMargin || '0.0%'}`;
+        }
+
+        function applyInventoryFilters() {
+            const query = (document.getElementById('inventorySearchInput')?.value || '').toLowerCase().trim();
+            const platform = document.getElementById('filterPlatformSelect')?.value || 'ALL';
+            const status = document.getElementById('filterStatusSelect')?.value || 'ALL';
+
+            const filtered = allInventoryItems.filter(item => {
+                const matchesQuery = !query || 
+                    (item.title && item.title.toLowerCase().includes(query)) ||
+                    (item.id && String(item.id).toLowerCase().includes(query)) ||
+                    (item.sku && String(item.sku).toLowerCase().includes(query));
+
+                const matchesPlatform = (platform === 'ALL') || 
+                    (item.sourcePlatform && item.sourcePlatform.toLowerCase() === platform.toLowerCase());
+
+                const itemStatus = (item.status || 'DRAFT').toUpperCase();
+                const matchesStatus = (status === 'ALL') || (itemStatus === status);
+
+                return matchesQuery && matchesPlatform && matchesStatus;
+            });
+
+            renderInventoryTable(filtered);
+        }
+
+        function renderInventoryTable(items) {
+            const tbody = document.getElementById('inventoryTableBody');
+            if (!items || items.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 30px; color: #6c757d;">No matching listings found in inventory base.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = items.map(item => {
+                const img = item.mainImage || (item.productData && item.productData.mainImgUrl) || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="%23ccc"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>';
+                const status = (item.status || 'DRAFT').toUpperCase();
+                let badgeClass = 'badge-draft';
+                let badgeLabel = '⚪ DRAFT';
+                if (status === 'LIVE_ON_EBAY' || status === 'UPLOADED') {
+                    badgeClass = 'badge-live';
+                    badgeLabel = '🟢 LIVE ON EBAY';
+                } else if (status === 'APPROVED') {
+                    badgeClass = 'badge-approved';
+                    badgeLabel = '🟡 APPROVED';
+                }
+
+                const profitNum = parseFloat(item.estimatedProfit || 0);
+                const profitColor = profitNum >= 0 ? 'text-green' : 'var(--danger)';
+
+                const linkUrl = item.sourceUrl || (item.sellingPlatform === 'eBay' ? `https://www.ebay.com/itm/${item.sourceId || item.id}` : '#');
+
+                return `
+                    <tr>
+                        <td>
+                            <img src="${img}" class="item-thumb" alt="Product" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'50\' height=\'50\' fill=\'%23ccc\'><rect width=\'50\' height=\'50\'/></svg>'">
+                        </td>
+                        <td>
+                            <div style="font-weight: 600; max-width: 380px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <a href="${linkUrl}" target="_blank" style="color: var(--dark); text-decoration: none;" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</a>
+                            </div>
+                            <div style="font-size: 11px; color: #6c757d; margin-top: 3px;">
+                                <span>ID: <strong>${item.id}</strong></span> | <span>SKU: <strong>${item.sku || 'N/A'}</strong></span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge-platform">${item.sourcePlatform || 'Manual'}</span>
+                        </td>
+                        <td style="font-weight: 600;">${item.quantity || 1}</td>
+                        <td style="color: #6c757d;">$${parseFloat(item.costPrice || 0).toFixed(2)}</td>
+                        <td style="font-weight: 700; color: var(--primary);">$${parseFloat(item.sellingPrice || 0).toFixed(2)}</td>
+                        <td>
+                            <div style="font-weight: 700; color: ${profitColor};">${profitNum >= 0 ? '+' : ''}$${profitNum.toFixed(2)}</div>
+                            <div style="font-size: 11px; color: #6c757d;">${item.profitMarginPercent || '0.0'}%</div>
+                        </td>
+                        <td>
+                            <span class="badge ${badgeClass}">${badgeLabel}</span>
+                        </td>
+                        <td style="text-align: right; white-space: nowrap;">
+                            <button class="btn btn-blue btn-sm" onclick="openItemInStudio('${item.id}')" title="Edit in Full-Screen Studio">✏️ Edit</button>
+                            <button class="btn btn-secondary btn-sm" onclick="markItemLive('${item.id}')" title="Mark Live on eBay">🚀 Live</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteItem('${item.id}')" title="Remove from inventory">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function openItemInStudio(itemId) {
+            window.open(`/editor?id=${encodeURIComponent(itemId)}`, '_blank');
+        }
+
+        async function markItemLive(itemId) {
+            try {
+                const res = await fetch(`${API_BASE}/api/inventory/upload`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: itemId, method: 'Direct Confirm' })
+                });
+                if (!res.ok) throw new Error("Failed updating status");
+                fetchLiveInventory();
+            } catch (e) {
+                alert(e.message);
+            }
+        }
+
+        async function deleteItem(itemId) {
+            if (!confirm(`Are you sure you want to remove item ${itemId} from your inventory database?`)) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/inventory/${encodeURIComponent(itemId)}`, {
+                    method: 'DELETE'
+                });
+                if (!res.ok) throw new Error("Failed deleting item");
+                fetchLiveInventory();
+            } catch (e) {
+                alert(e.message);
+            }
+        }
+
+        // Modal Controls
+        function openEbaySyncModal() {
+            document.getElementById('ebaySyncModal').style.display = 'flex';
+        }
+        function closeEbaySyncModal() {
+            document.getElementById('ebaySyncModal').style.display = 'none';
+        }
+        function openCsvImportModal() {
+            document.getElementById('csvImportModal').style.display = 'flex';
+        }
+        function closeCsvImportModal() {
+            document.getElementById('csvImportModal').style.display = 'none';
+        }
+
+        function triggerSellerHubSyncTab() {
+            window.open('https://www.ebay.com/sh/lst/active', '_blank');
+            closeEbaySyncModal();
+        }
+
+        async function triggerApiSync() {
+            const btn = document.getElementById('apiSyncBtn');
+            btn.disabled = true;
+            btn.innerText = '⏳ Syncing via eBay API...';
+            try {
+                const res = await fetch(`${API_BASE}/api/inventory/sync-ebay-api`, { method: 'POST' });
+                const data = await res.json();
+                alert(data.message || "eBay API Sync complete!");
+                closeEbaySyncModal();
+                fetchLiveInventory();
+            } catch (err) {
+                alert("API sync error: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = '⚡ Execute API Sync';
+            }
+        }
+
+        // CSV Import Handler
+        document.getElementById('csvFileInput')?.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                document.getElementById('csvTextarea').value = evt.target.result;
+            };
+            reader.readAsText(file);
+        });
+
+        async function submitCsvImport() {
+            const text = document.getElementById('csvTextarea').value.trim();
+            if (!text) { alert("Please select a CSV file or paste CSV content."); return; }
+
+            const btn = document.getElementById('submitCsvImportBtn');
+            btn.disabled = true;
+            btn.innerText = '⏳ Ingesting CSV...';
+            try {
+                const res = await fetch(`${API_BASE}/api/inventory/import-ebay-csv`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ csvText: text })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || "Import failed");
+                alert(data.message);
+                closeCsvImportModal();
+                fetchLiveInventory();
+            } catch (err) {
+                alert("CSV Import error: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = '📥 Ingest into Inventory Base';
+            }
+        }
+
+        // Manual Product Entry submission directly to Inventory Base
+        document.getElementById('submitManualBtn').addEventListener('click', async () => {
+            const title = document.getElementById('manualTitle').value.trim();
+            const price = document.getElementById('manualPrice').value.trim();
+            const cost = document.getElementById('manualCost').value.trim() || '0.00';
+            const qty = document.getElementById('manualQty').value.trim() || '1';
+            const sku = document.getElementById('manualSku').value.trim();
+            const imgUrl = document.getElementById('manualImageUrl').value.trim();
+
+            if (!title || !price) {
+                alert("Product Title and Selling Price are required!");
+                return;
+            }
+
+            const manualData = {
+                title: title,
+                price: price,
+                sellingPrice: price,
+                costPrice: cost,
+                cost: cost,
+                quantity: qty,
+                sku: sku || `MANUAL-${Date.now()}`,
+                sourcePlatform: 'Manual Entry',
+                alternateImages: imgUrl ? [imgUrl] : [],
+                heroImage: imgUrl,
+                bulletPoints: document.getElementById('manualBullets').value.split('\n').filter(Boolean),
+                longDescription: document.getElementById('manualDesc').value,
+                productSpecs: {}
+            };
+
+            const btn = document.getElementById('submitManualBtn');
+            btn.innerText = '⏳ Saving to Inventory...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/inventory/save`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(manualData)
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || "Save failed");
+
+                alert("✅ Manual product successfully added to your inventory base!");
+                // Clear fields
+                document.getElementById('manualTitle').value = '';
+                document.getElementById('manualPrice').value = '';
+                document.getElementById('manualCost').value = '';
+                document.getElementById('manualImageUrl').value = '';
+                document.getElementById('manualBullets').value = '';
+                document.getElementById('manualDesc').value = '';
+
+                // Switch to inventory tracker to see the item
+                switchView('inventoryPanel');
+            } catch (err) {
+                alert("Error saving manual product: " + err.message);
+            } finally {
+                btn.innerText = '💾 Save to Inventory Database';
+                btn.disabled = false;
+            }
+        });
+
+        // Search & Filter event listeners
+        document.getElementById('inventorySearchInput')?.addEventListener('input', applyInventoryFilters);
+        document.getElementById('filterPlatformSelect')?.addEventListener('change', applyInventoryFilters);
+        document.getElementById('filterStatusSelect')?.addEventListener('change', applyInventoryFilters);
+
+        // History fetch
         async function fetchHistory() {
             const container = document.getElementById('historyLogs');
             container.innerText = 'Loading ledger...';
             try {
                 const res = await fetch(`${API_BASE}/api/history`);
                 const data = await res.json();
-                if (data.history && data.history.length > 0) {
-                    container.innerText = data.history.join('\n');
-                } else {
-                    container.innerText = 'No ledger entries recorded yet.';
-                }
+                container.innerText = (data.history && data.history.length > 0) ? data.history.join('\n') : 'No ledger entries recorded yet.';
             } catch (err) {
-                container.innerText = 'Failed connecting to server for history log: ' + err.message;
+                container.innerText = 'Failed connecting to server: ' + err.message;
             }
         }
 
-        document.getElementById('loadDataBtn').addEventListener('click', async () => {
+        // Load Sourced data
+        document.getElementById('loadDataBtn')?.addEventListener('click', async () => {
             const btn = document.getElementById('loadDataBtn');
-            const origText = btn.innerText;
             btn.innerText = '⏳ Loading...';
             btn.disabled = true;
-
             try {
-                const response = await fetch(`${API_BASE}/api/view-product`);
-                if (!response.ok) {
-                    const errData = await response.json().catch(() => ({}));
-                    throw new Error(errData.error || `Server error (Status ${response.status})`);
-                }
-                const data = await response.json();
-                const titleEl = document.getElementById('ebayTitle');
-                if (titleEl) titleEl.value = data.title || "";
-
-                const priceEl = document.getElementById('ebayPrice');
-                if (priceEl) priceEl.value = data.price || "";
-
-                const descEl = document.getElementById('ebayDesc');
-                if (descEl) descEl.value = data.htmlDescription || "";
-
-                const catEl = document.getElementById('ebayCategory');
-                if (catEl) catEl.value = `${data.categoryName || ""} (#${data.categoryId || ""})`;
-
+                const res = await fetch(`${API_BASE}/api/view-product`);
+                const data = await res.json();
+                document.getElementById('ebayTitle').value = data.title || "";
+                document.getElementById('ebayPrice').value = data.price || "";
+                document.getElementById('ebayDesc').value = data.htmlDescription || "";
+                document.getElementById('ebayCategory').value = `${data.categoryName || ""} (#${data.categoryId || ""})`;
                 const gallery = document.getElementById('imageGallery');
                 if (gallery) {
                     gallery.innerHTML = '';
-                    if (data.imageUrls && data.imageUrls.length > 0) {
-                        data.imageUrls.forEach(url => {
-                            const img = document.createElement('img');
-                            img.src = url.startsWith('/') ? `${API_BASE}${url}` : url;
-                            gallery.appendChild(img);
-                        });
-                    }
+                    (data.imageUrls || []).forEach(url => {
+                        const img = document.createElement('img');
+                        img.src = url.startsWith('/') ? `${API_BASE}${url}` : url;
+                        gallery.appendChild(img);
+                    });
                 }
-            } catch (err) {
-                console.error("Load data error:", err);
-                alert("Error loading data: " + err.message + "\n\nMake sure 'node server.js' is running at http://localhost:3000");
+            } catch (e) {
+                alert("Error: " + e.message);
             } finally {
-                btn.innerText = origText;
+                btn.innerText = '🔄 Load Last Scraped';
                 btn.disabled = false;
             }
         });
 
-        document.getElementById('submitManualBtn').addEventListener('click', async () => {
-            const manualData = {
-                title: document.getElementById('manualTitle').value,
-                price: document.getElementById('manualPrice').value,
-                alternateImages: [document.getElementById('manualImageUrl').value].filter(Boolean),
-                bulletPoints: document.getElementById('manualBullets').value.split('\n').filter(Boolean),
-                longDescription: document.getElementById('manualDesc').value,
-                productSpecs: {}
-            };
-            if (!manualData.title || !manualData.price) { alert("Title and Price fields are required!"); return; }
-            const btn = document.getElementById('submitManualBtn');
-            btn.innerText = '⏳ Compiling...';
-            btn.disabled = true;
-            try {
-                const response = await fetch(`${API_BASE}/api/manual-product`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(manualData)
-                });
-                const result = await response.json();
-                if (!response.ok) throw new Error(result.error || "Server error");
-                alert(result.message);
-                document.getElementById('manualTitle').value = '';
-                document.getElementById('manualPrice').value = '';
-                document.getElementById('manualImageUrl').value = '';
-                document.getElementById('manualBullets').value = '';
-                document.getElementById('manualDesc').value = '';
-            } catch (err) {
-                alert("Error processing package: " + err.message);
-            } finally {
-                btn.innerText = '⚙️ Process and Compile to eBay Package';
-                btn.disabled = false;
-            }
-        });
-
-        document.getElementById('exportCsvBtn').addEventListener('click', () => {
+        document.getElementById('exportCsvBtn')?.addEventListener('click', () => {
             window.location.href = `${API_BASE}/api/export-csv`;
         });
 
-        document.getElementById('exportManualCsvBtn').addEventListener('click', async () => {
-            const manualData = {
-                title: document.getElementById('manualTitle').value,
-                price: document.getElementById('manualPrice').value,
-                alternateImages: [document.getElementById('manualImageUrl').value].filter(Boolean),
-                bulletPoints: document.getElementById('manualBullets').value.split('\n').filter(Boolean),
-                longDescription: document.getElementById('manualDesc').value,
-                productSpecs: {}
-            };
-            if (!manualData.title || !manualData.price) {
-                alert("Please fill in at least the Title and Price to generate a CSV!");
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE}/api/export-custom-csv`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(manualData)
-                });
-                if (!response.ok) {
-                    const errJson = await response.json();
-                    throw new Error(errJson.error || "Export failed");
-                }
-                const blob = await response.blob();
-                const downloadUrl = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = downloadUrl;
-                a.download = `ebay-manual-listing-${Date.now()}.csv`;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-            } catch (e) {
-                alert("Error exporting CSV: " + e.message);
-            }
-        });
-
-        async function fetchLiveInventory() {
-            const container = document.getElementById('activeListingsContainer');
-            container.innerHTML = '<p>Retrieving listings...</p>';
-            try {
-                const res = await fetch(`${API_BASE}/api/get-listings`);
-                const listings = await res.json();
-                container.innerHTML = '';
-                listings.forEach(item => {
-                    const row = document.createElement('div');
-                    row.className = 'item-row';
-                    row.innerHTML = '<div class="item-info"><h4>' + item.title + '</h4><p>ID: ' + item.itemId + ' | Price: $' + item.price + '</p></div><button class="btn btn-blue" onclick="openEditor(\'' + item.itemId + '\', \'' + item.title.replace(/'/g, "\\'") + '\', \'' + item.price + '\')">✏️ Edit</button>';
-                    container.appendChild(row);
-                });
-            } catch (err) { container.innerHTML = '<p>Failed connecting to server: ' + err.message + '</p>'; }
+        function escapeHtml(str) {
+            return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
 
-        function openEditor(itemId, title, price) {
-            currentEditingId = itemId;
-            document.getElementById('editingItemId').innerText = itemId;
-            document.getElementById('editItemTitle').value = title;
-            document.getElementById('editItemPrice').value = price;
-            document.getElementById('editModal').style.display = 'block';
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        }
-
-        document.getElementById('pushEditsBtn').addEventListener('click', async () => {
-            const updatedPayload = { itemId: currentEditingId, title: document.getElementById('editItemTitle').value, price: document.getElementById('editItemPrice').value };
-            try {
-                const response = await fetch(`${API_BASE}/api/update-listing`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updatedPayload) });
-                const resData = await response.json(); alert(resData.message);
-                document.getElementById('editModal').style.display = 'none';
-                fetchLiveInventory();
-            } catch (err) { alert("Error updating: " + err.message); }
-        });
+        // Initialize inventory on load
+        fetchLiveInventory();
     </script>
 </body>
 </html>

@@ -473,14 +473,18 @@
     <div class="header-left">
       <div class="header-title">⚡ Zonbay Reseller Studio</div>
       <div id="sourcePlatformBadge" class="badge-source">Checking Source...</div>
+      <span id="approvalBadge" class="badge-source" style="background: rgba(255,255,255,0.25); color: #fff; font-weight: 700;">⚪ DRAFT</span>
       <span id="saveStatus" style="font-size: 11px; opacity: 0.85;">Draft ready</span>
     </div>
     <div class="header-actions">
-      <a href="/" class="btn btn-outline-light btn-sm" style="text-decoration: none;">📊 Control Center</a>
-      <button id="saveDraftBtn" class="btn btn-outline-light btn-sm">💾 Save Draft</button>
-      <button id="syncServerBtn" class="btn btn-outline-light btn-sm">🔄 Sync to Server</button>
-      <button id="exportCsvBtn" class="btn btn-light">📥 Download eBay CSV</button>
-      <button id="autoUploadBtn" class="btn btn-success">⚡ 1-Click Upload to eBay</button>
+      <a href="/" class="btn btn-outline-light btn-sm" style="text-decoration: none;">📊 Inventory Base</a>
+      <button id="saveApproveBtn" class="btn btn-light" style="font-weight: 700;">💾 Save to Inventory Base</button>
+      <button id="uploadEbayBtn" class="btn btn-success" style="font-weight: 700;">🚀 Upload & Make Live on eBay</button>
+      <button id="exportCsvBtn" class="btn btn-outline-light btn-sm">📥 Export CSV</button>
+      <!-- Hidden legacy fallbacks for backwards compatibility -->
+      <button id="saveDraftBtn" style="display:none;"></button>
+      <button id="syncServerBtn" style="display:none;"></button>
+      <button id="autoUploadBtn" style="display:none;"></button>
     </div>
   </header>
 
@@ -826,6 +830,61 @@
       <div class="modal-footer">
         <button id="cancelModalBtn" class="btn btn-light">Cancel</button>
         <button id="applyPhotoEditsBtn" class="btn btn-success">💾 Save & Apply to Listing</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live eBay Upload Modal -->
+  <div class="modal-overlay" id="ebayUploadModal" style="display: none;">
+    <div class="modal-dialog" style="width: 560px; max-width: 95vw; background: #ffffff;">
+      <div class="modal-header" style="background: linear-gradient(135deg, #0046af 0%, #002c77 100%); color: white; display: flex; justify-content: space-between; align-items: center; padding: 14px 20px;">
+        <span style="font-weight: bold; font-size: 16px;">🚀 Publish to Your eBay Account</span>
+        <button id="closeUploadModalBtn" class="btn-icon" style="color:white; font-size: 20px; cursor:pointer; background:none; border:none;">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px 16px;">
+          <div style="font-weight: 600; color: #212529; margin-bottom: 4px;" id="uploadModalTitle">Listing Title</div>
+          <div style="display: flex; gap: 16px; font-size: 13px; color: #6c757d;">
+            <span>Price: <strong id="uploadModalPrice" style="color: #28a745;">$0.00</strong></span>
+            <span>Qty: <strong id="uploadModalQty">1</strong></span>
+            <span>Category: <strong id="uploadModalCategory">#67779</strong></span>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-weight: 600; font-size: 13px; margin-bottom: 8px; display: block;">Choose Publishing Method:</label>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label style="display: flex; align-items: flex-start; gap: 10px; padding: 10px; border: 1px solid #0046af; border-radius: 6px; background: #f0f6ff; cursor: pointer;">
+              <input type="radio" name="uploadMethodChoice" value="seller-hub" checked style="margin-top: 3px;">
+              <div>
+                <div style="font-weight: 600; color: #0046af;">⚡ 1-Click Seller Hub Automated Upload (Recommended)</div>
+                <div style="font-size: 12px; color: #4a5568;">Automates file attachment and submission directly in your logged-in eBay session.</div>
+              </div>
+            </label>
+            <label style="display: flex; align-items: flex-start; gap: 10px; padding: 10px; border: 1px solid #dee2e6; border-radius: 6px; background: #fff; cursor: pointer;">
+              <input type="radio" name="uploadMethodChoice" value="csv" style="margin-top: 3px;">
+              <div>
+                <div style="font-weight: 600; color: #212529;">📥 Download Official eBay Seller Hub CSV</div>
+                <div style="font-size: 12px; color: #6c757d;">Download verified CSV to review or manually drag into Seller Hub Reports.</div>
+              </div>
+            </label>
+            <label style="display: flex; align-items: flex-start; gap: 10px; padding: 10px; border: 1px solid #dee2e6; border-radius: 6px; background: #fff; cursor: pointer;">
+              <input type="radio" name="uploadMethodChoice" value="api" style="margin-top: 3px;">
+              <div>
+                <div style="font-weight: 600; color: #212529;">🔑 Push via eBay Developer API</div>
+                <div style="font-size: 12px; color: #6c757d;">Uses saved token in ebay_tokens.json to publish via Trading/Inventory API.</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div style="background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 6px; padding: 10px; font-size: 12px; color: #2e7d32;">
+          ✅ Once confirmed, this listing status will be updated to <strong>LIVE ON EBAY</strong> in your inventory base.
+        </div>
+      </div>
+      <div class="modal-footer" style="padding: 14px 20px; background: #f8f9fa; border-top: 1px solid #dee2e6; display: flex; justify-content: flex-end; gap: 10px;">
+        <button id="cancelUploadModalBtn" class="btn btn-light">Cancel</button>
+        <button id="confirmEbayUploadBtn" class="btn btn-success" style="font-weight: bold;">🚀 Confirm & Publish Live</button>
       </div>
     </div>
   </div>

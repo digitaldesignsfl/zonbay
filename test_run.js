@@ -316,6 +316,64 @@ async function runTest() {
         assert("Mockup contains official Item Specifics grid with Brand and MPN", buyerMockup.includes("Item specifics") && buyerMockup.includes("MP00205A") && buyerMockup.includes("MOTOPOWER"));
         assert("Mockup contains embedded seller description template", buyerMockup.includes("Description from seller") && buyerMockup.includes("ZONBAY STOREFRONT SHOWCASE TEMPLATE"));
 
+        // Test 24: Multi-Platform Inventory Base & Two-Step Workflow
+        const inventorySavePayload = {
+            id: 'RUN-TEST-001',
+            sku: 'SKU-TEST-001',
+            title: 'DeWalt 20V MAX XR Brushless Impact Driver Bare Tool High Torque',
+            brand: 'DeWalt',
+            sourcePlatform: 'Amazon',
+            sourceId: 'B018864600',
+            sourceUrl: 'https://www.amazon.com/dp/B018864600',
+            costPrice: '45.00',
+            sellingPrice: '89.99',
+            price: '89.99',
+            quantity: 4,
+            alternateImages: ['http://localhost:3000/images/test.jpg']
+        };
+
+        const invSaveRes = await axios.post(`${baseUrl}/api/inventory/save`, inventorySavePayload);
+        assert("Inventory save returns 200", invSaveRes.status === 200);
+        assert("Inventory item marked APPROVED", invSaveRes.data.item.status === 'APPROVED');
+        assert("Inventory item calculates profit", parseFloat(invSaveRes.data.item.estimatedProfit) > 20);
+
+        const invGetOne = await axios.get(`${baseUrl}/api/inventory/RUN-TEST-001`);
+        assert("Inventory get single item by ID returns 200", invGetOne.status === 200 && invGetOne.data.id === 'RUN-TEST-001');
+
+        const invUploadRes = await axios.post(`${baseUrl}/api/inventory/upload`, { id: 'RUN-TEST-001', method: 'Seller Hub' });
+        assert("Inventory mark uploaded sets LIVE_ON_EBAY", invUploadRes.status === 200 && invUploadRes.data.item.status === 'LIVE_ON_EBAY');
+
+        // Test 25: eBay Store Inventory Listing-by-Listing Sync
+        const uniqueStoreId = 'RUN-STORE-' + Date.now();
+        const storeSyncRes = await axios.post(`${baseUrl}/api/inventory/sync-ebay`, {
+            listings: [
+                {
+                    itemId: uniqueStoreId,
+                    title: 'Live eBay Store Product Title From Seller Hub',
+                    price: '49.99',
+                    quantity: 2,
+                    sku: 'STORE-SKU-1',
+                    brand: 'StoreBrand'
+                }
+            ]
+        });
+        assert("eBay Store Sync endpoint returns 200", storeSyncRes.status === 200 && storeSyncRes.data.success);
+        assert("eBay Store Sync adds listing", storeSyncRes.data.addedCount >= 1 || storeSyncRes.data.updatedCount >= 1);
+
+        // Test 26: Active Listings CSV Import
+        const uniqueCsvId = 'RUN-CSV-' + Date.now();
+        const testCsv = `Item number,Title,Custom label (SKU),Price,Quantity available\n${uniqueCsvId},CSV Imported Drill Kit,SKU-CSV-1,55.00,3`;
+        const csvImportRes = await axios.post(`${baseUrl}/api/inventory/import-ebay-csv`, { csvText: testCsv });
+        assert("CSV Report import returns 200", csvImportRes.status === 200 && (csvImportRes.data.addedCount >= 1 || csvImportRes.data.updatedCount >= 1));
+
+        // Test 27: Inventory Business Analytics
+        const invAllRes = await axios.get(`${baseUrl}/api/inventory`);
+        assert("Inventory GET returns items and stats", invAllRes.status === 200 && invAllRes.data.items.length >= 3);
+        assert("Inventory stats contains liveCount and valuation", invAllRes.data.stats.liveCount >= 2 && parseFloat(invAllRes.data.stats.totalValue) > 0);
+
+        // Cleanup
+        await axios.delete(`${baseUrl}/api/inventory/RUN-TEST-001`);
+
     } catch (err) {
         console.error("❌ Unexpected test exception:", err.message);
         testsFailed++;

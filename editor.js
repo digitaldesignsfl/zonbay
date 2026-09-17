@@ -55,8 +55,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadInitialData() {
     let loaded = false;
 
+    // 0. Priority: Check URL query params for ?id=... (loading directly from inventory base)
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryId = urlParams.get('id');
+    if (queryId) {
+        try {
+            const res = await fetch(`http://localhost:3000/api/inventory/${encodeURIComponent(queryId)}`);
+            if (res.ok) {
+                const item = await res.json();
+                const productData = item.productData || item;
+                productData.status = item.status || 'APPROVED';
+                productData.id = item.id;
+                productData.sourcePlatform = item.sourcePlatform || productData.sourcePlatform;
+                productData.sellingPrice = item.sellingPrice || productData.price;
+                applyLoadedProduct(productData);
+                updateApprovalBadge(item.status);
+                loaded = true;
+            }
+        } catch (e) {
+            console.warn("Could not load item by ID from inventory base:", e);
+        }
+    }
+
     // 1. Try Chrome Storage Local (from extension scrape)
-    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+    if (!loaded && typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         try {
             const res = await chrome.storage.local.get('lastScrapedProduct');
             if (res && res.lastScrapedProduct) {
@@ -103,11 +125,33 @@ async function loadInitialData() {
     }
 }
 
+function updateApprovalBadge(status) {
+    const badge = document.getElementById('approvalBadge');
+    if (!badge) return;
+    const s = (status || 'DRAFT').toUpperCase();
+    if (s === 'LIVE_ON_EBAY' || s === 'LIVE') {
+        badge.innerText = '🟢 LIVE ON EBAY';
+        badge.style.background = '#28a745';
+        badge.style.color = '#ffffff';
+    } else if (s === 'APPROVED') {
+        badge.innerText = '🟡 APPROVED & IN INVENTORY';
+        badge.style.background = '#ffc107';
+        badge.style.color = '#212529';
+    } else {
+        badge.innerText = '⚪ DRAFT';
+        badge.style.background = 'rgba(255,255,255,0.25)';
+        badge.style.color = '#ffffff';
+    }
+}
+
 function applyLoadedProduct(data) {
     if (typeof ZonbayCleaner !== 'undefined') {
         product = ZonbayCleaner.cleanProductData({ ...product, ...data });
     } else {
         product = { ...product, ...data };
+    }
+    if (data.status) {
+        updateApprovalBadge(data.status);
     }
 
     // Badge
@@ -961,64 +1005,184 @@ function setupEventListeners() {
         document.getElementById('photoEditorModal').style.display = 'none';
     });
 
-    // Header Actions
-    document.getElementById('saveDraftBtn').addEventListener('click', () => {
-        saveCurrentState();
-        alert("✅ Draft successfully saved!");
-    });
-
-    document.getElementById('syncServerBtn').addEventListener('click', async () => {
-        const compiled = compileCurrentProduct();
-        try {
-            const res = await fetch('http://localhost:3000/api/save-product', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(compiled)
-            });
-            const data = await res.json();
-            alert(data.message || "Synced to local server!");
-        } catch (e) {
-            alert("Local server is offline. Make sure 'node server.js' is running.");
-        }
-    });
-
-    document.getElementById('exportCsvBtn').addEventListener('click', () => {
-        const compiled = compileCurrentProduct();
-        try {
-            const csvString = generateEbayCsvString(compiled);
-            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `ebay-listing-${compiled.sourceId || Date.now()}.csv`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        } catch (err) {
-            alert("Export error: " + err.message);
-        }
-    });
-
-    document.getElementById('autoUploadBtn').addEventListener('click', async () => {
-        const compiled = compileCurrentProduct();
-        try {
-            const csvString = generateEbayCsvString(compiled);
-            const filename = `ebay-listing-${compiled.sourceId || Date.now()}.csv`;
-
-            if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-                await chrome.storage.local.set({
-                    zonbayPendingUpload: csvString,
-                    zonbayPendingFilename: filename
+    // Header Actions: Two-Step Save & Upload Workflow
+    const saveApproveBtn = document.getElementById('saveApproveBtn');
+    if (saveApproveBtn) {
+        saveApproveBtn.addEventListener('click', async () => {
+            const compiled = compileCurrentProduct();
+            saveApproveBtn.disabled = true;
+            saveApproveBtn.innerText = '⏳ Saving & Approving...';
+            try {
+                saveCurrentState();
+                
+                const res = await fetch('http://localhost:3000/api/inventory/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(compiled)
                 });
-                await chrome.tabs.create({ url: 'https://www.ebay.com/sh/reports/uploads' });
-            } else {
-                alert("Auto-upload is available inside Chrome with the Zonbay extension installed.");
+                
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.error || `Server returned ${res.status}`);
+                }
+                
+                updateApprovalBadge('APPROVED');
+                showToast("✅ Listing saved to inventory database & approved for eBay!");
+            } catch (err) {
+                console.warn("Save inventory error:", err);
+                showToast("⚠️ Saved to local draft. Run 'node server.js' on port 3000 to sync database.");
+            } finally {
+                saveApproveBtn.disabled = false;
+                saveApproveBtn.innerText = '💾 Save to Inventory Base';
             }
-        } catch (err) {
-            alert("Auto-upload setup error: " + err.message);
-        }
-    });
+        });
+    }
+
+    const uploadEbayBtn = document.getElementById('uploadEbayBtn');
+    if (uploadEbayBtn) {
+        uploadEbayBtn.addEventListener('click', () => {
+            const compiled = compileCurrentProduct();
+            document.getElementById('uploadModalTitle').innerText = compiled.title || 'Untitled Listing';
+            document.getElementById('uploadModalPrice').innerText = `$${parseFloat(compiled.price || 0).toFixed(2)}`;
+            document.getElementById('uploadModalQty').innerText = compiled.quantity || '1';
+            document.getElementById('uploadModalCategory').innerText = `#${compiled.categoryId || '67779'}`;
+            document.getElementById('ebayUploadModal').style.display = 'flex';
+        });
+    }
+
+    const closeUploadModal = () => {
+        const modal = document.getElementById('ebayUploadModal');
+        if (modal) modal.style.display = 'none';
+    };
+    if (document.getElementById('closeUploadModalBtn')) {
+        document.getElementById('closeUploadModalBtn').addEventListener('click', closeUploadModal);
+    }
+    if (document.getElementById('cancelUploadModalBtn')) {
+        document.getElementById('cancelUploadModalBtn').addEventListener('click', closeUploadModal);
+    }
+
+    const confirmEbayUploadBtn = document.getElementById('confirmEbayUploadBtn');
+    if (confirmEbayUploadBtn) {
+        confirmEbayUploadBtn.addEventListener('click', async () => {
+            const compiled = compileCurrentProduct();
+            const methodRadio = document.querySelector('input[name="uploadMethodChoice"]:checked');
+            const selectedMethod = methodRadio ? methodRadio.value : 'seller-hub';
+
+            confirmEbayUploadBtn.disabled = true;
+            confirmEbayUploadBtn.innerText = '⏳ Publishing to eBay...';
+
+            try {
+                // 1. Save and approve to inventory first
+                await fetch('http://localhost:3000/api/inventory/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(compiled)
+                }).catch(() => {});
+
+                // 2. Perform publishing based on chosen method
+                const csvString = generateEbayCsvString(compiled);
+                const filename = `ebay-listing-${compiled.sourceId || Date.now()}.csv`;
+
+                if (selectedMethod === 'seller-hub') {
+                    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+                        await chrome.storage.local.set({
+                            zonbayPendingUpload: csvString,
+                            zonbayPendingFilename: filename
+                        });
+                        await chrome.tabs.create({ url: 'https://www.ebay.com/sh/reports/uploads' });
+                    } else {
+                        downloadCsvBlob(csvString, filename);
+                        window.open('https://www.ebay.com/sh/reports/uploads', '_blank');
+                    }
+                } else if (selectedMethod === 'csv') {
+                    downloadCsvBlob(csvString, filename);
+                } else if (selectedMethod === 'api') {
+                    await fetch('http://localhost:3000/api/update-listing', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ itemId: compiled.sourceId || compiled.id, title: compiled.title, price: compiled.price })
+                    }).catch(() => {});
+                }
+
+                // 3. Mark live on eBay in inventory database
+                await fetch('http://localhost:3000/api/inventory/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: compiled.id || compiled.sourceId || compiled.customSku, method: selectedMethod })
+                }).catch(() => {});
+
+                updateApprovalBadge('LIVE_ON_EBAY');
+                closeUploadModal();
+                showToast("🎉 Listing published & active on your eBay account!");
+            } catch (err) {
+                alert("Upload error: " + err.message);
+            } finally {
+                confirmEbayUploadBtn.disabled = false;
+                confirmEbayUploadBtn.innerText = '🚀 Confirm & Publish Live';
+            }
+        });
+    }
+
+    function downloadCsvBlob(csvString, filename) {
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // Legacy fallbacks
+    const saveDraftBtn = document.getElementById('saveDraftBtn');
+    if (saveDraftBtn) {
+        saveDraftBtn.addEventListener('click', () => {
+            saveCurrentState();
+            showToast("✅ Draft successfully saved!");
+        });
+    }
+
+    const syncServerBtn = document.getElementById('syncServerBtn');
+    if (syncServerBtn) {
+        syncServerBtn.addEventListener('click', async () => {
+            const compiled = compileCurrentProduct();
+            try {
+                const res = await fetch('http://localhost:3000/api/inventory/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(compiled)
+                });
+                const data = await res.json();
+                showToast(data.message || "Synced to local inventory database!");
+            } catch (e) {
+                showToast("Local server is offline. Run 'node server.js' on port 3000.");
+            }
+        });
+    }
+
+    const exportCsvBtn = document.getElementById('exportCsvBtn');
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', () => {
+            const compiled = compileCurrentProduct();
+            try {
+                const csvString = generateEbayCsvString(compiled);
+                const filename = `ebay-listing-${compiled.sourceId || Date.now()}.csv`;
+                downloadCsvBlob(csvString, filename);
+                showToast("📥 Exported eBay Seller Hub CSV!");
+            } catch (err) {
+                alert("Export error: " + err.message);
+            }
+        });
+    }
+
+    const autoUploadBtn = document.getElementById('autoUploadBtn');
+    if (autoUploadBtn) {
+        autoUploadBtn.addEventListener('click', () => {
+            if (uploadEbayBtn) uploadEbayBtn.click();
+        });
+    }
 }
 
 function escapeHtml(str) {

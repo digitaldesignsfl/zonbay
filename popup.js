@@ -355,7 +355,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // 6. Sync to Local Server (optional companion mode)
+    // 6. Save directly to Inventory Base
     document.getElementById('syncLocalBtn').addEventListener('click', async () => {
         if (!currentProduct) {
             showStatus("Please extract a product first.", "error");
@@ -364,23 +364,58 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const titleVal = document.getElementById('listingTitle').value.trim();
         const priceVal = document.getElementById('listingPrice').value.trim();
+        const categoryId = getSelectedCategoryId();
 
         const payload = {
             ...currentProduct,
             title: titleVal,
-            price: priceVal
+            price: priceVal,
+            categoryId: categoryId,
+            sourcePlatform: currentProduct.source || 'Scraped Import',
+            sellingPlatform: 'eBay'
         };
 
         try {
-            const res = await fetch('http://localhost:3000/api/save-product', {
+            const res = await fetch('http://localhost:3000/api/inventory/save', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
             const data = await res.json();
-            showStatus(data.message || "Synced to local server!", "success");
+            showStatus(data.message || "Saved to Inventory Base & approved!", "success");
         } catch (e) {
-            showStatus("Local server offline. Run 'node server.js' to use dashboard.", "info");
+            showStatus("Local server offline. Run 'node server.js' to use database.", "info");
+        }
+    });
+
+    // 7. Open Inventory Base Dashboard
+    document.getElementById('openBaseBtn').addEventListener('click', () => {
+        if (typeof chrome !== 'undefined' && chrome.tabs) {
+            chrome.tabs.create({ url: 'http://localhost:3000/' });
+        } else {
+            window.open('http://localhost:3000/', '_blank');
+        }
+    });
+
+    // 8. Sync Live eBay Store Inventory
+    document.getElementById('syncEbayStoreBtn').addEventListener('click', async () => {
+        if (!activeTab || !activeTab.url) {
+            showStatus("Checking active tab...", "info");
+            return;
+        }
+
+        if (activeTab.url.includes('ebay.com')) {
+            showStatus("🔄 Requesting active listings sync on eBay tab...", "info");
+            try {
+                const res = await chrome.tabs.sendMessage(activeTab.id, { action: 'SYNC_EBAY_ACTIVE' });
+                showStatus("✅ Synced active eBay listings to Base!", "success");
+            } catch (err) {
+                // Navigate to active listings
+                chrome.tabs.create({ url: 'https://www.ebay.com/sh/lst/active' });
+            }
+        } else {
+            showStatus("🚀 Opening eBay Seller Hub Active Listings...", "info");
+            chrome.tabs.create({ url: 'https://www.ebay.com/sh/lst/active' });
         }
     });
 });

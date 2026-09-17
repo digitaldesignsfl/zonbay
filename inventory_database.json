@@ -1,0 +1,173 @@
+[
+  {
+    "id": "RUN-CSV-1789685267991",
+    "sku": "SKU-CSV-1",
+    "title": "Kit",
+    "brand": "eBay Store Item",
+    "sourcePlatform": "eBay Store",
+    "sourceId": "RUN-CSV-1789685267991",
+    "sourceUrl": "https://www.ebay.com/itm/RUN-CSV-1789685267991",
+    "sellingPlatform": "eBay",
+    "status": "LIVE_ON_EBAY",
+    "costPrice": "0.00",
+    "sellingPrice": "55.00",
+    "quantity": 3,
+    "estimatedFees": "7.59",
+    "estimatedProfit": "47.41",
+    "profitMarginPercent": "86.2",
+    "mainImage": "",
+    "imagesCount": 0,
+    "createdAt": "2026-09-17T22:47:47.994Z",
+    "updatedAt": "2026-09-17T22:47:47.994Z",
+    "syncedAt": "2026-09-17T22:47:47.994Z",
+    "uploadedAt": "2026-09-17T22:47:47.994Z",
+    "productData": {
+      "title": "Kit",
+      "price": "55.00",
+      "sourceId": "RUN-CSV-1789685267991"
+    }
+  },
+  {
+    "id": "RUN-STORE-1789685267986",
+    "sku": "STORE-SKU-1",
+    "title": "Live eBay Store Product Title From Seller Hub",
+    "brand": "StoreBrand",
+    "sourcePlatform": "eBay Store",
+    "sourceId": "RUN-STORE-1789685267986",
+    "sourceUrl": "https://www.ebay.com/itm/RUN-STORE-1789685267986",
+    "sellingPlatform": "eBay",
+    "status": "LIVE_ON_EBAY",
+    "costPrice": "0.00",
+    "sellingPrice": "49.99",
+    "quantity": 2,
+    "estimatedFees": "6.92",
+    "estimatedProfit": "43.07",
+    "profitMarginPercent": "86.1",
+    "mainImage": "",
+    "imagesCount": 0,
+    "createdAt": "2026-09-17T22:47:47.988Z",
+    "updatedAt": "2026-09-17T22:47:47.988Z",
+    "syncedAt": "2026-09-17T22:47:47.988Z",
+    "uploadedAt": "2026-09-17T22:47:47.988Z",
+    "productData": {
+      "title": "Live eBay Store Product Title From Seller Hub",
+      "price": "49.99",
+      "sourceId": "RUN-STORE-1789685267986",
+      "sourceUrl": "https://www.ebay.com/itm/RUN-STORE-1789685267986",
+      "alternateImages": [],
+      "itemSpecifics": [
+        {
+          "name": "Brand",
+          "value": "StoreBrand"
+        }
+      ],
+      "bulletPoints": []
+    }
+  },
+  {
+    "id": "188646000999",
+    "sku": "HEAT-GUN-1500",
+    "title": "Kit",
+    "brand": "eBay Store Item",
+    "sourcePlatform": "eBay Store",
+    "sourceId": "188646000999",
+    "sourceUrl": "https://www.ebay.com/itm/188646000999",
+    "sellingPlatform": "eBay",
+    "status": "LIVE_ON_EBAY",
+    "costPrice": "0.00",
+    "sellingPrice": "55.00",
+    "quantity": 3,
+    "estimatedFees": "5.40",
+    "estimatedProfit": "33.10",
+    "profitMarginPercent": "86.0",
+    "mainImage": "",
+    "imagesCount": 0,
+    "createdAt": "2026-09-17T22:46:52.887Z",
+    "updatedAt": "2026-09-17T22:47:35.127Z",
+    "syncedAt": "2026-09-17T22:46:52.887Z",
+    "uploadedAt": "2026-09-17T22:46:52.887Z",
+    "productData": {
+      "title": "1500W",
+      "price": "38.50",
+      "sourceId": "188646000999"
+    }
+  },
+  {
+    "id": "188646000837",
+    "sku": "STRIP-TOWER-12",
+    "title": "Surge Protector Power Strip Tower with 12 AC Outlets and 6 USB Charging Ports",
+    "brand": "SUPERDANNY",
+    "sourcePlatform": "eBay Store",
+    "sourceId": "188646000837",
+    "sourceUrl": "https://www.ebay.com/itm/188646000837",
+    "sellingPlatform": "eBay",
+    "status": "LIVE_ON_EBAY",
+    "costPrice": "0.00",
+    "sellingPrice": "27.95",
+    "quantity": 8,
+    "estimatedFees": "4.00",
+    "estimatedProfit": "23.95",
+    "profitMarginPercent": "85.7",
+    "mainImage": "https://i.ebayimg.com/images/g/test2/s-l1600.jpg",
+    "imagesCount": 1,
+    "createdAt": "2026-09-17T22:46:52.881Z",
+    "updatedAt": "2026-09-17T22:46:52.881Z",
+    "syncedAt": "2026-09-17T22:46:52.881Z",
+    "uploadedAt": "2026-09-17T22:46:52.881Z",
+    "productData": {
+      "title": "Surge Protector Power Strip Tower with 12 AC Outlets and 6 USB Charging Ports",
+      "price": "27.95",
+      "sourceId": "188646000837",
+      "sourceUrl": "https://www.ebay.com/itm/188646000837",
+      "alternateImages": [
+        "https://i.ebayimg.com/images/g/test2/s-l1600.jpg"
+      ],
+      "itemSpecifics": [
+        {
+          "name": "Brand",
+          "value": "SUPERDANNY"
+        }
+      ],
+      "bulletPoints": []
+    }
+  },
+  {
+    "id": "188646000836",
+    "sku": "DEW-DCF887B",
+    "title": "Live eBay Store Product Title From Seller Hub",
+    "brand": "DeWalt",
+    "sourcePlatform": "eBay Store",
+    "sourceId": "188646000836",
+    "sourceUrl": "https://www.ebay.com/itm/188646000836",
+    "sellingPlatform": "eBay",
+    "status": "LIVE_ON_EBAY",
+    "costPrice": "0.00",
+    "sellingPrice": "49.99",
+    "quantity": 2,
+    "estimatedFees": "6.92",
+    "estimatedProfit": "43.07",
+    "profitMarginPercent": "86.1",
+    "mainImage": "https://i.ebayimg.com/images/g/test1/s-l1600.jpg",
+    "imagesCount": 1,
+    "createdAt": "2026-09-17T22:46:52.881Z",
+    "updatedAt": "2026-09-17T22:47:35.122Z",
+    "syncedAt": "2026-09-17T22:47:35.122Z",
+    "uploadedAt": "2026-09-17T22:46:52.881Z",
+    "productData": {
+      "title": "DeWalt 20V MAX XR Brushless Impact Driver Bare Tool High Torque Heavy Duty",
+      "price": "99.00",
+      "sourceId": "188646000836",
+      "sourceUrl": "https://www.ebay.com/itm/188646000836",
+      "alternateImages": [
+        "https://i.ebayimg.com/images/g/test1/s-l1600.jpg"
+      ],
+      "itemSpecifics": [
+        {
+          "name": "Brand",
+          "value": "DeWalt"
+        }
+      ],
+      "bulletPoints": []
+    }
+  }
+]

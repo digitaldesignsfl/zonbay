@@ -23,6 +23,14 @@
       "matches": ["https://www.ebay.com/sh/reports/uploads*"],
       "js": ["uploader/ebay-uploader.js"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://www.ebay.com/sh/lst/active*",
+        "https://www.ebay.com/mys/active*"
+      ],
+      "js": ["uploader/ebay-sync.js"],
+      "run_at": "document_idle"
     }
   ]
 }
