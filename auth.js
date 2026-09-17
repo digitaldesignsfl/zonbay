@@ -52,13 +52,18 @@ async function exchangeCodeForTokens(authCode) {
         };
 
         // Save safely into your workspace folder so the listing engine can read it dynamically
-        fs.writeFileSync('ebay_tokens.json', JSON.stringify(tokenData, null, 2));
+        const tokenFilePath = path.join(__dirname, 'ebay_tokens.json');
+        fs.writeFileSync(tokenFilePath, JSON.stringify(tokenData, null, 2));
         console.log("🎉 SUCCESS: Permanent 'ebay_tokens.json' generated successfully!");
     } catch (error) {
         console.error("❌ Token exchange failed:", error.response ? error.response.data : error.message);
     }
 }
 
-// Switch between functions here depending on the step you are on
-getAuthorizationUrl();
-// exchangeCodeForTokens('PASTE_CODE_FROM_REDIRECT_URL_HERE');
+module.exports = { getAuthorizationUrl, exchangeCodeForTokens };
+
+// Switch between functions here depending on the step you are on (only if run directly)
+if (require.main === module) {
+    getAuthorizationUrl();
+    // exchangeCodeForTokens('PASTE_CODE_FROM_REDIRECT_URL_HERE');
+}

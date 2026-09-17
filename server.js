@@ -114,6 +114,7 @@ app.post('/api/manual-product', async (req, res) => {
         res.status(200).json({ message: "Success! Manual listing compiled and optimized." });
     } catch (err) {
         console.error("Manual product processing error:", err.message);
+        appendHistory('ERROR', { endpoint: '/api/manual-product', message: err.message });
         res.status(500).json({ error: "Failed compiling manual product: " + err.message });
     }
 });
@@ -139,6 +140,7 @@ app.get('/api/view-product', async (req, res) => {
         }
     } catch (err) {
         console.error("View product processing error:", err.message);
+        appendHistory('ERROR', { endpoint: '/api/view-product', message: err.message });
         res.status(500).json({ error: "Error processing product: " + err.message });
     }
 });
@@ -182,6 +184,7 @@ app.get('/api/export-csv', (req, res) => {
         res.status(200).send(csvContent);
     } catch (err) {
         console.error("CSV Export error:", err.message);
+        appendHistory('ERROR', { endpoint: '/api/export-csv', message: err.message });
         res.status(400).json({ error: err.message });
     }
 });
@@ -195,6 +198,7 @@ app.post('/api/export-custom-csv', (req, res) => {
         res.setHeader('Content-Disposition', `attachment; filename="ebay-custom-listing-${Date.now()}.csv"`);
         res.status(200).send(csvContent);
     } catch (err) {
+        appendHistory('ERROR', { endpoint: '/api/export-custom-csv', message: err.message });
         res.status(400).json({ error: err.message });
     }
 });

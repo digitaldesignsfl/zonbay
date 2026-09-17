@@ -98,48 +98,64 @@ async function processProduct() {
         console.log("❌ No ebay_ready_product.json found.");
         return null;
     }
-    const rawData = JSON.parse(fs.readFileSync(READY_PRODUCT_PATH, 'utf8'));
-    const rawTitle = rawData.title || "Product";
-    const folderId = rawTitle.substring(0, 10).replace(/[^a-zA-Z0-9]/g, "_") || "item";
-    
-    // Support alternateImages array or fallback to mainImgUrl
-    let candidateImages = [];
-    if (Array.isArray(rawData.alternateImages) && rawData.alternateImages.length > 0) {
-        candidateImages = rawData.alternateImages;
-    } else if (rawData.mainImgUrl) {
-        candidateImages = [rawData.mainImgUrl];
+
+    try {
+        const rawContent = fs.readFileSync(READY_PRODUCT_PATH, 'utf8');
+        let rawData;
+        try {
+            rawData = JSON.parse(rawContent);
+        } catch (parseErr) {
+            console.error("Failed to parse ready product JSON:", parseErr.message);
+            appendHistory('ERROR', { source: 'optimize', message: `JSON parse error: ${parseErr.message}` });
+            return null;
+        }
+
+        const rawTitle = rawData.title || "Product";
+        const folderId = rawTitle.substring(0, 10).replace(/[^a-zA-Z0-9]/g, "_") || "item";
+        
+        // Support alternateImages array or fallback to mainImgUrl
+        let candidateImages = [];
+        if (Array.isArray(rawData.alternateImages) && rawData.alternateImages.length > 0) {
+            candidateImages = rawData.alternateImages;
+        } else if (rawData.mainImgUrl) {
+            candidateImages = [rawData.mainImgUrl];
+        }
+
+        const downloadedImages = await downloadImages(candidateImages, folderId);
+        const optimizedTitle = optimizeTitle(rawTitle, rawData.productSpecs);
+        const cat = detectEbayCategory(optimizedTitle);
+
+        const optimizedPackage = {
+            title: optimizedTitle,
+            categoryId: cat.id,
+            categoryName: cat.name,
+            price: rawData.price ? String(rawData.price).replace(/[^0-9.]/g, '') : "0.00",
+            itemSpecifics: mapItemSpecifics(rawData.productSpecs),
+            htmlDescription: generateHtmlDescription(optimizedTitle, rawData.bulletPoints, rawData.longDescription),
+            localImages: downloadedImages,
+            shippingPolicy: { type: "Standard", handlingTimeDays: 3, cost: 0.00 },
+            returnPolicy: { returnsAccepted: false },
+            paymentPolicy: { requireInstantPayment: true }
+        };
+
+        fs.writeFileSync(OPTIMIZED_PACKAGE_PATH, JSON.stringify(optimizedPackage, null, 2));
+        console.log("🚀 Optimization complete!");
+
+        // Ledger update
+        appendHistory('OPTIMIZED', {
+            title: optimizedPackage.title,
+            categoryId: optimizedPackage.categoryId,
+            categoryName: optimizedPackage.categoryName,
+            price: optimizedPackage.price,
+            imagesCount: downloadedImages.length
+        });
+
+        return optimizedPackage;
+    } catch (err) {
+        console.error("Optimization unexpected error:", err.message);
+        appendHistory('ERROR', { source: 'optimize', message: err.message });
+        return null;
     }
-
-    const downloadedImages = await downloadImages(candidateImages, folderId);
-    const optimizedTitle = optimizeTitle(rawTitle, rawData.productSpecs);
-    const cat = detectEbayCategory(optimizedTitle);
-
-    const optimizedPackage = {
-        title: optimizedTitle,
-        categoryId: cat.id,
-        categoryName: cat.name,
-        price: rawData.price ? String(rawData.price).replace(/[^0-9.]/g, '') : "0.00",
-        itemSpecifics: mapItemSpecifics(rawData.productSpecs),
-        htmlDescription: generateHtmlDescription(optimizedTitle, rawData.bulletPoints, rawData.longDescription),
-        localImages: downloadedImages,
-        shippingPolicy: { type: "Standard", handlingTimeDays: 3, cost: 0.00 },
-        returnPolicy: { returnsAccepted: false },
-        paymentPolicy: { requireInstantPayment: true }
-    };
-
-    fs.writeFileSync(OPTIMIZED_PACKAGE_PATH, JSON.stringify(optimizedPackage, null, 2));
-    console.log("🚀 Optimization complete!");
-
-    // Ledger update
-    appendHistory('OPTIMIZED', {
-        title: optimizedPackage.title,
-        categoryId: optimizedPackage.categoryId,
-        categoryName: optimizedPackage.categoryName,
-        price: optimizedPackage.price,
-        imagesCount: downloadedImages.length
-    });
-
-    return optimizedPackage;
 }
 
 if (require.main === module) {
