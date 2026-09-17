@@ -414,6 +414,56 @@
       justify-content: flex-end;
       gap: 10px;
     }
+
+    /* Authentic Live eBay Listing Buyer Preview Styles */
+    #buyerPreviewContainer {
+      width: 100%;
+      margin: 0 auto;
+      transition: max-width 0.25s ease, box-shadow 0.25s ease;
+    }
+    #buyerPreviewContainer.ebay-mobile-mode {
+      max-width: 440px !important;
+      margin: 20px auto !important;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.22) !important;
+      border-radius: 20px !important;
+      border: 1px solid #dcdcdc !important;
+      overflow: hidden !important;
+    }
+    #buyerPreviewContainer.ebay-mobile-mode .ebay-header-utility {
+      display: none !important;
+    }
+    #buyerPreviewContainer.ebay-mobile-mode .ebay-header-main {
+      padding: 10px 14px !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 10px !important;
+    }
+    #buyerPreviewContainer.ebay-mobile-mode .ebay-search-bar {
+      max-width: 100% !important;
+    }
+    #buyerPreviewContainer.ebay-mobile-mode .ebay-breadcrumbs {
+      display: none !important;
+    }
+    #buyerPreviewContainer.ebay-mobile-mode .ebay-hero-grid {
+      grid-template-columns: 1fr !important;
+      gap: 16px !important;
+    }
+    #buyerPreviewContainer.ebay-mobile-mode .ebay-gallery-col > div:first-child {
+      height: 330px !important;
+    }
+    #buyerPreviewContainer.ebay-mobile-mode .ebay-hero-card,
+    #buyerPreviewContainer.ebay-mobile-mode .ebay-specs-card,
+    #buyerPreviewContainer.ebay-mobile-mode .ebay-desc-card {
+      padding: 14px !important;
+      border-radius: 6px !important;
+    }
+    .ebay-preview-thumb-btn.active {
+      border: 2px solid #0053a0 !important;
+      box-shadow: 0 0 0 2px rgba(0,83,160,0.25) !important;
+    }
+    .ebay-preview-thumb-btn:hover {
+      border-color: #0053a0 !important;
+    }
   </style>
 </head>
 <body>
@@ -781,15 +831,22 @@
 
   <!-- Live Buyer Preview Modal -->
   <div class="modal-overlay" id="buyerPreviewModal">
-    <div class="modal-dialog" style="width: 1020px; max-width: 95vw; height: 88vh;">
-      <div class="modal-header">
-        <span>👁️ Live Buyer View Preview (Simulated eBay Listing)</span>
-        <button id="closePreviewBtn" class="btn-icon" style="color:white; font-size:20px; cursor:pointer;">&times;</button>
+    <div class="modal-dialog" style="width: 1280px; max-width: 98vw; height: 92vh; background: #f7f7f7;">
+      <div class="modal-header" style="background: #ffffff; color: #191919; border-bottom: 1px solid #e5e5e5; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <span style="font-weight: 800; font-size: 15px; color: #191919;">👁️ Live eBay Listing Buyer Preview</span>
+          <div style="display: flex; border: 1px solid #ccc; border-radius: 4px; overflow: hidden;">
+            <button id="viewDesktopBtn" class="btn btn-sm btn-light active" style="border-radius: 0; padding: 4px 12px; font-size: 11px; font-weight: bold; background: #eef4fc; color: #0053a0;">🖥️ Desktop View</button>
+            <button id="viewMobileBtn" class="btn btn-sm btn-light" style="border-radius: 0; padding: 4px 12px; font-size: 11px; font-weight: bold; background: #ffffff; color: #555;">📱 Mobile View</button>
+          </div>
+        </div>
+        <button id="closePreviewBtn" class="btn-icon" style="color:#555; font-size: 22px; cursor:pointer; font-weight: bold;">&times;</button>
       </div>
-      <div class="modal-body" style="padding: 24px; overflow-y: auto; background: #f8f9fa; display: block;">
-        <div id="buyerPreviewContainer" style="max-width: 960px; margin: 0 auto;"></div>
+      <div class="modal-body" style="padding: 0; overflow-y: auto; background: #f8f8f8; display: block;">
+        <div id="buyerPreviewContainer" style="width: 100%; margin: 0 auto; transition: max-width 0.25s ease;"></div>
       </div>
-      <div class="modal-footer">
+      <div class="modal-footer" style="padding: 8px 20px; background: #ffffff; border-top: 1px solid #e5e5e5;">
+        <span style="font-size: 12px; color: #666; margin-right: auto;">✨ Authentic 1:1 buyer view including eBay hero, price box, item specifics, and your custom listing template.</span>
         <button id="closePreviewFooterBtn" class="btn btn-light">Close Preview</button>
       </div>
     </div>

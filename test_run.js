@@ -287,6 +287,35 @@ async function runTest() {
         });
         assert("CSV exporter incorporates Storefront Showcase HTML in *Description", csvWithTemplate.includes("ZONBAY STOREFRONT SHOWCASE TEMPLATE") && csvWithTemplate.includes("Digital Designs Florida"));
 
+        // Test 23: 1:1 Authentic Live eBay Buyer Page Mockup
+        const { renderEbayBuyerPageMockup } = require('./templates');
+        assert("renderEbayBuyerPageMockup is exported by templates.js", typeof renderEbayBuyerPageMockup === 'function');
+
+        const mockForMockup = {
+            ...cleanedMock,
+            price: "19.95",
+            shippingCost: "0.00",
+            shippingService: "USPS Ground Advantage®",
+            location: "Orlando, Florida",
+            imageList: [
+                { url: "https://m.media-amazon.com/images/I/71example1.jpg", isHero: true, isExcluded: false },
+                { url: "https://m.media-amazon.com/images/I/71example2.jpg", isHero: false, isExcluded: false },
+                { url: "https://m.media-amazon.com/images/I/71example3.jpg", isHero: false, isExcluded: true }
+            ]
+        };
+        const buyerMockup = renderEbayBuyerPageMockup(mockForMockup, templateHtml, customStoreConfig);
+
+        assert("Mockup contains official eBay 4-color logo", buyerMockup.includes('color:#e53238') && buyerMockup.includes('color:#0064d2') && buyerMockup.includes('color:#f5af02') && buyerMockup.includes('color:#86b817'));
+        assert("Mockup contains top utility bar and search bar", buyerMockup.includes('Hi <strong') && buyerMockup.includes('Daily Deals') && buyerMockup.includes('Search for anything'));
+        assert("Mockup contains photo viewer and hero image", buyerMockup.includes('id="ebayLiveHeroImg"') && buyerMockup.includes('71example1.jpg'));
+        assert("Mockup contains interactive thumbnail strip excluding disabled photos", buyerMockup.includes('ebay-preview-thumb-btn') && buyerMockup.includes('71example2.jpg') && !buyerMockup.includes('71example3.jpg'));
+        assert("Mockup contains seller trust card with custom store name", buyerMockup.includes("Digital Designs Florida") && buyerMockup.includes("Top Rated Plus"));
+        assert("Mockup contains bold price and CTA buttons", buyerMockup.includes("US $19.95") && buyerMockup.includes("Buy It Now") && buyerMockup.includes("Add to cart") && buyerMockup.includes("Add to Watchlist"));
+        assert("Mockup contains estimated delivery and free shipping", buyerMockup.includes("FREE Standard Shipping") && buyerMockup.includes("Estimated between"));
+        assert("Mockup contains eBay Money Back Guarantee", buyerMockup.includes("eBay Money Back Guarantee"));
+        assert("Mockup contains official Item Specifics grid with Brand and MPN", buyerMockup.includes("Item specifics") && buyerMockup.includes("MP00205A") && buyerMockup.includes("MOTOPOWER"));
+        assert("Mockup contains embedded seller description template", buyerMockup.includes("Description from seller") && buyerMockup.includes("ZONBAY STOREFRONT SHOWCASE TEMPLATE"));
+
     } catch (err) {
         console.error("❌ Unexpected test exception:", err.message);
         testsFailed++;

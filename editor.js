@@ -683,25 +683,89 @@ function setupEventListeners() {
         });
     }
 
-    // Buyer Live Preview Modal
+    // Buyer Live Preview Modal & Full eBay Simulation
+    function openBuyerPreview() {
+        const current = compileCurrentProduct();
+        const storeConfig = {
+            storeName: document.getElementById('storeNameInput') ? document.getElementById('storeNameInput').value.trim() : 'Our Official Store',
+            storeUrl: document.getElementById('storeUrlInput') ? document.getElementById('storeUrlInput').value.trim() : 'https://www.ebay.com/usr'
+        };
+        let currentHtml = document.getElementById('descriptionEditor').value.trim();
+        if ((!currentHtml || !currentHtml.includes('<!-- ZONBAY')) && typeof ZonbayTemplates !== 'undefined') {
+            const templateStyle = document.getElementById('templateStyleSelect') ? document.getElementById('templateStyleSelect').value : 'storefront_showcase';
+            currentHtml = ZonbayTemplates.renderEbayTemplate(templateStyle, current, storeConfig);
+            document.getElementById('descriptionEditor').value = currentHtml;
+        }
+
+        const container = document.getElementById('buyerPreviewContainer');
+        if (container && typeof ZonbayTemplates !== 'undefined' && ZonbayTemplates.renderEbayBuyerPageMockup) {
+            container.innerHTML = ZonbayTemplates.renderEbayBuyerPageMockup(current, currentHtml, storeConfig);
+            setupBuyerPreviewInteractions(container);
+        } else if (container) {
+            container.innerHTML = currentHtml;
+        }
+
+        const modal = document.getElementById('buyerPreviewModal');
+        if (modal) modal.style.display = 'flex';
+    }
+
+    function setupBuyerPreviewInteractions(container) {
+        // Interactive thumbnail switching
+        const thumbBtns = container.querySelectorAll('.ebay-preview-thumb-btn');
+        const heroImg = container.querySelector('#ebayLiveHeroImg');
+        const counter = container.querySelector('#ebayLiveImgCounter');
+
+        thumbBtns.forEach((btn, idx) => {
+            btn.addEventListener('click', () => {
+                thumbBtns.forEach(b => {
+                    b.classList.remove('active');
+                    b.style.border = '1px solid #d0d0d0';
+                });
+                btn.classList.add('active');
+                btn.style.border = '2px solid #0053a0';
+                const targetUrl = btn.getAttribute('data-img-url');
+                if (heroImg && targetUrl) {
+                    heroImg.src = targetUrl;
+                }
+                if (counter) {
+                    counter.innerText = `${idx + 1} of ${thumbBtns.length}`;
+                }
+            });
+        });
+    }
+
     const previewBtn = document.getElementById('previewBuyerBtn');
     if (previewBtn) {
-        previewBtn.addEventListener('click', () => {
-            let currentHtml = document.getElementById('descriptionEditor').value.trim();
-            if ((!currentHtml || !currentHtml.includes('<!-- ZONBAY')) && typeof ZonbayTemplates !== 'undefined') {
-                const current = compileCurrentProduct();
-                const storeConfig = {
-                    storeName: document.getElementById('storeNameInput') ? document.getElementById('storeNameInput').value.trim() : 'Our Official Store',
-                    storeUrl: document.getElementById('storeUrlInput') ? document.getElementById('storeUrlInput').value.trim() : 'https://www.ebay.com/usr'
-                };
-                const templateStyle = document.getElementById('templateStyleSelect') ? document.getElementById('templateStyleSelect').value : 'storefront_showcase';
-                currentHtml = ZonbayTemplates.renderEbayTemplate(templateStyle, current, storeConfig);
-                document.getElementById('descriptionEditor').value = currentHtml;
-            }
+        previewBtn.addEventListener('click', openBuyerPreview);
+    }
+
+    // View Mode Toggle (Desktop vs Mobile)
+    const viewDesktopBtn = document.getElementById('viewDesktopBtn');
+    const viewMobileBtn = document.getElementById('viewMobileBtn');
+
+    if (viewDesktopBtn && viewMobileBtn) {
+        viewDesktopBtn.addEventListener('click', () => {
             const container = document.getElementById('buyerPreviewContainer');
-            if (container) container.innerHTML = currentHtml;
-            const modal = document.getElementById('buyerPreviewModal');
-            if (modal) modal.style.display = 'flex';
+            if (container) {
+                container.classList.remove('ebay-mobile-mode');
+                container.style.maxWidth = '100%';
+            }
+            viewDesktopBtn.style.background = '#eef4fc';
+            viewDesktopBtn.style.color = '#0053a0';
+            viewMobileBtn.style.background = '#ffffff';
+            viewMobileBtn.style.color = '#555555';
+        });
+
+        viewMobileBtn.addEventListener('click', () => {
+            const container = document.getElementById('buyerPreviewContainer');
+            if (container) {
+                container.classList.add('ebay-mobile-mode');
+                container.style.maxWidth = '440px';
+            }
+            viewMobileBtn.style.background = '#eef4fc';
+            viewMobileBtn.style.color = '#0053a0';
+            viewDesktopBtn.style.background = '#ffffff';
+            viewDesktopBtn.style.color = '#555555';
         });
     }
 
@@ -713,6 +777,15 @@ function setupEventListeners() {
     if (closePrevFooter) closePrevFooter.addEventListener('click', () => {
         document.getElementById('buyerPreviewModal').style.display = 'none';
     });
+
+    const buyerModal = document.getElementById('buyerPreviewModal');
+    if (buyerModal) {
+        buyerModal.addEventListener('click', (e) => {
+            if (e.target === buyerModal) {
+                buyerModal.style.display = 'none';
+            }
+        });
+    }
 
     // Photo additions & selections
     document.getElementById('addPhotoBtn').addEventListener('click', () => {

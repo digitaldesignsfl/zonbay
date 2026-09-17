@@ -256,6 +256,297 @@
     }
 
     /**
+     * Authentic 1:1 Live eBay Listing Buyer Page Mockup
+     * Replicates the full eBay buyer experience:
+     * - Top utility bar & 4-color eBay navigation
+     * - Interactive hero photo viewer with clickable thumbnail switching
+     * - Seller trust card (Store name, Top Rated Plus badge, feedback %)
+     * - Condition & dynamic pricing
+     * - Buy It Now, Add to cart, and Watchlist CTA buttons
+     * - Dynamic delivery estimate range & shipping breakdown
+     * - Official eBay Item Specifics grid
+     * - Embedded seller description template
+     */
+    function renderEbayBuyerPageMockup(product = {}, compiledDescriptionHtml = '', storeConfig = {}, options = {}) {
+        function esc(s) {
+            return String(s || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        const title = product.title || 'Quality Item';
+        const brand = product.brand || (product.productSpecs && product.productSpecs['Brand']) || 'Premium Quality';
+        const priceVal = parseFloat(product.price || 0);
+        const priceFormatted = !isNaN(priceVal) && priceVal > 0 ? priceVal.toFixed(2) : '24.99';
+        const shippingCostVal = parseFloat(product.shippingCost || 0);
+        const shippingService = product.shippingService || 'USPS Ground Advantage®';
+        const location = product.location || 'United States';
+        const condition = (product.conditionId === '1000' || !product.conditionId) ? 'Brand New' : (product.conditionId === '3000' ? 'Used' : 'Refurbished');
+
+        const storeName = storeConfig.storeName || 'Our Official Store';
+        const storeUrl = storeConfig.storeUrl || 'https://www.ebay.com/usr';
+
+        // Extract and sort images
+        let images = [];
+        if (Array.isArray(product.imageList) && product.imageList.length > 0) {
+            images = product.imageList
+                .filter(img => !img.isExcluded)
+                .sort((a, b) => (a.isHero ? -1 : (b.isHero ? 1 : 0)))
+                .map(img => img.url || img.dataUrl || img.hostedUrl)
+                .filter(Boolean);
+        }
+        if (images.length === 0 && Array.isArray(product.alternateImages) && product.alternateImages.length > 0) {
+            images = product.alternateImages.filter(Boolean);
+        }
+        if (images.length === 0 && product.mainImgUrl) {
+            images = [product.mainImgUrl];
+        }
+        if (images.length === 0) {
+            images = ['https://via.placeholder.com/600x600?text=No+Photo+Available'];
+        }
+        const heroImgUrl = images[0];
+
+        // Calculate dynamic delivery range
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const now = new Date();
+        const d1 = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+        const d2 = new Date(now.getTime() + 6 * 24 * 60 * 60 * 1000);
+        const deliveryRange = `${days[d1.getDay()]}, ${months[d1.getMonth()]} ${d1.getDate()} and ${days[d2.getDay()]}, ${months[d2.getMonth()]} ${d2.getDate()}`;
+
+        // Specifics formatting (2 key-value pairs per row = 4 columns on desktop)
+        const specs = { ...(product.productSpecs || {}) };
+        if (!specs['Condition']) specs['Condition'] = condition;
+        if (!specs['Brand']) specs['Brand'] = brand;
+        const specEntries = Object.entries(specs).filter(([k, v]) => v && v !== 'Does Not Apply');
+
+        let specRowsHtml = '';
+        for (let i = 0; i < specEntries.length; i += 2) {
+            const pair1 = specEntries[i];
+            const pair2 = specEntries[i + 1];
+            specRowsHtml += `
+            <tr style="border-bottom: 1px solid #e0e0e0;">
+              <td style="padding: 9px 14px; background: #f7f7f7; color: #555555; font-weight: 600; width: 22%; border-right: 1px solid #e0e0e0; font-size: 13px;">${esc(pair1[0])}</td>
+              <td style="padding: 9px 14px; background: #ffffff; color: #191919; width: 28%; border-right: 1px solid #e0e0e0; font-size: 13px;">${esc(pair1[1])}</td>
+              ${pair2 ? `
+              <td style="padding: 9px 14px; background: #f7f7f7; color: #555555; font-weight: 600; width: 22%; border-right: 1px solid #e0e0e0; font-size: 13px;">${esc(pair2[0])}</td>
+              <td style="padding: 9px 14px; background: #ffffff; color: #191919; width: 28%; font-size: 13px;">${esc(pair2[1])}</td>
+              ` : `
+              <td style="padding: 9px 14px; background: #f7f7f7; width: 22%; border-right: 1px solid #e0e0e0;"></td>
+              <td style="padding: 9px 14px; background: #ffffff; width: 28%;"></td>
+              `}
+            </tr>`;
+        }
+
+        // Description fallback
+        const descContent = compiledDescriptionHtml || renderStorefrontShowcase(product, storeConfig);
+
+        return `
+<!-- LIVE EBAY LISTING PAGE MOCKUP -->
+<div class="ebay-live-page-mockup" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #f7f7f7; color: #191919; width: 100%; line-height: 1.4; padding-bottom: 40px;">
+
+  <!-- 1. EBAY TOP UTILITY BAR -->
+  <div class="ebay-header-utility" style="background: #ffffff; border-bottom: 1px solid #e5e5e5; font-size: 12px; color: #707070; padding: 6px 24px; display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      Hi <strong style="color: #191919;">Shopper</strong>! (<span style="color: #0053a0; cursor: pointer; text-decoration: underline;">Sign in</span>) &nbsp;|&nbsp; 
+      <span style="cursor: pointer;">Daily Deals</span> &nbsp;|&nbsp; 
+      <span style="cursor: pointer;">Brand Outlet</span> &nbsp;|&nbsp; 
+      <span style="cursor: pointer;">Help &amp; Contact</span>
+    </div>
+    <div style="display: flex; gap: 16px; align-items: center;">
+      <span style="cursor: pointer;">Sell</span>
+      <span style="cursor: pointer;">Watchlist ▾</span>
+      <span style="cursor: pointer;">My eBay ▾</span>
+      <span style="cursor: pointer; font-size: 14px;">🔔</span>
+      <span style="cursor: pointer; font-size: 14px;">🛒</span>
+    </div>
+  </div>
+
+  <!-- 2. MAIN EBAY SEARCH HEADER -->
+  <div class="ebay-header-main" style="background: #ffffff; border-bottom: 1px solid #e5e5e5; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+    <div style="display: flex; align-items: center; gap: 14px; flex-shrink: 0;">
+      <span style="font-size: 32px; font-weight: 800; letter-spacing: -2px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; user-select: none;">
+        <span style="color:#e53238">e</span><span style="color:#0064d2">b</span><span style="color:#f5af02">a</span><span style="color:#86b817">y</span>
+      </span>
+      <span style="font-size: 13px; color: #555555; cursor: pointer; font-weight: 500;">Shop by category ▾</span>
+    </div>
+
+    <div class="ebay-search-bar" style="flex: 1; max-width: 820px; display: flex; align-items: center; border: 2px solid #191919; border-radius: 24px; overflow: hidden; background: #ffffff; height: 42px;">
+      <span style="padding-left: 14px; color: #707070; font-size: 14px;">🔍</span>
+      <input type="text" value="${esc(title.substring(0, 45))}" placeholder="Search for anything" style="flex: 1; border: none; outline: none; padding: 0 10px; font-size: 14px;" readonly />
+      <div style="font-size: 12px; color: #555; border-left: 1px solid #ddd; padding: 0 12px; height: 100%; display: flex; align-items: center; cursor: pointer; background: #fbfbfb;">All Categories ▾</div>
+      <button type="button" style="background: #0053a0; color: #ffffff; border: none; height: 100%; padding: 0 24px; font-weight: 700; font-size: 14px; cursor: pointer;">Search</button>
+    </div>
+
+    <span style="font-size: 11px; color: #707070; cursor: pointer; flex-shrink: 0;">Advanced</span>
+  </div>
+
+  <!-- 3. BREADCRUMBS -->
+  <div class="ebay-breadcrumbs" style="background: #ffffff; border-bottom: 1px solid #f0f0f0; padding: 8px 24px; font-size: 12px; color: #707070; display: flex; align-items: center; gap: 8px;">
+    <span style="color: #0053a0; cursor: pointer;">&lt; Back to search results</span>
+    <span>|</span>
+    <span>Listed in category:</span>
+    <span style="color: #0053a0; cursor: pointer;">eBay Motors</span> &gt;
+    <span style="color: #0053a0; cursor: pointer;">Parts &amp; Accessories</span> &gt;
+    <span style="color: #191919; font-weight: 600;">${esc(title.substring(0, 35))}...</span>
+  </div>
+
+  <!-- 4. LISTING BODY -->
+  <div style="max-width: 1200px; margin: 16px auto; padding: 0 16px;">
+
+    <!-- Card 1: Main Product Hero (Gallery + Buy Box) -->
+    <div class="ebay-hero-card" style="background: #ffffff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 24px; margin-bottom: 20px;">
+      <div class="ebay-hero-grid" style="display: grid; grid-template-columns: 480px 1fr; gap: 36px; align-items: start;">
+
+        <!-- Left: Photo Gallery -->
+        <div class="ebay-gallery-col">
+          <div style="position: relative; border: 1px solid #eaeaea; border-radius: 8px; background: #ffffff; height: 480px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+            <img id="ebayLiveHeroImg" src="${esc(heroImgUrl)}" alt="${esc(title)}" style="max-width: 92%; max-height: 450px; object-fit: contain; transition: transform 0.2s;" />
+            <div id="ebayLiveImgCounter" style="position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.65); color: #ffffff; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px;">1 of ${images.length}</div>
+            <div style="position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.92); border: 1px solid #ddd; color: #555; font-size: 11px; padding: 3px 10px; border-radius: 12px; display: flex; align-items: center; gap: 4px; pointer-events: none; white-space: nowrap;">🔍 Roll over image to zoom in</div>
+          </div>
+
+          <!-- Thumbnails Strip -->
+          <div class="ebay-thumb-strip" style="display: flex; gap: 8px; margin-top: 12px; overflow-x: auto; padding-bottom: 6px;">
+            ${images.map((img, idx) => `
+            <button type="button" class="ebay-preview-thumb-btn ${idx === 0 ? 'active' : ''}" data-index="${idx}" data-img-url="${esc(img)}" style="width: 58px; height: 58px; border-radius: 4px; border: ${idx === 0 ? '2px solid #0053a0' : '1px solid #d0d0d0'}; background: #ffffff; padding: 2px; cursor: pointer; flex-shrink: 0; outline: none; transition: all 0.15s;">
+              <img src="${esc(img)}" style="width: 100%; height: 100%; object-fit: contain; display: block;" />
+            </button>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Right: Buy Box & Details -->
+        <div class="ebay-details-col">
+          <h1 style="font-size: 20px; line-height: 1.35; font-weight: 700; color: #191919; margin: 0 0 10px 0;">
+            ${esc(title)}
+          </h1>
+
+          <!-- Seller Trust Card -->
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 10px 14px; background: #f8f9fa; border: 1px solid #edf2f7; border-radius: 6px; margin-bottom: 16px;">
+            <div>
+              <div style="font-weight: 700; font-size: 14px; color: #191919; display: flex; align-items: center; gap: 6px;">
+                <span style="color: #0053a0;">${esc(storeName)}</span>
+                <span style="background: #0053a0; color: #fff; border-radius: 50%; font-size: 10px; width: 15px; height: 15px; display: inline-flex; align-items: center; justify-content: center;">✓</span>
+                <span style="background: #eef4fc; color: #0053a0; font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 4px;">Top Rated Plus</span>
+              </div>
+              <div style="font-size: 12px; color: #555; margin-top: 2px;">99.8% positive feedback • 1,482 items sold</div>
+            </div>
+            <div style="display: flex; gap: 8px; font-size: 12px;">
+              <a href="${esc(storeUrl)}" target="_blank" style="color: #0053a0; font-weight: 600; text-decoration: none;">Visit store</a>
+              <span style="color: #bbb;">|</span>
+              <span style="color: #0053a0; cursor: pointer;">Contact seller</span>
+            </div>
+          </div>
+
+          <!-- Condition -->
+          <div style="display: flex; gap: 14px; font-size: 13px; margin-bottom: 14px; border-bottom: 1px solid #eee; padding-bottom: 12px;">
+            <span style="color: #707070; width: 75px; flex-shrink: 0;">Condition:</span>
+            <div>
+              <strong style="color: #191919;">${esc(specs['Condition'] || 'Brand New')}</strong>
+              <p style="margin: 2px 0 0 0; font-size: 12px; color: #707070;">A brand-new, unused, unopened, undamaged item in its original packaging (where packaging is applicable).</p>
+            </div>
+          </div>
+
+          <!-- Price -->
+          <div style="background: #fafafa; border: 1px solid #f0f0f0; border-radius: 8px; padding: 14px 18px; margin-bottom: 16px;">
+            <div style="display: flex; align-items: baseline; gap: 10px;">
+              <span style="font-size: 13px; color: #707070;">Price:</span>
+              <span style="font-size: 28px; font-weight: 800; color: #191919;">US $${priceFormatted}</span>
+              <span style="background: #eaf5ea; color: #1a7f37; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px;">Buy It Now</span>
+            </div>
+            <div style="font-size: 12px; color: #d9381e; font-weight: 600; margin-top: 6px;">🔥 High demand: 8 people bought this in the last 24 hours</div>
+          </div>
+
+          <!-- CTA Buttons -->
+          <div style="margin-bottom: 18px;">
+            <button type="button" style="width: 100%; padding: 13px 20px; background: #0053a0; color: #ffffff; border: none; border-radius: 24px; font-size: 15px; font-weight: 700; cursor: pointer; margin-bottom: 8px; box-shadow: 0 2px 6px rgba(0,83,160,0.25);">
+              Buy It Now
+            </button>
+            <button type="button" style="width: 100%; padding: 12px 20px; background: #e8f2fc; color: #0053a0; border: 1px solid #0053a0; border-radius: 24px; font-size: 15px; font-weight: 700; cursor: pointer; margin-bottom: 8px;">
+              Add to cart
+            </button>
+            <button type="button" style="width: 100%; padding: 10px 20px; background: #ffffff; color: #191919; border: 1px solid #707070; border-radius: 24px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+              🤍 Add to Watchlist
+            </button>
+          </div>
+
+          <!-- Shipping, Returns & Guarantees -->
+          <div style="border-top: 1px solid #eee; padding-top: 14px; font-size: 13px;">
+            <div style="display: flex; gap: 12px; margin-bottom: 10px;">
+              <span style="color: #707070; width: 75px; flex-shrink: 0;">Shipping:</span>
+              <div>
+                ${shippingCostVal === 0 ? '<strong style="color: #1a7f37;">FREE Standard Shipping</strong>' : '<strong>$' + shippingCostVal.toFixed(2) + ' Standard Shipping</strong>'} via ${esc(shippingService)}
+                <div style="color: #707070; font-size: 12px; margin-top: 2px;">Item location: ${esc(location)} | Ships to: United States and many other countries</div>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-bottom: 10px;">
+              <span style="color: #707070; width: 75px; flex-shrink: 0;">Delivery:</span>
+              <div>Estimated between <strong>${deliveryRange}</strong></div>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-bottom: 10px;">
+              <span style="color: #707070; width: 75px; flex-shrink: 0;">Returns:</span>
+              <div><strong>30 days returns</strong>. Buyer pays for return shipping.</div>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-bottom: 14px;">
+              <span style="color: #707070; width: 75px; flex-shrink: 0;">Payments:</span>
+              <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                <span style="background: #0053a0; color: #fff; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 3px;">VISA</span>
+                <span style="background: #eb001b; color: #fff; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 3px;">Mastercard</span>
+                <span style="background: #0079c1; color: #fff; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 3px;">Amex</span>
+                <span style="background: #ff6000; color: #fff; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 3px;">Discover</span>
+                <span style="background: #f5f5f5; color: #0079c1; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 3px; border: 1px solid #ddd;">PayPal</span>
+                <span style="background: #000; color: #fff; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 3px;">Apple Pay</span>
+                <span style="background: #4285f4; color: #fff; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 3px;">Google Pay</span>
+              </div>
+            </div>
+
+            <!-- eBay Money Back Guarantee Banner -->
+            <div style="background: #eef4fc; border: 1px solid #c9defc; border-radius: 6px; padding: 10px 14px; display: flex; align-items: center; gap: 12px;">
+              <div style="font-size: 24px;">🛡️</div>
+              <div>
+                <div style="font-weight: 700; color: #0053a0; font-size: 13px;">eBay Money Back Guarantee</div>
+                <div style="font-size: 11px; color: #444;">Get the item you ordered or your money back. Covers purchase price and original shipping.</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Official eBay Item Specifics Grid -->
+    <div class="ebay-specs-card" style="background: #ffffff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 24px; margin-bottom: 20px;">
+      <h2 style="font-size: 18px; font-weight: 700; color: #191919; margin: 0 0 16px 0;">Item specifics</h2>
+      <table style="width: 100%; border-collapse: collapse; border: 1px solid #e0e0e0; font-size: 13px;">
+        <tbody>
+          ${specRowsHtml}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Card 3: Rendered Description Template -->
+    <div class="ebay-desc-card" style="background: #ffffff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 2px solid #0053a0; padding-bottom: 8px;">
+        <h2 style="font-size: 18px; font-weight: 700; color: #191919; margin: 0;">Description from seller</h2>
+        <span style="font-size: 11px; color: #707070;">Seller assumes all responsibility for this listing.</span>
+      </div>
+      <div class="ebay-rendered-template-container" style="padding: 10px 0;">
+        ${descContent}
+      </div>
+    </div>
+
+  </div>
+</div>
+`;
+    }
+
+    /**
      * Master dispatcher: renders chosen template
      */
     function renderEbayTemplate(templateKey = 'storefront_showcase', product = {}, storeConfig = {}) {
@@ -272,6 +563,7 @@
         renderEbayTemplate,
         renderStorefrontShowcase,
         renderModernMinimalist,
+        renderEbayBuyerPageMockup,
         generateAiRevisedCopy
     };
 }));
