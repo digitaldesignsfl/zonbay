@@ -66,21 +66,51 @@ function extractTemuProduct() {
         return src;
     }
 
+    function isJunkOrUnrelated(imgEl, src) {
+        if (!src) return true;
+        const s = src.toLowerCase();
+        if (s.includes('icon') || s.includes('avatar') || s.includes('logo') || s.includes('badge') || s.includes('coupon') || s.includes('sprite') || s.includes('rating') || s.includes('cert')) {
+            return true;
+        }
+        if (imgEl && imgEl.closest) {
+            const badAncestor = imgEl.closest('[class*="recommend"], [class*="similar"], [class*="review"], [class*="comment"], [class*="footer"], [class*="header"], [class*="cart"], [class*="bought_together"], [class*="like_list"], [class*="nav"]');
+            if (badAncestor) return true;
+        }
+        if (imgEl && imgEl.naturalWidth && imgEl.naturalWidth < 80) return true;
+        return false;
+    }
+
     const images = [];
     const ogImg = document.querySelector('meta[property="og:image"]')?.getAttribute('content');
-    if (ogImg) images.push(cleanTemuImg(ogImg));
+    if (ogImg && !isJunkOrUnrelated(null, ogImg)) {
+        images.push(cleanTemuImg(ogImg));
+    }
 
-    // Gallery and carousel thumbnails
-    const imgEls = document.querySelectorAll('img[src*="kwcdn.com"], img[data-src*="kwcdn.com"]');
-    imgEls.forEach(img => {
-        let src = img.getAttribute('data-src') || img.getAttribute('src');
-        if (src && !src.includes('icon') && !src.includes('avatar') && !src.includes('logo')) {
+    // Prioritize main product gallery containers first
+    const galleryEls = document.querySelectorAll('[data-testid*="gallery"] img, [class*="gallery"] img, [class*="goods-image"] img, [class*="thumb"] img, [class*="swiper"] img, [class*="slider"] img');
+    galleryEls.forEach(img => {
+        const src = img.getAttribute('data-src') || img.getAttribute('src');
+        if (src && src.includes('kwcdn.com') && !isJunkOrUnrelated(img, src)) {
             const highRes = cleanTemuImg(src);
             if (!images.includes(highRes)) {
                 images.push(highRes);
             }
         }
     });
+
+    // If gallery search returned few images, broaden carefully while filtering junk
+    if (images.length < 2) {
+        const imgEls = document.querySelectorAll('img[src*="kwcdn.com"], img[data-src*="kwcdn.com"]');
+        imgEls.forEach(img => {
+            const src = img.getAttribute('data-src') || img.getAttribute('src');
+            if (src && !isJunkOrUnrelated(img, src)) {
+                const highRes = cleanTemuImg(src);
+                if (!images.includes(highRes)) {
+                    images.push(highRes);
+                }
+            }
+        });
+    }
 
     // 6. Product Specs & Features
     const productSpecs = {

@@ -239,9 +239,10 @@ function renderPhotoGrid() {
                 <button class="btn-icon btn-hero" data-index="${idx}" title="Set as Hero / Main Photo">⭐</button>
                 <button class="btn-icon btn-edit" data-index="${idx}" title="Edit Brightness/Contrast">🎨</button>
                 ${img.isEdited ? `<button class="btn-icon btn-download" data-index="${idx}" title="Download Edited JPG to Computer">📥</button>` : ''}
-                <button class="btn-icon btn-exclude" data-index="${idx}" title="${img.isExcluded ? 'Include Photo' : 'Exclude Photo'}">
-                    ${img.isExcluded ? '➕' : '❌'}
+                <button class="btn-icon btn-exclude" data-index="${idx}" title="${img.isExcluded ? 'Include in Listing' : 'Exclude from Listing'}">
+                    ${img.isExcluded ? '👁️' : '🚫'}
                 </button>
+                <button class="btn-icon btn-delete-photo" data-index="${idx}" title="Delete Photo Permanently" style="color: #dc3545;">🗑️</button>
             </div>
         `;
         container.appendChild(card);
@@ -259,6 +260,13 @@ function renderPhotoGrid() {
         btn.addEventListener('click', (e) => {
             const idx = parseInt(e.target.dataset.index);
             toggleExcludeImage(idx);
+        });
+    });
+
+    container.querySelectorAll('.btn-delete-photo').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const idx = parseInt(e.target.dataset.index);
+            deleteImage(idx);
         });
     });
 
@@ -309,20 +317,73 @@ function showToast(message, type = 'success') {
 }
 
 function setHeroImage(index) {
+    if (!imageList[index]) return;
     imageList.forEach((img, i) => {
         img.isHero = (i === index);
         if (i === index) img.isExcluded = false; // Hero cannot be excluded
     });
     renderPhotoGrid();
     triggerAutoSave();
+    showToast(`⭐ Photo #${index + 1} set as Main Hero photo!`);
 }
 
 function toggleExcludeImage(index) {
-    if (imageList[index].isHero) {
-        alert("The Hero / Main photo cannot be excluded. Set another photo as Hero first.");
-        return;
+    if (!imageList[index]) return;
+
+    if (!imageList[index].isExcluded && imageList[index].isHero) {
+        // Find next non-excluded photo to inherit Hero status
+        const nextHeroIdx = imageList.findIndex((img, i) => i !== index && !img.isExcluded);
+        if (nextHeroIdx !== -1) {
+            imageList[nextHeroIdx].isHero = true;
+            imageList[index].isHero = false;
+            imageList[index].isExcluded = true;
+            showToast(`Photo #${index + 1} excluded. Photo #${nextHeroIdx + 1} is now Main Hero.`);
+        } else {
+            // Check if any other photo exists to re-include
+            const anyOtherIdx = imageList.findIndex((img, i) => i !== index);
+            if (anyOtherIdx !== -1) {
+                imageList[anyOtherIdx].isHero = true;
+                imageList[anyOtherIdx].isExcluded = false;
+                imageList[index].isHero = false;
+                imageList[index].isExcluded = true;
+                showToast(`Photo #${index + 1} excluded. Photo #${anyOtherIdx + 1} re-included as Main Hero.`);
+            } else {
+                showToast("⚠️ eBay requires at least one product photo for the listing.", "error");
+                return;
+            }
+        }
+    } else {
+        imageList[index].isExcluded = !imageList[index].isExcluded;
+        if (imageList[index].isExcluded && imageList[index].isHero) {
+            imageList[index].isHero = false;
+            const nextActive = imageList.find(img => !img.isExcluded);
+            if (nextActive) nextActive.isHero = true;
+        }
     }
-    imageList[index].isExcluded = !imageList[index].isExcluded;
+    renderPhotoGrid();
+    triggerAutoSave();
+}
+
+function deleteImage(index) {
+    if (!imageList[index]) return;
+
+    const wasHero = imageList[index].isHero;
+    imageList.splice(index, 1);
+
+    if (imageList.length > 0) {
+        if (wasHero || !imageList.some(img => img.isHero && !img.isExcluded)) {
+            // Automatically promote the first non-excluded photo (or first photo)
+            const nextActive = imageList.find(img => !img.isExcluded) || imageList[0];
+            nextActive.isHero = true;
+            nextActive.isExcluded = false;
+            showToast("🗑️ Photo deleted. Next photo set as Main Hero!");
+        } else {
+            showToast("🗑️ Photo deleted from listing!");
+        }
+    } else {
+        showToast("🗑️ Photo deleted. No photos remaining in listing.", "error");
+    }
+
     renderPhotoGrid();
     triggerAutoSave();
 }
