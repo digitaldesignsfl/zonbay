@@ -51,8 +51,10 @@
                     <label>Target Price ($)</label>
                     <input type="text" id="ebayPrice" style="width: 150px;">
                     <label>Product HTML Description</label>
-                    <textarea id="ebayDesc"></textarea>
-                    <button class="btn" id="loadDataBtn">🔄 Load Last Scraped</button>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button class="btn" id="loadDataBtn">🔄 Load Last Scraped</button>
+                        <button class="btn" style="background:#0064d2;" id="exportCsvBtn">📥 Export to eBay Seller Hub CSV</button>
+                    </div>
                 </div>
                 <div>
                     <div class="card">
@@ -76,7 +78,10 @@
                 <textarea id="manualBullets" placeholder="Feature 1\nFeature 2" style="height: 100px;"></textarea>
                 <label>Long Description / Product Overview</label>
                 <textarea id="manualDesc" placeholder="Enter details here..."></textarea>
-                <button class="btn btn-blue" id="submitManualBtn">⚙️ Process and Compile to eBay Package</button>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button class="btn btn-blue" id="submitManualBtn">⚙️ Process and Compile to eBay Package</button>
+                    <button class="btn" style="background:#0064d2;" id="exportManualCsvBtn">📥 Export Manual Item as CSV</button>
+                </div>
             </div>
         </div>
 
@@ -175,6 +180,47 @@
                 document.getElementById('manualBullets').value = '';
                 document.getElementById('manualDesc').value = '';
             } catch (err) { alert("Error processing package."); }
+        });
+
+        document.getElementById('exportCsvBtn').addEventListener('click', () => {
+            window.location.href = '/api/export-csv';
+        });
+
+        document.getElementById('exportManualCsvBtn').addEventListener('click', async () => {
+            const manualData = {
+                title: document.getElementById('manualTitle').value,
+                price: document.getElementById('manualPrice').value,
+                alternateImages: [document.getElementById('manualImageUrl').value].filter(Boolean),
+                bulletPoints: document.getElementById('manualBullets').value.split('\n').filter(Boolean),
+                longDescription: document.getElementById('manualDesc').value,
+                productSpecs: {}
+            };
+            if (!manualData.title || !manualData.price) {
+                alert("Please fill in at least the Title and Price to generate a CSV!");
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/export-custom-csv', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(manualData)
+                });
+                if (!response.ok) {
+                    const errJson = await response.json();
+                    throw new Error(errJson.error || "Export failed");
+                }
+                const blob = await response.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = `ebay-manual-listing-${Date.now()}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            } catch (e) {
+                alert("Error exporting CSV: " + e.message);
+            }
         });
 
         async function fetchLiveInventory() {

@@ -105,6 +105,23 @@ async function runTest() {
         assert("History contains MANUAL_ENTRY event", historyRes.data.history.some(line => line.includes("[MANUAL_ENTRY]")));
         assert("History contains REVISION event", historyRes.data.history.some(line => line.includes("[REVISION]")));
 
+        // Test 9: GET /api/export-csv (eBay Seller Hub CSV Generation)
+        const csvRes = await axios.get(`${baseUrl}/api/export-csv`);
+        assert("Export CSV GET /api/export-csv returns 200", csvRes.status === 200);
+        assert("CSV content type is text/csv", csvRes.headers['content-type']?.includes('text/csv'));
+        assert("CSV includes official eBay action header", csvRes.data.includes('*Action(SiteID=US'));
+        assert("CSV includes required eBay fields", csvRes.data.includes('*ConditionID') && csvRes.data.includes('*StartPrice'));
+
+        // Test 10: POST /api/export-custom-csv (Direct manual item export)
+        const customCsvRes = await axios.post(`${baseUrl}/api/export-custom-csv`, {
+            title: "Custom Anker USB C Cable 6ft Braided Nylon",
+            price: "14.99",
+            categoryId: "172008",
+            itemSpecifics: [{ name: "Brand", value: "Anker" }, { name: "Color", value: "Black" }]
+        });
+        assert("Custom CSV POST /api/export-custom-csv returns 200", customCsvRes.status === 200);
+        assert("Custom CSV contains custom title and brand", customCsvRes.data.includes("Custom Anker USB C Cable") && customCsvRes.data.includes("Anker"));
+
     } catch (err) {
         console.error("❌ Unexpected test exception:", err.message);
         testsFailed++;

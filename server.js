@@ -165,6 +165,34 @@ app.get('/api/history', (req, res) => {
     res.json({ history: lines });
 });
 
+// EBAY SELLER HUB CSV EXPORT ENDPOINTS
+app.get('/api/export-csv', (req, res) => {
+    try {
+        const { exportCurrentListingCsv } = require('./csv-exporter');
+        const csvContent = exportCurrentListingCsv();
+        const filename = `ebay-seller-hub-listing-${Date.now()}.csv`;
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.status(200).send(csvContent);
+    } catch (err) {
+        console.error("CSV Export error:", err.message);
+        res.status(400).json({ error: err.message });
+    }
+});
+
+app.post('/api/export-custom-csv', (req, res) => {
+    try {
+        const { generateEbaySellerHubCsv } = require('./csv-exporter');
+        const productData = req.body;
+        const csvContent = generateEbaySellerHubCsv(productData);
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="ebay-custom-listing-${Date.now()}.csv"`);
+        res.status(200).send(csvContent);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`API Server and Multi-Panel Control Dashboard active at http://localhost:${PORT}`);
 });
