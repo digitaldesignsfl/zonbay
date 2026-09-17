@@ -111,6 +111,7 @@
         </div>
     </div>
     <script>
+        const API_BASE = (window.location.protocol === 'file:' || !window.location.port) ? 'http://localhost:3000' : '';
         let currentEditingId = null;
 
         function switchView(viewId) {
@@ -126,7 +127,7 @@
             const container = document.getElementById('historyLogs');
             container.innerText = 'Loading ledger...';
             try {
-                const res = await fetch('/api/history');
+                const res = await fetch(`${API_BASE}/api/history`);
                 const data = await res.json();
                 if (data.history && data.history.length > 0) {
                     container.innerText = data.history.join('\n');
@@ -134,13 +135,22 @@
                     container.innerText = 'No ledger entries recorded yet.';
                 }
             } catch (err) {
-                container.innerText = 'Failed connecting to server for history log.';
+                container.innerText = 'Failed connecting to server for history log: ' + err.message;
             }
         }
 
         document.getElementById('loadDataBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('loadDataBtn');
+            const origText = btn.innerText;
+            btn.innerText = '⏳ Loading...';
+            btn.disabled = true;
+
             try {
-                const response = await fetch('/api/view-product');
+                const response = await fetch(`${API_BASE}/api/view-product`);
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.error || `Server error (Status ${response.status})`);
+                }
                 const data = await response.json();
                 document.getElementById('ebayTitle').value = data.title || "";
                 document.getElementById('ebayPrice').value = data.price || "";
@@ -148,12 +158,20 @@
                 document.getElementById('ebayCategory').value = `${data.categoryName || ""} (#${data.categoryId || ""})`;
                 const gallery = document.getElementById('imageGallery');
                 gallery.innerHTML = '';
-                if (data.imageUrls) {
+                if (data.imageUrls && data.imageUrls.length > 0) {
                     data.imageUrls.forEach(url => {
-                        const img = document.createElement('img'); img.src = url; gallery.appendChild(img);
+                        const img = document.createElement('img');
+                        img.src = url.startsWith('/') ? `${API_BASE}${url}` : url;
+                        gallery.appendChild(img);
                     });
                 }
-            } catch (err) { alert("Error loading data."); }
+            } catch (err) {
+                console.error("Load data error:", err);
+                alert("Error loading data: " + err.message + "\n\nMake sure 'node server.js' is running at http://localhost:3000");
+            } finally {
+                btn.innerText = origText;
+                btn.disabled = false;
+            }
         });
 
         document.getElementById('submitManualBtn').addEventListener('click', async () => {
@@ -165,25 +183,34 @@
                 longDescription: document.getElementById('manualDesc').value,
                 productSpecs: {}
             };
-            if (!manualData.title || !manualData.price) { alert("Fields required!"); return; }
+            if (!manualData.title || !manualData.price) { alert("Title and Price fields are required!"); return; }
+            const btn = document.getElementById('submitManualBtn');
+            btn.innerText = '⏳ Compiling...';
+            btn.disabled = true;
             try {
-                const response = await fetch('/api/manual-product', {
+                const response = await fetch(`${API_BASE}/api/manual-product`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(manualData)
                 });
                 const result = await response.json();
+                if (!response.ok) throw new Error(result.error || "Server error");
                 alert(result.message);
                 document.getElementById('manualTitle').value = '';
                 document.getElementById('manualPrice').value = '';
                 document.getElementById('manualImageUrl').value = '';
                 document.getElementById('manualBullets').value = '';
                 document.getElementById('manualDesc').value = '';
-            } catch (err) { alert("Error processing package."); }
+            } catch (err) {
+                alert("Error processing package: " + err.message);
+            } finally {
+                btn.innerText = '⚙️ Process and Compile to eBay Package';
+                btn.disabled = false;
+            }
         });
 
         document.getElementById('exportCsvBtn').addEventListener('click', () => {
-            window.location.href = '/api/export-csv';
+            window.location.href = `${API_BASE}/api/export-csv`;
         });
 
         document.getElementById('exportManualCsvBtn').addEventListener('click', async () => {
@@ -201,7 +228,7 @@
             }
 
             try {
-                const response = await fetch('/api/export-custom-csv', {
+                const response = await fetch(`${API_BASE}/api/export-custom-csv`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(manualData)
@@ -227,7 +254,7 @@
             const container = document.getElementById('activeListingsContainer');
             container.innerHTML = '<p>Retrieving listings...</p>';
             try {
-                const res = await fetch('/api/get-listings');
+                const res = await fetch(`${API_BASE}/api/get-listings`);
                 const listings = await res.json();
                 container.innerHTML = '';
                 listings.forEach(item => {
@@ -236,7 +263,7 @@
                     row.innerHTML = '<div class="item-info"><h4>' + item.title + '</h4><p>ID: ' + item.itemId + ' | Price: $' + item.price + '</p></div><button class="btn btn-blue" onclick="openEditor(\'' + item.itemId + '\', \'' + item.title.replace(/'/g, "\\'") + '\', \'' + item.price + '\')">✏️ Edit</button>';
                     container.appendChild(row);
                 });
-            } catch (err) { container.innerHTML = '<p>Failed connecting to server.</p>'; }
+            } catch (err) { container.innerHTML = '<p>Failed connecting to server: ' + err.message + '</p>'; }
         }
 
         function openEditor(itemId, title, price) {
@@ -251,11 +278,11 @@
         document.getElementById('pushEditsBtn').addEventListener('click', async () => {
             const updatedPayload = { itemId: currentEditingId, title: document.getElementById('editItemTitle').value, price: document.getElementById('editItemPrice').value };
             try {
-                const response = await fetch('/api/update-listing', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updatedPayload) });
+                const response = await fetch(`${API_BASE}/api/update-listing`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updatedPayload) });
                 const resData = await response.json(); alert(resData.message);
                 document.getElementById('editModal').style.display = 'none';
                 fetchLiveInventory();
-            } catch (err) { alert("Error updating."); }
+            } catch (err) { alert("Error updating: " + err.message); }
         });
     </script>
 </body>

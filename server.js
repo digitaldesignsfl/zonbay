@@ -93,48 +93,54 @@ app.post('/api/save-product', (req, res) => {
 });
 
 // MANUAL ENTRY ENDPOINT
-app.post('/api/manual-product', (req, res) => {
-    const manualPayload = req.body;
-    console.log("✍️ Manual data packet received from form input.");
-    const targetPath = path.join(__dirname, 'ebay_ready_product.json');
-    fs.writeFileSync(targetPath, JSON.stringify(manualPayload, null, 2));
+app.post('/api/manual-product', async (req, res) => {
+    try {
+        const manualPayload = req.body;
+        console.log("✍️ Manual data packet received from form input.");
+        const targetPath = path.join(__dirname, 'ebay_ready_product.json');
+        fs.writeFileSync(targetPath, JSON.stringify(manualPayload, null, 2));
 
-    appendHistory('MANUAL_ENTRY', {
-        title: manualPayload.title,
-        price: manualPayload.price
-    });
-    
-    exec('node optimize.js', { cwd: __dirname }, (optErr) => {
-        if (optErr) console.error("optimize.js error:", optErr.message);
-        exec('node upload-images.js', { cwd: __dirname }, (imgErr) => {
-            if (imgErr) console.error("upload-images.js error:", imgErr.message);
-            console.log("🚀 Manual product layout processed successfully.");
-            res.status(200).json({ message: "Success! Manual listing compiled and optimized." });
+        appendHistory('MANUAL_ENTRY', {
+            title: manualPayload.title,
+            price: manualPayload.price
         });
-    });
+        
+        const { processProduct } = require('./optimize');
+        const { convertLocalPackageToLiveUrls } = require('./upload-images');
+        await processProduct();
+        await convertLocalPackageToLiveUrls();
+
+        console.log("🚀 Manual product layout processed successfully.");
+        res.status(200).json({ message: "Success! Manual listing compiled and optimized." });
+    } catch (err) {
+        console.error("Manual product processing error:", err.message);
+        res.status(500).json({ error: "Failed compiling manual product: " + err.message });
+    }
 });
 
-app.get('/api/view-product', (req, res) => {
+app.get('/api/view-product', async (req, res) => {
     const readyFile = path.join(__dirname, 'ebay_ready_product.json');
-    if (!fs.existsSync(readyFile)) return res.status(404).json({ error: "Missing ebay_ready_product.json" });
+    if (!fs.existsSync(readyFile)) {
+        return res.status(404).json({ error: "No scraped product found yet. Please scrape or enter an item first." });
+    }
     
-    exec('node optimize.js', { cwd: __dirname }, (optErr) => {
-        if (optErr) console.error("optimize.js error:", optErr.message);
-        exec('node upload-images.js', { cwd: __dirname }, (imgErr) => {
-            if (imgErr) console.error("upload-images.js error:", imgErr.message);
-            const finalFile = path.join(__dirname, 'ebay_final_api_ready.json');
-            if (fs.existsSync(finalFile)) {
-                try {
-                    const finalData = JSON.parse(fs.readFileSync(finalFile, 'utf8'));
-                    res.json(finalData);
-                } catch (e) {
-                    res.status(500).json({ error: "Corrupt final payload file" });
-                }
-            } else {
-                res.status(500).json({ error: "Failed generating final payload" });
-            }
-        });
-    });
+    try {
+        const { processProduct } = require('./optimize');
+        const { convertLocalPackageToLiveUrls } = require('./upload-images');
+        await processProduct();
+        await convertLocalPackageToLiveUrls();
+
+        const finalFile = path.join(__dirname, 'ebay_final_api_ready.json');
+        if (fs.existsSync(finalFile)) {
+            const finalData = JSON.parse(fs.readFileSync(finalFile, 'utf8'));
+            res.json(finalData);
+        } else {
+            res.status(500).json({ error: "Failed generating final listing package." });
+        }
+    } catch (err) {
+        console.error("View product processing error:", err.message);
+        res.status(500).json({ error: "Error processing product: " + err.message });
+    }
 });
 
 app.get('/api/get-listings', (req, res) => { 
