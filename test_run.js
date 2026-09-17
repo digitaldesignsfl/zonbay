@@ -122,6 +122,46 @@ async function runTest() {
         assert("Custom CSV POST /api/export-custom-csv returns 200", customCsvRes.status === 200);
         assert("Custom CSV contains custom title and brand", customCsvRes.data.includes("Custom Anker USB C Cable") && customCsvRes.data.includes("Anker"));
 
+        // Test 11: Standalone Portable CSV Exporter (exporters/ebay-csv.js)
+        const { generateEbayCsvString } = require('./exporters/ebay-csv');
+        const mockAmazonItem = {
+            source: 'amazon',
+            sourceId: 'B08N5WRWNW',
+            title: 'Anker Power Strip Surge Protector with 12 Outlets and 3 USB Ports Power Delivery Extension Cord 6ft Extra Long Cord',
+            price: '29.99',
+            brand: 'Anker',
+            mainImgUrl: 'https://m.media-amazon.com/images/I/71xyz.jpg',
+            alternateImages: [
+                'https://m.media-amazon.com/images/I/71xyz.jpg',
+                'https://m.media-amazon.com/images/I/81abc.jpg'
+            ],
+            bulletPoints: ['12 Outlets', '3 USB Ports', 'Surge Protection'],
+            productSpecs: { Brand: 'Anker', MPN: 'A9192', Color: 'White' },
+            categoryId: '67779'
+        };
+        const amazonCsv = generateEbayCsvString(mockAmazonItem);
+        assert("Portable CSV exporter generates eBay format", amazonCsv.includes('*Action(SiteID=US'));
+        assert("Portable CSV exporter truncates title to <= 80 chars", amazonCsv.split('\r\n')[1].split(',')[3].length <= 80);
+        assert("Portable CSV joins alternate images with pipe delimiter", amazonCsv.includes('https://m.media-amazon.com/images/I/71xyz.jpg|https://m.media-amazon.com/images/I/81abc.jpg'));
+
+        // Test 12: Standalone Portable CSV Exporter with Temu Item
+        const mockTemuItem = {
+            source: 'temu',
+            sourceId: 'TEMU-601099',
+            title: 'Cordless Electric Screwdriver Rechargeable Mini Drill Tool Kit',
+            price: '12.49',
+            brand: 'Unbranded',
+            mainImgUrl: 'https://img.kwcdn.com/product/123.jpg',
+            alternateImages: ['https://img.kwcdn.com/product/123.jpg'],
+            bulletPoints: ['USB Rechargeable', 'LED Light'],
+            productSpecs: { 'Type': 'Cordless Screwdriver', 'Voltage': '3.6V' },
+            categoryId: '184655'
+        };
+        const temuCsv = generateEbayCsvString(mockTemuItem);
+        assert("Temu CSV contains correct category ID", temuCsv.includes('184655'));
+        assert("Temu CSV contains clean SKU", temuCsv.includes('TEMU-601099'));
+        assert("Temu CSV includes HTML description with specs", temuCsv.includes('Cordless Screwdriver'));
+
     } catch (err) {
         console.error("❌ Unexpected test exception:", err.message);
         testsFailed++;

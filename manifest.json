@@ -1,13 +1,28 @@
 {
   "manifest_version": 3,
-  "name": "Amazon to eBay Lister",
-  "version": "1.0",
-  "description": "Extracts Amazon product details for relisting.",
+  "name": "Zonbay - Reseller Multi-Store Lister",
+  "version": "2.0.0",
+  "description": "Stealth product import from Amazon, Temu & more with automated eBay Seller Hub listing.",
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "*://*.amazon.com/*",
+    "*://*.temu.com/*",
+    "*://*.ebay.com/*",
+    "http://localhost:3000/*"
   ],
   "action": {
     "default_popup": "popup.html"
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.ebay.com/sh/reports/uploads*"],
+      "js": ["uploader/ebay-uploader.js"],
+      "run_at": "document_idle"
+    }
+  ]
 }

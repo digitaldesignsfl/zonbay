@@ -24,7 +24,11 @@ async function convertLocalPackageToLiveUrls() {
         const fileName = pathParts[pathParts.length - 1];
         const folderName = pathParts[pathParts.length - 2] || 'item';
 
-        // Creates a direct, working web link to your running local server
+        // NOTE: This is a localhost URL — only reachable from this machine.
+        // Fine for local dashboard preview, but eBay's servers cannot fetch it.
+        // The CSV export path (csv-exporter.js) avoids this by using live Amazon CDN
+        // image URLs instead. If/when the real eBay API integration goes live, these
+        // localhost URLs MUST be replaced with a real public image host before use.
         const publicUrl = `http://localhost:3000/images/${folderName}/${fileName}`;
         hostedUrls.push(publicUrl);
     }

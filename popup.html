@@ -1,15 +1,272 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <title>Zonbay Reseller Cockpit</title>
   <style>
-    body { width: 200px; font-family: Arial, sans-serif; padding: 10px; }
-    button { width: 100%; padding: 8px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-    button:hover { background-color: #0056b3; }
+    * { box-sizing: border-box; }
+    body {
+      width: 380px;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f8f9fa;
+      color: #212529;
+      font-size: 13px;
+    }
+    header {
+      background: linear-gradient(135deg, #0046af 0%, #002c77 100%);
+      color: white;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header-title {
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .badge {
+      font-size: 10px;
+      background: rgba(255,255,255,0.2);
+      padding: 3px 8px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .platform-bar {
+      padding: 8px 16px;
+      background: #eef4ff;
+      border-bottom: 1px solid #d4e2ff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+    .platform-status {
+      font-weight: 600;
+      color: #0046af;
+    }
+    .content {
+      padding: 14px 16px;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.15s ease;
+    }
+    .btn-primary { background: #0064d2; color: white; }
+    .btn-primary:hover { background: #0053b3; }
+    .btn-success { background: #28a745; color: white; }
+    .btn-success:hover { background: #218838; }
+    .btn-outline { background: white; border: 1px solid #ced4da; color: #495057; }
+    .btn-outline:hover { background: #f1f3f5; }
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .btn-group .btn { width: 50%; }
+    .product-preview {
+      display: none;
+      background: white;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    .preview-header {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .preview-img {
+      width: 68px;
+      height: 68px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      background: #fff;
+    }
+    .preview-meta {
+      flex: 1;
+    }
+    .preview-brand {
+      font-size: 11px;
+      color: #6c757d;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+    .preview-count {
+      font-size: 11px;
+      color: #0064d2;
+      margin-top: 2px;
+    }
+    label {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+      margin-top: 10px;
+      margin-bottom: 4px;
+      color: #343a40;
+    }
+    .char-counter {
+      font-weight: normal;
+      font-size: 11px;
+      color: #6c757d;
+    }
+    .char-counter.limit {
+      color: #dc3545;
+      font-weight: bold;
+    }
+    input[type="text"], input[type="number"], select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ced4da;
+      border-radius: 5px;
+      font-size: 12px;
+      background: white;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #0064d2;
+      box-shadow: 0 0 0 2px rgba(0,100,210,0.15);
+    }
+    .price-calculator {
+      background: #f1f3f5;
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 12px;
+    }
+    .calc-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 12px;
+    }
+    .calc-row:last-child {
+      margin-bottom: 0;
+      padding-top: 6px;
+      border-top: 1px dashed #ccc;
+      font-weight: bold;
+    }
+    .profit-positive { color: #28a745; font-weight: bold; }
+    #statusMessage {
+      margin-top: 10px;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      display: none;
+    }
+    .status-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .status-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .status-info { background: #e2e3e5; color: #383d41; border: 1px solid #d6d8db; }
   </style>
 </head>
 <body>
-  <h3>eBay Lister</h3>
-  <button id="extract">Extract Product Info</button>
+  <header>
+    <div class="header-title">
+      <span>⚡ Zonbay</span>
+      <span class="badge">Reseller</span>
+    </div>
+    <span id="versionBadge" style="font-size:11px; opacity:0.8;">v2.0</span>
+  </header>
+
+  <div class="platform-bar">
+    <span id="activePlatform">Checking active tab...</span>
+    <span id="detectedId" style="font-size: 11px; color: #6c757d;"></span>
+  </div>
+
+  <div class="content">
+    <button id="extractBtn" class="btn btn-primary">⚡ Extract Product Data</button>
+
+    <div id="productPreview" class="product-preview">
+      <div class="preview-header">
+        <img id="previewImg" class="preview-img" src="" alt="Thumbnail">
+        <div class="preview-meta">
+          <div id="previewBrand" class="preview-brand">BRAND</div>
+          <div id="previewImgCount" class="preview-count">🖼️ 0 Photos found</div>
+          <div style="margin-top: 4px; font-weight: 600;">
+            Source Cost: <span id="sourcePriceDisplay">$0.00</span>
+          </div>
+        </div>
+      </div>
+
+      <label>
+        <span>eBay Listing Title</span>
+        <span id="titleCounter" class="char-counter">0 / 80</span>
+      </label>
+      <input type="text" id="listingTitle" maxlength="80">
+
+      <label>eBay Category</label>
+      <select id="listingCategory">
+        <option value="67779">Power Strips & Surge Protectors (#67779)</option>
+        <option value="179471">Automotive Battery Chargers (#179471)</option>
+        <option value="184655">Cordless Drills & Tools (#184655)</option>
+        <option value="172008">Consumer Electronics (#172008)</option>
+        <option value="11700">Home & Garden (#11700)</option>
+        <option value="custom">-- Enter Custom Category ID --</option>
+      </select>
+      <input type="text" id="customCategoryId" placeholder="Enter eBay Category ID" style="display:none; margin-top:5px;">
+
+      <div class="price-calculator">
+        <div class="calc-row">
+          <span>Target Margin / Markup:</span>
+          <select id="marginPercent" style="width: 100px; padding: 4px;">
+            <option value="20">+20%</option>
+            <option value="35">+35%</option>
+            <option value="40" selected>+40%</option>
+            <option value="50">+50%</option>
+            <option value="75">+75%</option>
+            <option value="100">+100% (2x)</option>
+          </select>
+        </div>
+        <div class="calc-row">
+          <span>Est. eBay Fee (~13.25%):</span>
+          <span id="estEbayFee">-$0.00</span>
+        </div>
+        <div class="calc-row">
+          <span>Est. Net Profit:</span>
+          <span id="estNetProfit" class="profit-positive">+$0.00</span>
+        </div>
+        <div class="calc-row">
+          <span>eBay Listing Price:</span>
+          <div style="display:flex; align-items:center; gap:3px;">
+            <span>$</span>
+            <input type="number" id="listingPrice" step="0.01" style="width: 80px; padding: 4px;">
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-group">
+        <button id="downloadCsvBtn" class="btn btn-outline">📥 Download CSV</button>
+        <button id="autoUploadBtn" class="btn btn-success">⚡ Auto-Upload</button>
+      </div>
+      
+      <button id="syncLocalBtn" class="btn btn-outline" style="margin-top: 8px; font-size: 11px; padding: 6px;">
+        🔄 Sync to Local Server (localhost:3000)
+      </button>
+    </div>
+
+    <div id="statusMessage"></div>
+  </div>
+
+  <script src="exporters/ebay-csv.js"></script>
+  <script src="extractors/amazon.js"></script>
+  <script src="extractors/temu.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

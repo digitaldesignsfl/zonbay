@@ -59,19 +59,23 @@ function optimizeTitle(rawTitle = '', specs = {}) {
     return finalTitle || cleanTitle.substring(0, 80);
 }
 
-// Drops human readable names directly into your data package
+// Category IDs below are verified against eBay's live category browse pages (checked Sep 2026).
+// Do NOT add new entries here without verifying the ID on ebay.com/b/... first — a wrong
+// category ID can get a real listing suppressed or removed.
 function detectEbayCategory(titleText = '') {
     const text = String(titleText).toLowerCase();
     if (text.includes('charger') && text.includes('battery')) {
-        return { id: '111422', name: 'Automotive Tools: Battery Chargers & Tenders' };
-    }
-    if (text.includes('pump') && text.includes('water')) {
-        return { id: '180010', name: 'Plumbing: Water Pumps' };
+        return { id: '179471', name: 'Automotive Battery Chargers', verified: true };
     }
     if (text.includes('strip') || text.includes('surge') || text.includes('outlet')) {
-        return { id: '20138', name: 'Consumer Electronics: Surge Protectors & Power Strips' };
+        return { id: '67779', name: 'Power Strips & Surge Protectors', verified: true };
     }
-    return { id: '172008', name: 'Electronics: Consumer Electronics' };
+    if (text.includes('drill') || text.includes('driver') || (text.includes('cordless') && text.includes('kit'))) {
+        return { id: '184655', name: 'Cordless Drills', verified: true };
+    }
+    // No confident match — flag for manual category selection instead of guessing.
+    // Uploading with an unverified category ID risks listing suppression/removal.
+    return { id: '', name: 'NEEDS_MANUAL_CATEGORY', verified: false };
 }
 
 function mapItemSpecifics(specs = {}) {

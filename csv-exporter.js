@@ -69,8 +69,12 @@ function convertProductToCsvRow(packageData, rawData = {}) {
     // Core details
     const action = 'Add';
     const sku = getSpecificValue(specifics, ['ASIN', 'SKU', 'MPN', 'Item model number'], `SKU-${Date.now()}`);
-    const category = packageData.categoryId || '172008';
-    const title = (packageData.title || rawData.title || 'Product').substring(0, 80);
+    const category = packageData.categoryId || '';
+    if (!category) {
+        console.warn(`\u26a0\ufe0f  No verified eBay category for "${packageData.title || rawData.title}" \u2014 row flagged, fill in *Category manually before uploading to Seller Hub.`);
+    }
+    const rawTitle = (packageData.title || rawData.title || 'Product');
+    const title = (category ? rawTitle : `[REVIEW CATEGORY] ${rawTitle}`).substring(0, 80);
     const conditionId = '1000'; // Brand New
     const brand = getSpecificValue(specifics, ['Brand', 'Manufacturer'], 'Unbranded');
     const mpn = getSpecificValue(specifics, ['MPN', 'Item model number', 'Model Number'], 'Does Not Apply');
