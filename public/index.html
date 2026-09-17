@@ -264,9 +264,9 @@
                     <span class="metric-sub">Retail storefront value</span>
                 </div>
                 <div class="metric-card">
-                    <span class="metric-title">Projected Net Profit</span>
+                    <span class="metric-title">Est. Net Profit</span>
                     <span class="metric-value text-green" id="statTotalProfit">$0.00</span>
-                    <span class="metric-sub" id="statAvgMargin">Margin: 0.0%</span>
+                    <span class="metric-sub" id="statAvgMargin">Est. Margin: 0.0% (~13.25% fee)</span>
                 </div>
             </div>
 
@@ -307,7 +307,7 @@
                                 <th>Qty</th>
                                 <th>Cost</th>
                                 <th>Price</th>
-                                <th>Net Profit</th>
+                                <th>Est. Net Profit</th>
                                 <th>Status</th>
                                 <th style="text-align: right;">Actions</th>
                             </tr>
@@ -518,7 +518,7 @@ LCD display with voltage readout"></textarea>
             document.getElementById('statTotalCost').innerText = `$${stats.totalCost || '0.00'}`;
             document.getElementById('statTotalValue').innerText = `$${stats.totalValue || '0.00'}`;
             document.getElementById('statTotalProfit').innerText = `$${stats.totalProfit || '0.00'}`;
-            document.getElementById('statAvgMargin').innerText = `Avg Margin: ${stats.avgMargin || '0.0%'}`;
+            document.getElementById('statAvgMargin').innerText = `Est. Margin: ${stats.avgMargin || '0.0%'} (~13.25% fee)`;
         }
 
         function applyInventoryFilters() {

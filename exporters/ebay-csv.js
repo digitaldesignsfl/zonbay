@@ -65,7 +65,7 @@ function buildEbayDescriptionHtml(item) {
     return html;
 }
 
-function generateEbayCsvString(product) {
+function generateEbayCsvString(products) {
     const headerColumns = [
         '*Action(SiteID=US|Country=US|Currency=USD|Version=1193|CC=UTF-8)',
         'CustomLabel',
@@ -92,6 +92,24 @@ function generateEbayCsvString(product) {
         '*ReturnsAcceptedOption'
     ];
 
+    const productList = Array.isArray(products) ? products : [products];
+    const rows = [headerColumns.join(',')];
+
+    for (const prod of productList) {
+        if (prod) {
+            rows.push(convertProductToCsvRow(prod));
+        }
+    }
+
+    return rows.join('\r\n');
+}
+
+/**
+ * Converts a single product object into an RFC 4180 CSV row string
+ * @param {Object} product
+ * @returns {string} Escaped CSV row
+ */
+function convertProductToCsvRow(product) {
     // Collect public images (pipe-separated)
     let images = [];
     if (Array.isArray(product.imageList) && product.imageList.length > 0) {
@@ -132,8 +150,12 @@ function generateEbayCsvString(product) {
     const color = (product.productSpecs && product.productSpecs.Color) || '';
 
     const price = product.price ? String(product.price).replace(/[^0-9.]/g, '') : '19.99';
-    const sku = product.sourceId || `SKU-${Date.now()}`;
-    const category = product.categoryId || '67779'; // default safe electronics/supplies or user-selected
+    const sku = product.sourceId || product.sku || product.customSku || `SKU-${Date.now()}`;
+    const category = product.categoryId || '';
+    if (!category && typeof console !== 'undefined') {
+        console.warn(`\u26a0\ufe0f  No verified eBay category for "${cleanTitle}" \u2014 row flagged, fill in *Category manually before uploading to Seller Hub.`);
+    }
+    const flaggedTitle = category ? cleanTitle : `[REVIEW CATEGORY] ${cleanTitle}`.substring(0, 80);
     const descriptionHtml = product.htmlDescription || buildEbayDescriptionHtml(product);
 
     const conditionId = product.conditionId || '1000';
@@ -150,7 +172,7 @@ function generateEbayCsvString(product) {
         'Add',
         sku,
         category,
-        cleanTitle,
+        flaggedTitle,
         conditionId,
         brand,
         mpn,
@@ -172,14 +194,9 @@ function generateEbayCsvString(product) {
         returnsAccepted
     ];
 
-    const rows = [
-        headerColumns.join(','),
-        row.map(escapeCsvField).join(',')
-    ];
-
-    return rows.join('\r\n');
+    return row.map(escapeCsvField).join(',');
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { generateEbayCsvString, buildEbayDescriptionHtml, escapeCsvField };
+    module.exports = { generateEbayCsvString, convertProductToCsvRow, buildEbayDescriptionHtml, escapeCsvField };
 }

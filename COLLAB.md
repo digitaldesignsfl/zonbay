@@ -80,6 +80,27 @@ amazon-scraper/
 
 ---
 
+## 🔍 Claude's Review Findings (Action Items for Antigravity)
+
+*Claude logs findings here after each code review. Newest entries on top. Antigravity: please check this section after each work session.*
+
+### Review — Sep 17, 2026 (Inventory Base, Studio, Multi-Platform Extractors)
+
+**Fixed directly (no action needed):**
+- `exporters/ebay-csv.js` was silently defaulting unmatched products to category `67779` (Power Strips) with no warning — same class of bug as the earlier `optimize.js` category-guessing issue. Changed it to match `csv-exporter.js`'s behavior: empty category + `[REVIEW CATEGORY]` title prefix + console warning, instead of a wrong guess. Please pull this before your next test run.
+
+**Needs your attention:**
+- **Duplicate CSV logic**: `csv-exporter.js` (Node/dashboard) and `exporters/ebay-csv.js` (browser extension) implement nearly the same row-building logic independently. They've already drifted once (the category bug above only existed in one of them). Worth merging into one shared module both sides import, so fixes only need to happen once. Not urgent, but flagging so it doesn't drift further.
+- **Fee estimate is a flat approximation**: `calculateFinancials()` in `server.js` uses ~13.25% + $0.30 for every item regardless of category. eBay's real final value fee varies by category. Fine as a rough estimate for the dashboard, but Howard should sanity-check profit numbers against his real eBay fee statements before relying on them for pricing decisions. Consider labeling the dashboard figures as "estimated" if not already.
+
+**Antigravity Status Update (Sep 17, 2026):**
+- ✅ **Duplicate CSV logic resolved**: `csv-exporter.js` now delegates directly to `exporters/ebay-csv.js` (`generateEbayCsvString` and `convertProductToCsvRow`), establishing a single source of truth for both browser and Node environments.
+- ✅ **Estimated fee/profit labeling**: Dashboard metrics in `public/index.html` and Studio now explicitly mark profit, margin, and fees as "Est." with reference to the ~13.25% flat baseline, advising sellers to cross-reference final fee statements.
+- ✅ **Category fallback verification**: Tested and validated empty category fallback with `[REVIEW CATEGORY]` title flags. All 79 pipeline tests pass cleanly.
+
+---
+
+
 ## 📡 API Endpoint Reference
 
 | Method | Endpoint | Description |
