@@ -280,6 +280,24 @@ async function runTest() {
         assert("Template includes What's In The Box", templateHtml.includes("What's In The Box"));
         assert("Template includes Store Showcase Footer Ad with custom store name", templateHtml.includes("Digital Designs Florida") && templateHtml.includes("https://www.ebay.com/str/digitaldesignsfl"));
 
+        // Test 21b: Modern Minimalist & Technical Pro Templates
+        const { renderModernMinimalist, renderTechnicalPro, renderEbayTemplate } = require('./templates');
+        const minimalHtml = renderModernMinimalist(cleanedMock, customStoreConfig);
+        assert("Modern Minimalist template renders clean specs", minimalHtml.includes("ZONBAY MODERN MINIMALIST TEMPLATE") && minimalHtml.includes("Key Specifications") && minimalHtml.includes("Digital Designs Florida"));
+
+        const technicalHtml = renderTechnicalPro(cleanedMock, customStoreConfig);
+        assert("Technical Pro template renders matrix & inclusions", technicalHtml.includes("ZONBAY TECHNICAL PRO TEMPLATE") && technicalHtml.includes("Technical Specifications Matrix") && technicalHtml.includes("Package Inclusions"));
+
+        const dispatchedMinimal = renderEbayTemplate('modern_minimalist', cleanedMock, customStoreConfig);
+        const dispatchedTechnical = renderEbayTemplate('technical_pro', cleanedMock, customStoreConfig);
+        assert("Dispatcher correctly outputs chosen template", dispatchedMinimal.includes("ZONBAY MODERN MINIMALIST TEMPLATE") && dispatchedTechnical.includes("ZONBAY TECHNICAL PRO TEMPLATE"));
+
+        // Test 21c: Studio Presentation Area in editor.html
+        const editorHtml = fs.readFileSync(path.join(__dirname, 'editor.html'), 'utf8');
+        assert("Studio HTML includes Live Visual Preview container", editorHtml.includes('id="inlineTemplatePreviewContainer"'));
+        assert("Studio HTML includes inline viewport controls", editorHtml.includes('id="inlineViewportControls"') && editorHtml.includes('id="inlineDesktopBtn"') && editorHtml.includes('id="inlineMobileBtn"'));
+        assert("Studio HTML includes presentation tabs", editorHtml.includes('id="tabVisualPreviewBtn"') && editorHtml.includes('id="tabBulletsBtn"') && editorHtml.includes('id="tabHtmlCodeBtn"'));
+
         // Test 22: CSV Export reflects rendered Template in Description
         const csvWithTemplate = generateEbayCsvString({
             ...cleanedMock,

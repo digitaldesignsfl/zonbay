@@ -227,6 +227,9 @@ function applyLoadedProduct(data) {
         desc = ZonbayTemplates.renderEbayTemplate(templateKey, product, storeConfig);
     }
     document.getElementById('descriptionEditor').value = desc;
+    if (typeof updateInlineTemplatePreview === 'function') {
+        updateInlineTemplatePreview();
+    }
 
     // Images
     if (Array.isArray(product.imageList) && product.imageList.length > 0) {
@@ -769,6 +772,28 @@ function setupEventListeners() {
         });
     }
 
+    // Inline Template Live Preview Renderer
+    function updateInlineTemplatePreview() {
+        const previewEl = document.getElementById('inlineTemplatePreviewContainer');
+        if (!previewEl) return;
+        const descEditor = document.getElementById('descriptionEditor');
+        let currentHtml = descEditor ? descEditor.value.trim() : '';
+
+        if (!currentHtml || !currentHtml.includes('<!-- ZONBAY')) {
+            if (typeof ZonbayTemplates !== 'undefined') {
+                const current = compileCurrentProduct();
+                const storeConfig = {
+                    storeName: document.getElementById('storeNameInput') ? document.getElementById('storeNameInput').value.trim() : 'Our Official Store',
+                    storeUrl: document.getElementById('storeUrlInput') ? document.getElementById('storeUrlInput').value.trim() : 'https://www.ebay.com/usr'
+                };
+                const templateStyle = document.getElementById('templateStyleSelect') ? document.getElementById('templateStyleSelect').value : 'storefront_showcase';
+                currentHtml = ZonbayTemplates.renderEbayTemplate(templateStyle, current, storeConfig);
+                if (descEditor) descEditor.value = currentHtml;
+            }
+        }
+        previewEl.innerHTML = currentHtml || '<div style="color:#64748b; padding:30px; text-align:center;">No template compiled yet. Click <strong>🤖 AI Revise & Apply</strong> to generate one.</div>';
+    }
+
     // AI Revise & Apply Template button
     const aiBtn = document.getElementById('aiReviseBtn');
     if (aiBtn) {
@@ -782,9 +807,141 @@ function setupEventListeners() {
                 const templateStyle = document.getElementById('templateStyleSelect') ? document.getElementById('templateStyleSelect').value : 'storefront_showcase';
                 const revisedHtml = ZonbayTemplates.renderEbayTemplate(templateStyle, current, storeConfig);
                 document.getElementById('descriptionEditor').value = revisedHtml;
+                updateInlineTemplatePreview();
                 triggerAutoSave();
                 showToast("🤖 AI-revised listing template generated & applied!");
             }
+        });
+    }
+
+    // Dynamic Style Selector Change Event
+    const templateSelect = document.getElementById('templateStyleSelect');
+    if (templateSelect) {
+        templateSelect.addEventListener('change', () => {
+            if (typeof ZonbayTemplates !== 'undefined') {
+                const current = compileCurrentProduct();
+                const storeConfig = {
+                    storeName: document.getElementById('storeNameInput') ? document.getElementById('storeNameInput').value.trim() : 'Our Official Store',
+                    storeUrl: document.getElementById('storeUrlInput') ? document.getElementById('storeUrlInput').value.trim() : 'https://www.ebay.com/usr'
+                };
+                const style = templateSelect.value;
+                const newHtml = ZonbayTemplates.renderEbayTemplate(style, current, storeConfig);
+                document.getElementById('descriptionEditor').value = newHtml;
+                updateInlineTemplatePreview();
+                triggerAutoSave();
+                const styleName = templateSelect.options[templateSelect.selectedIndex].text.split('(')[0].trim();
+                showToast(`🎨 Template style switched to: ${styleName}`);
+            }
+        });
+    }
+
+    // Presentation Tabs Controller
+    const tabVisual = document.getElementById('tabVisualPreviewBtn');
+    const tabBullets = document.getElementById('tabBulletsBtn');
+    const tabHtml = document.getElementById('tabHtmlCodeBtn');
+
+    const paneVisual = document.getElementById('paneVisualPreview');
+    const paneBullets = document.getElementById('paneBullets');
+    const paneHtml = document.getElementById('paneHtmlCode');
+    const inlineViewportControls = document.getElementById('inlineViewportControls');
+
+    function switchPresentationTab(activeTab) {
+        [tabVisual, tabBullets, tabHtml].forEach(t => t && t.classList.remove('active'));
+        [paneVisual, paneBullets, paneHtml].forEach(p => p && (p.style.display = 'none'));
+
+        if (activeTab === 'visual') {
+            if (tabVisual) tabVisual.classList.add('active');
+            if (paneVisual) paneVisual.style.display = 'block';
+            if (inlineViewportControls) inlineViewportControls.style.display = 'flex';
+            updateInlineTemplatePreview();
+        } else if (activeTab === 'bullets') {
+            if (tabBullets) tabBullets.classList.add('active');
+            if (paneBullets) paneBullets.style.display = 'block';
+            if (inlineViewportControls) inlineViewportControls.style.display = 'none';
+        } else if (activeTab === 'html') {
+            if (tabHtml) tabHtml.classList.add('active');
+            if (paneHtml) paneHtml.style.display = 'block';
+            if (inlineViewportControls) inlineViewportControls.style.display = 'none';
+        }
+    }
+
+    if (tabVisual) tabVisual.addEventListener('click', () => switchPresentationTab('visual'));
+    if (tabBullets) tabBullets.addEventListener('click', () => switchPresentationTab('bullets'));
+    if (tabHtml) tabHtml.addEventListener('click', () => switchPresentationTab('html'));
+
+    // Inline Viewport Controls (Desktop vs Mobile Preview)
+    const inlineDesktopBtn = document.getElementById('inlineDesktopBtn');
+    const inlineMobileBtn = document.getElementById('inlineMobileBtn');
+    const inlineFrame = document.getElementById('inlineTemplateFrame');
+
+    if (inlineDesktopBtn && inlineMobileBtn && inlineFrame) {
+        inlineDesktopBtn.addEventListener('click', () => {
+            inlineFrame.classList.remove('mobile-mode');
+            inlineDesktopBtn.classList.add('active');
+            inlineMobileBtn.classList.remove('active');
+        });
+        inlineMobileBtn.addEventListener('click', () => {
+            inlineFrame.classList.add('mobile-mode');
+            inlineMobileBtn.classList.add('active');
+            inlineDesktopBtn.classList.remove('active');
+        });
+    }
+
+    // Copy HTML to Clipboard Function
+    function copyTemplateHtml() {
+        const descEditor = document.getElementById('descriptionEditor');
+        const textToCopy = descEditor ? descEditor.value : '';
+        if (!textToCopy) {
+            showToast("⚠️ No HTML to copy!");
+            return;
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                showToast("📋 eBay listing HTML copied to clipboard!");
+            }).catch(() => {
+                showToast("⚠️ Clipboard permission denied.");
+            });
+        } else {
+            descEditor.select();
+            document.execCommand('copy');
+            showToast("📋 eBay listing HTML copied to clipboard!");
+        }
+    }
+
+    const copyBtn = document.getElementById('copyHtmlBtn');
+    if (copyBtn) copyBtn.addEventListener('click', copyTemplateHtml);
+    const modalCopyBtn = document.getElementById('modalCopyHtmlBtn');
+    if (modalCopyBtn) modalCopyBtn.addEventListener('click', copyTemplateHtml);
+
+    // Refresh Preview Button
+    const refreshBtn = document.getElementById('refreshPreviewBtn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+            updateInlineTemplatePreview();
+            showToast("🔄 Live preview refreshed!");
+        });
+    }
+
+    // Format / Tidy HTML Button
+    const formatHtmlBtn = document.getElementById('formatHtmlBtn');
+    if (formatHtmlBtn) {
+        formatHtmlBtn.addEventListener('click', () => {
+            const descEditor = document.getElementById('descriptionEditor');
+            if (descEditor && descEditor.value) {
+                descEditor.value = descEditor.value.replace(/\n\s*\n\s*\n/g, '\n\n').trim();
+                updateInlineTemplatePreview();
+                triggerAutoSave();
+                showToast("✨ HTML formatting tidied!");
+            }
+        });
+    }
+
+    // Direct HTML Editor Input Event (keeps preview synchronized)
+    const descEditorEl = document.getElementById('descriptionEditor');
+    if (descEditorEl) {
+        descEditorEl.addEventListener('input', () => {
+            const previewEl = document.getElementById('inlineTemplatePreviewContainer');
+            if (previewEl) previewEl.innerHTML = descEditorEl.value;
         });
     }
 
@@ -844,7 +1001,7 @@ function setupEventListeners() {
         previewBtn.addEventListener('click', openBuyerPreview);
     }
 
-    // View Mode Toggle (Desktop vs Mobile)
+    // View Mode Toggle (Desktop vs Mobile) inside Modal
     const viewDesktopBtn = document.getElementById('viewDesktopBtn');
     const viewMobileBtn = document.getElementById('viewMobileBtn');
 
@@ -892,6 +1049,14 @@ function setupEventListeners() {
         });
     }
 
+    // Esc Key closes the simulation modal
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('buyerPreviewModal');
+            if (modal && modal.style.display === 'flex') {
+                modal.style.display = 'none';
+            }
+        }
     // Photo additions & selections
     document.getElementById('addPhotoBtn').addEventListener('click', () => {
         const input = document.getElementById('newPhotoUrlInput');

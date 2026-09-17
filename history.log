@@ -295,3 +295,59 @@
 [2026-09-17T22:56:59.524Z] [EBAY_STORE_SYNCED] syncedCount: 1 | addedCount: 0 | updatedCount: 1 | totalInventoryCount: 6
 [2026-09-17T22:56:59.528Z] [CSV_REPORT_IMPORTED] rowsParsed: 1 | addedCount: 0 | updatedCount: 1
 [2026-09-17T22:56:59.534Z] [INVENTORY_ITEM_DELETED] id: RUN-TEST-001
+[2026-09-17T23:07:18.034Z] [SCRAPED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1/2-Inch | price: $99.00 | imagesCount: 1
+[2026-09-17T23:07:18.289Z] [OPTIMIZED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1 2 Inch | categoryId: 184655 | categoryName: Cordless Drills | price: 99.00 | imagesCount: 1
+[2026-09-17T23:07:18.292Z] [UPLOADED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1 2 Inch | hostedUrlsCount: 1
+[2026-09-17T23:07:18.299Z] [MANUAL_ENTRY] title: Smart Wi-Fi Power Strip Surge Protector 4 Outlets 4 USB Ports | price: 27.50
+[2026-09-17T23:07:18.301Z] [OPTIMIZED] title: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports | categoryId: 67779 | categoryName: Power Strips & Surge Protectors | price: 27.50 | imagesCount: 0
+[2026-09-17T23:07:18.303Z] [UPLOADED] title: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports | hostedUrlsCount: 0
+[2026-09-17T23:07:18.310Z] [REVISION] itemId: RUN-CSV-1789685267991 | title: Updated 12V 6A Smart Battery Charger - Special Edition | price: 39.99
+[2026-09-17T23:07:18.952Z] [CSV_EXPORT] exportedCount: 1 | firstItemTitle: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports
+[2026-09-17T23:07:18.956Z] [CSV_EXPORT] exportedCount: 1 | firstItemTitle: Custom Anker USB C Cable 6ft Braided Nylon
+[2026-09-17T23:07:18.984Z] [LISTING_APPROVED] id: RUN-TEST-001 | title: DeWalt 20V MAX XR Brushless Impact Driver Bare Tool High Torque | price: 89.99 | totalInventoryCount: 6
+[2026-09-17T23:07:18.992Z] [LISTING_LIVE_ON_EBAY] id: RUN-TEST-001 | title: DeWalt 20V MAX XR Brushless Impact Driver Bare Tool High Torque | method: Seller Hub
+[2026-09-17T23:07:18.996Z] [EBAY_STORE_SYNCED] syncedCount: 1 | addedCount: 0 | updatedCount: 1 | totalInventoryCount: 6
+[2026-09-17T23:07:19.002Z] [CSV_REPORT_IMPORTED] rowsParsed: 1 | addedCount: 0 | updatedCount: 1
+[2026-09-17T23:07:19.010Z] [INVENTORY_ITEM_DELETED] id: RUN-TEST-001
+[2026-09-17T23:08:25.569Z] [SCRAPED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1/2-Inch | price: $99.00 | imagesCount: 1
+[2026-09-17T23:08:25.763Z] [OPTIMIZED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1 2 Inch | categoryId: 184655 | categoryName: Cordless Drills | price: 99.00 | imagesCount: 1
+[2026-09-17T23:08:25.765Z] [UPLOADED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1 2 Inch | hostedUrlsCount: 1
+[2026-09-17T23:08:25.773Z] [MANUAL_ENTRY] title: Smart Wi-Fi Power Strip Surge Protector 4 Outlets 4 USB Ports | price: 27.50
+[2026-09-17T23:08:25.775Z] [OPTIMIZED] title: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports | categoryId: 67779 | categoryName: Power Strips & Surge Protectors | price: 27.50 | imagesCount: 0
+[2026-09-17T23:08:25.776Z] [UPLOADED] title: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports | hostedUrlsCount: 0
+[2026-09-17T23:08:25.782Z] [REVISION] itemId: RUN-CSV-1789685267991 | title: Updated 12V 6A Smart Battery Charger - Special Edition | price: 39.99
+[2026-09-17T23:08:26.238Z] [CSV_EXPORT] exportedCount: 1 | firstItemTitle: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports
+[2026-09-17T23:08:26.242Z] [CSV_EXPORT] exportedCount: 1 | firstItemTitle: Custom Anker USB C Cable 6ft Braided Nylon
+[2026-09-17T23:08:26.270Z] [LISTING_APPROVED] id: RUN-TEST-001 | title: DeWalt 20V MAX XR Brushless Impact Driver Bare Tool High Torque | price: 89.99 | totalInventoryCount: 6
+[2026-09-17T23:08:26.276Z] [LISTING_LIVE_ON_EBAY] id: RUN-TEST-001 | title: DeWalt 20V MAX XR Brushless Impact Driver Bare Tool High Torque | method: Seller Hub
+[2026-09-17T23:08:26.280Z] [EBAY_STORE_SYNCED] syncedCount: 1 | addedCount: 0 | updatedCount: 1 | totalInventoryCount: 6
+[2026-09-17T23:08:26.284Z] [CSV_REPORT_IMPORTED] rowsParsed: 1 | addedCount: 0 | updatedCount: 1
+[2026-09-17T23:08:26.291Z] [INVENTORY_ITEM_DELETED] id: RUN-TEST-001
+[2026-09-17T23:37:30.613Z] [SCRAPED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1/2-Inch | price: $99.00 | imagesCount: 1
+[2026-09-17T23:37:30.875Z] [OPTIMIZED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1 2 Inch | categoryId: 184655 | categoryName: Cordless Drills | price: 99.00 | imagesCount: 1
+[2026-09-17T23:37:30.876Z] [UPLOADED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1 2 Inch | hostedUrlsCount: 1
+[2026-09-17T23:37:30.885Z] [MANUAL_ENTRY] title: Smart Wi-Fi Power Strip Surge Protector 4 Outlets 4 USB Ports | price: 27.50
+[2026-09-17T23:37:30.887Z] [OPTIMIZED] title: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports | categoryId: 67779 | categoryName: Power Strips & Surge Protectors | price: 27.50 | imagesCount: 0
+[2026-09-17T23:37:30.889Z] [UPLOADED] title: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports | hostedUrlsCount: 0
+[2026-09-17T23:37:30.895Z] [REVISION] itemId: RUN-CSV-1789685267991 | title: Updated 12V 6A Smart Battery Charger - Special Edition | price: 39.99
+[2026-09-17T23:37:31.526Z] [CSV_EXPORT] exportedCount: 1 | firstItemTitle: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports
+[2026-09-17T23:37:31.530Z] [CSV_EXPORT] exportedCount: 1 | firstItemTitle: Custom Anker USB C Cable 6ft Braided Nylon
+[2026-09-17T23:37:31.559Z] [LISTING_APPROVED] id: RUN-TEST-001 | title: DeWalt 20V MAX XR Brushless Impact Driver Bare Tool High Torque | price: 89.99 | totalInventoryCount: 6
+[2026-09-17T23:37:31.564Z] [LISTING_LIVE_ON_EBAY] id: RUN-TEST-001 | title: DeWalt 20V MAX XR Brushless Impact Driver Bare Tool High Torque | method: Seller Hub
+[2026-09-17T23:37:31.568Z] [EBAY_STORE_SYNCED] syncedCount: 1 | addedCount: 0 | updatedCount: 1 | totalInventoryCount: 6
+[2026-09-17T23:37:31.573Z] [CSV_REPORT_IMPORTED] rowsParsed: 1 | addedCount: 0 | updatedCount: 1
+[2026-09-17T23:37:31.580Z] [INVENTORY_ITEM_DELETED] id: RUN-TEST-001
+[2026-09-17T23:37:57.748Z] [SCRAPED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1/2-Inch | price: $99.00 | imagesCount: 1
+[2026-09-17T23:37:57.960Z] [OPTIMIZED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1 2 Inch | categoryId: 184655 | categoryName: Cordless Drills | price: 99.00 | imagesCount: 1
+[2026-09-17T23:37:57.962Z] [UPLOADED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1 2 Inch | hostedUrlsCount: 1
+[2026-09-17T23:37:57.971Z] [MANUAL_ENTRY] title: Smart Wi-Fi Power Strip Surge Protector 4 Outlets 4 USB Ports | price: 27.50
+[2026-09-17T23:37:57.973Z] [OPTIMIZED] title: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports | categoryId: 67779 | categoryName: Power Strips & Surge Protectors | price: 27.50 | imagesCount: 0
+[2026-09-17T23:37:57.974Z] [UPLOADED] title: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports | hostedUrlsCount: 0
+[2026-09-17T23:37:57.979Z] [REVISION] itemId: RUN-CSV-1789685267991 | title: Updated 12V 6A Smart Battery Charger - Special Edition | price: 39.99
+[2026-09-17T23:37:58.447Z] [CSV_EXPORT] exportedCount: 1 | firstItemTitle: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports
+[2026-09-17T23:37:58.450Z] [CSV_EXPORT] exportedCount: 1 | firstItemTitle: Custom Anker USB C Cable 6ft Braided Nylon
+[2026-09-17T23:37:58.477Z] [LISTING_APPROVED] id: RUN-TEST-001 | title: DeWalt 20V MAX XR Brushless Impact Driver Bare Tool High Torque | price: 89.99 | totalInventoryCount: 6
+[2026-09-17T23:37:58.484Z] [LISTING_LIVE_ON_EBAY] id: RUN-TEST-001 | title: DeWalt 20V MAX XR Brushless Impact Driver Bare Tool High Torque | method: Seller Hub
+[2026-09-17T23:37:58.489Z] [EBAY_STORE_SYNCED] syncedCount: 1 | addedCount: 0 | updatedCount: 1 | totalInventoryCount: 6
+[2026-09-17T23:37:58.493Z] [CSV_REPORT_IMPORTED] rowsParsed: 1 | addedCount: 0 | updatedCount: 1
+[2026-09-17T23:37:58.499Z] [INVENTORY_ITEM_DELETED] id: RUN-TEST-001

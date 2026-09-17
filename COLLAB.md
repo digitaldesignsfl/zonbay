@@ -33,7 +33,7 @@ amazon-scraper/
 │   └── ebay-sync.js (Content script scraping & syncing eBay active listings listing-by-listing)
 ├── manifest.json (Chrome Extension MV3 definition with active listing match rules)
 ├── popup.html & popup.js (Zonbay Reseller Cockpit UI, profit calculator & base sync)
-├── test_run.js (Automated end-to-end test suite - 79 passing assertions)
+├── test_run.js (Automated end-to-end test suite - 85 passing assertions)
 ├── downloads/ (Folder containing downloaded high-res images & edited canvas photos)
 └── public/
     └── index.html (Multi-Platform Inventory Base & Storefront Manager)
@@ -43,12 +43,27 @@ amazon-scraper/
 
 ## 🚀 Recent Major Additions (Ready for Claude's Review)
 
-### 1. eBay Store Inventory Syncer (Listing by Listing)
+### 1. Modern Listing Template & Buyer Presentation Studio
+- **Dual-View Presentation Hub (`editor.html` & `editor.js`)**:
+  - Replaces raw HTML textareas with an interactive three-tab presentation workspace:
+    1. **`👁️ Live Visual Preview`**: Instant, high-fidelity responsive preview of the compiled eBay description.
+    2. **`📝 Feature Bullets`**: Clean, focused editor for Amazon/sourcing bullet points used by AI synthesis.
+    3. **`💻 HTML Source Code`**: High-contrast syntax-styled editor with one-click "✨ Clean HTML" and "📋 Copy HTML".
+  - **Inline Viewport Toggles**: Toggle between full desktop width and a simulated mobile smartphone frame (420px) right inside the studio workspace.
+  - **Live Auto-Synchronization**: Adjusting title, specifics, bullets, store name, or template styles instantly updates the visual preview without requiring full modal popups.
+- **3 Curated Conversion-Optimized Template Styles (`templates.js`)**:
+  - 🌟 **Storefront Showcase**: Flagship layout with deep navy gradient header, brand pill, high-converting practical usage narrative, styled applications checklist, rounded specs table, package inclusion pills, and dark trust footer.
+  - ✨ **Modern Minimalist**: Swiss/Apple-inspired minimalist typography, generous whitespace, clean line dividers, and fast mobile rendering.
+  - ⚡ **Technical Pro**: Dark slate header, engineered specifications matrix, application deployment bullets, and industrial quality guarantee.
+- **Authentic 1:1 Live eBay Buyer Simulation Modal**:
+  - Polished browser chrome bar with simulated traffic controls, secure URL indicator (`🔒 ebay.com/itm/...`), desktop/mobile viewports, interactive thumbnail switching, authentic Top Rated Plus badge, buy box CTA buttons, and Esc key dismissal.
+
+### 2. eBay Store Inventory Syncer (Listing by Listing)
 - **Content Script (`uploader/ebay-sync.js`)**: Matches `*://*.ebay.com/sh/lst/active*` and `*://*.ebay.com/mys/active*`. Automatically injects a floating Zonbay sync bar detecting active listings on page. Clicking **`⚡ Sync All to Database`** iterates listing-by-listing, extracting Item ID, Title, SKU, Price, Qty, Format, Watchers, and Image URL, posting to `POST /api/inventory/sync-ebay`.
 - **CSV Report Importer (`POST /api/inventory/import-ebay-csv`)**: Parses eBay Seller Hub Active Listings CSV reports and bulk ingests listings.
 - **Official API Direct Syncer (`POST /api/inventory/sync-ebay-api`)**: Queries Trading API `GetMyeBaySelling` when `ebay_tokens.json` credentials are configured.
 
-### 2. Multi-Platform Reseller Inventory Base (`inventory_database.json`)
+### 3. Multi-Platform Reseller Inventory Base (`inventory_database.json`)
 - Central database holding products sourced from Amazon, Temu, Walmart, AliExpress, eBay Store, or Manual Entry.
 - Automatically calculates financial metrics:
   - Sourcing Cost (`costPrice`), Retail Price (`sellingPrice`), Quantity.
@@ -62,7 +77,7 @@ amazon-scraper/
   - `🟡 APPROVED` ➔ Manually curated in Studio, specifics verified, saved to database.
   - `🟢 LIVE_ON_EBAY` ➔ Published and actively live in seller's eBay store.
 
-### 3. Reseller Studio: Standalone Replacement for eBay's Editor
+### 4. Reseller Studio: Standalone Replacement for eBay's Editor
 - Designed so sellers never have to use eBay.com's slow, cluttered native editor.
 - **Two-Step Publish Workflow**:
   - **Step 1: Save & Approve (`#saveApproveBtn`)**: Saves title, pricing, canvas adjusted photos, hero selection, excluded watermarks, cleaned specifics, and HTML templates to `inventory_database.json` and updates badge to `🟡 APPROVED & IN INVENTORY`.
@@ -71,7 +86,7 @@ amazon-scraper/
 - **Canvas Photo Editor**: Brightness, contrast, saturation, rotation, and background whitening controls with instant disk saving (`POST /api/save-edited-image`).
 - **1:1 Authentic Live eBay Buyer Preview**: High-fidelity simulation of an active eBay page with Desktop (1200px) and Mobile (440px) viewports, clickable thumbnail switcher, seller trust badge, and buy box.
 
-### 4. Interactive Control Center (`public/index.html`)
+### 5. Interactive Control Center (`public/index.html`)
 - Real-time business metrics cards.
 - Search bar (by Title, SKU, or Item ID).
 - Platform and Status filters.
@@ -126,7 +141,7 @@ amazon-scraper/
 | **Primary Environment** | Active terminal shell, system tools, git executor, live runner. | Claude Desktop connected via MCP Filesystem server. | Browser / Desktop standalone app (`Gemini.exe` / web chat). |
 | **Core Strengths** | Live command execution, background daemons, test automation, file creation, Git pushes. | Deep code reviews, algorithmic design, edge-case detection, architectural refactoring. | Strategic brainstorming, prompt drafting, code review backup, logic sanity checks. |
 | **Tool Capabilities** | Terminal (`run_command`), file editors, test execution, process lifecycle management. | Direct file system access via `@modelcontextprotocol/server-filesystem` (`read_file`, `write_file`). | High-level conversation, architecture second opinion, copy drafting. |
-| **Testing & Validation** | Executes `npm.cmd test` (or `node test_run.js`) to verify all 79 pipeline assertions. | Writes unit test cases, audits CSV and XML schemas, verifies category rules. | Audits logic flow, reviews edge cases, assists user in crafting targeted prompts. |
+| **Testing & Validation** | Executes `npm.cmd test` (or `node test_run.js`) to verify all 85 pipeline assertions. | Writes unit test cases, audits CSV and XML schemas, verifies category rules. | Audits logic flow, reviews edge cases, assists user in crafting targeted prompts. |
 
 ---
 
@@ -145,7 +160,7 @@ amazon-scraper/
      ```powershell
      npm.cmd test
      ```
-   - Test suite in `test_run.js` currently validates **79 passing assertions**.
+   - Test suite in `test_run.js` currently validates **85 passing assertions**.
 4. **Current Git Status**:
    - Branch: `main`
    - Remote: `origin/main` (up to date, pushed to GitHub).

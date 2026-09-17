@@ -117,62 +117,70 @@
 
         let html = `
 <!-- ZONBAY STOREFRONT SHOWCASE TEMPLATE -->
-<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 960px; margin: 0 auto; color: #222; line-height: 1.6; background: #ffffff; border: 1px solid #e1e4e8; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 960px; margin: 0 auto; color: #1e293b; line-height: 1.65; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.06);">
 
   <!-- 1. HEADER PRODUCT SHOWCASE BANNER -->
-  <div style="background: linear-gradient(135deg, #0d3b66 0%, #0046af 100%); color: #ffffff; padding: 30px 25px; text-align: center; border-bottom: 4px solid #f4d35e;">
-    <div style="display: inline-block; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; padding: 4px 16px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">
-      ${brand} • ${specs['Condition'] || 'Brand New'}
+  <div style="background: linear-gradient(135deg, #0b1f3a 0%, #153e75 55%, #1b4f93 100%); color: #ffffff; padding: 34px 28px; text-align: center; border-bottom: 4px solid #f4d35e; position: relative;">
+    <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.16); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.25); border-radius: 24px; padding: 5px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px;">
+      <span>⭐ ${brand}</span>
+      <span style="opacity: 0.6;">•</span>
+      <span>${specs['Condition'] || 'Brand New'}</span>
+      <span style="opacity: 0.6;">•</span>
+      <span>100% Authentic</span>
     </div>
-    <h1 style="margin: 0; font-size: 26px; line-height: 1.35; font-weight: 800; color: #ffffff; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+    <h1 style="margin: 0; font-size: 26px; line-height: 1.35; font-weight: 800; color: #ffffff; text-shadow: 0 2px 6px rgba(0,0,0,0.25); letter-spacing: -0.2px;">
       ${title}
     </h1>
   </div>
 
-  <div style="padding: 30px 25px;">
+  <div style="padding: 32px 28px;">
 
     <!-- 2. PRODUCT OVERVIEW & PRACTICAL USAGE -->
-    <div style="margin-bottom: 35px;">
-      <h2 style="font-size: 19px; color: #0d3b66; border-left: 4px solid #0046af; padding-left: 12px; margin-top: 0; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
-        💡 Product Overview & Practical Usage
+    <div style="margin-bottom: 36px;">
+      <h2 style="font-size: 19px; color: #0f2744; border-left: 4px solid #0053a0; padding-left: 12px; margin-top: 0; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+        <span>💡</span> Product Overview & Practical Usage
       </h2>
-      <p style="font-size: 15px; color: #444; margin-bottom: 16px; line-height: 1.7;">
+      <p style="font-size: 15px; color: #334155; margin-bottom: 18px; line-height: 1.75;">
         ${aiCopy.usageIntro}
       </p>
 
       ${aiCopy.primaryUseCases.length > 0 ? `
-      <div style="background: #f8faff; border: 1px solid #d9e6ff; border-radius: 8px; padding: 16px 20px; margin-top: 14px;">
-        <strong style="color: #0046af; font-size: 14px; display: block; margin-bottom: 8px;">Key Applications & Benefits:</strong>
-        <ul style="margin: 0; padding-left: 20px; color: #333; font-size: 14px;">
-          ${aiCopy.primaryUseCases.map(u => `<li style="margin-bottom: 6px;">${u}</li>`).join('')}
+      <div style="background: linear-gradient(180deg, #f8faff 0%, #f0f5fc 100%); border: 1px solid #c9defc; border-radius: 10px; padding: 18px 22px; margin-top: 16px;">
+        <strong style="color: #0046af; font-size: 14px; display: flex; align-items: center; gap: 6px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">
+          <span>🎯</span> Key Applications &amp; Benefits:
+        </strong>
+        <ul style="margin: 0; padding-left: 20px; color: #1e293b; font-size: 14px; line-height: 1.7;">
+          ${aiCopy.primaryUseCases.map(u => `<li style="margin-bottom: 8px;"><strong>✓</strong> ${u}</li>`).join('')}
         </ul>
       </div>
       ` : ''}
     </div>
 
-    <!-- 3. ITEM SPECIFICS & TECHNICAL REQUIREMENTS -->
-    <div style="margin-bottom: 35px;">
-      <h2 style="font-size: 19px; color: #0d3b66; border-left: 4px solid #0046af; padding-left: 12px; margin-top: 0; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
-        ⚙️ Item Specifics & Technical Details
+    <!-- 3. ITEM SPECIFICS & TECHNICAL DETAILS -->
+    <div style="margin-bottom: 36px;">
+      <h2 style="font-size: 19px; color: #0f2744; border-left: 4px solid #0053a0; padding-left: 12px; margin-top: 0; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+        <span>⚙️</span> Item Specifics & Technical Details
       </h2>
       
-      <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
-        <tbody>
-          ${specEntries.map(([k, v], idx) => {
-            const bg = (idx % 2 === 0) ? '#fbfcfe' : '#ffffff';
-            return `
-            <tr style="background: ${bg}; border-bottom: 1px solid #edf2f7;">
-              <td style="padding: 10px 14px; font-weight: 700; color: #334155; width: 35%; border-right: 1px solid #edf2f7;">${k}</td>
-              <td style="padding: 10px 14px; color: #0f172a;">${v}</td>
-            </tr>
-            `;
-          }).join('')}
-        </tbody>
-      </table>
+      <div style="border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <tbody>
+            ${specEntries.map(([k, v], idx) => {
+              const bg = (idx % 2 === 0) ? '#f8fafc' : '#ffffff';
+              return `
+              <tr style="background: ${bg}; border-bottom: 1px solid #edf2f7;">
+                <td style="padding: 11px 16px; font-weight: 700; color: #475569; width: 35%; border-right: 1px solid #edf2f7;">${k}</td>
+                <td style="padding: 11px 16px; color: #0f172a; font-weight: 500;">${v}</td>
+              </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
 
       ${aiCopy.technicalRequirements.length > 0 ? `
-      <div style="margin-top: 16px; padding: 12px 16px; background: #fffbe6; border: 1px solid #ffe58f; border-radius: 6px; font-size: 13px; color: #734a00;">
-        <strong>Operational Requirements:</strong>
+      <div style="margin-top: 16px; padding: 14px 18px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; font-size: 13px; color: #92400e;">
+        <strong style="display: flex; align-items: center; gap: 6px;"><span>⚡</span> Operational Requirements:</strong>
         <ul style="margin: 6px 0 0 0; padding-left: 20px;">
           ${aiCopy.technicalRequirements.map(r => `<li style="margin-bottom: 4px;">${r}</li>`).join('')}
         </ul>
@@ -181,37 +189,51 @@
     </div>
 
     <!-- 4. WHAT'S IN THE BOX -->
-    <div style="margin-bottom: 35px;">
-      <h2 style="font-size: 19px; color: #0d3b66; border-left: 4px solid #0046af; padding-left: 12px; margin-top: 0; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
-        📦 What's In The Box
+    <div style="margin-bottom: 36px;">
+      <h2 style="font-size: 19px; color: #0f2744; border-left: 4px solid #0053a0; padding-left: 12px; margin-top: 0; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+        <span>📦</span> What's In The Box
       </h2>
-      <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #333;">
-        ${aiCopy.includedItems.map(item => `<li style="margin-bottom: 6px; font-weight: 500;">${item}</li>`).join('')}
-      </ul>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px;">
+        ${aiCopy.includedItems.map(item => `
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; font-size: 14px; color: #1e293b; display: flex; align-items: center; gap: 8px; font-weight: 500;">
+          <span style="color: #0053a0; font-size: 16px;">📦</span>
+          <span>${item}</span>
+        </div>
+        `).join('')}
+      </div>
     </div>
 
   </div>
 
   <!-- 5. STORE SHOWCASE & CROSS-PROMOTION FOOTER AD -->
-  <div style="background: #0f172a; color: #ffffff; padding: 25px; border-top: 3px solid #f4d35e;">
+  <div style="background: linear-gradient(180deg, #0d1726 0%, #080f1a 100%); color: #ffffff; padding: 28px 28px 22px 28px; border-top: 3px solid #f4d35e;">
     <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px;">
       <div style="flex: 1; min-width: 250px;">
-        <span style="background: #f4d35e; color: #0f172a; font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Official Seller Store</span>
-        <h3 style="margin: 8px 0 4px 0; font-size: 20px; color: #ffffff; font-weight: 700;">${storeName}</h3>
+        <span style="background: #f4d35e; color: #0f172a; font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.75px; display: inline-block;">Official Seller Store</span>
+        <h3 style="margin: 10px 0 4px 0; font-size: 21px; color: #ffffff; font-weight: 800; letter-spacing: -0.3px;">${storeName}</h3>
         <p style="margin: 0; font-size: 13px; color: #94a3b8;">${storeTagline}</p>
       </div>
 
       <div style="text-align: right;">
-        <a href="${storeUrl}" target="_blank" style="display: inline-block; background: #0064d2; color: #ffffff; text-decoration: none; padding: 10px 22px; border-radius: 6px; font-weight: 700; font-size: 14px; border: 1px solid rgba(255,255,255,0.2); transition: background 0.2s;">
+        <a href="${storeUrl}" target="_blank" style="display: inline-block; background: #0064d2; color: #ffffff; text-decoration: none; padding: 11px 24px; border-radius: 8px; font-weight: 700; font-size: 14px; border: 1px solid rgba(255,255,255,0.25); box-shadow: 0 4px 12px rgba(0,100,210,0.35); transition: transform 0.15s, background 0.15s;">
           🏷️ Browse Full Store Inventory →
         </a>
       </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.12); font-size: 12px; color: #cbd5e1;">
-      <div>🚀 <strong>Fast & Tracked Shipping:</strong> Dispatched promptly with complete tracking provided.</div>
-      <div>⭐ <strong>100% Genuine Quality:</strong> Authentic merchandise inspected prior to packing.</div>
-      <div>💬 <strong>Dedicated Support:</strong> Quick, friendly responses to all customer inquiries.</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.12); font-size: 12px; color: #cbd5e1;">
+      <div style="display: flex; gap: 8px; align-items: flex-start;">
+        <span style="font-size: 16px;">🚀</span>
+        <div><strong>Fast &amp; Tracked Shipping:</strong> Dispatched promptly with complete tracking provided.</div>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: flex-start;">
+        <span style="font-size: 16px;">⭐</span>
+        <div><strong>100% Genuine Quality:</strong> Authentic merchandise inspected prior to packing.</div>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: flex-start;">
+        <span style="font-size: 16px;">💬</span>
+        <div><strong>Dedicated Support:</strong> Quick, friendly responses to all customer inquiries.</div>
+      </div>
     </div>
   </div>
 
@@ -233,23 +255,110 @@
         const storeUrl = storeConfig.storeUrl || 'https://www.ebay.com/usr';
 
         return `
-<div style="font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif; max-width: 850px; margin: 0 auto; padding: 25px; color: #111; line-height: 1.6;">
-  <h1 style="font-size: 24px; font-weight: 700; color: #111; margin-bottom: 12px; border-bottom: 2px solid #eee; padding-bottom: 12px;">${title}</h1>
-  <p style="font-size: 15px; color: #444; margin-bottom: 24px;">${aiCopy.usageIntro}</p>
+<!-- ZONBAY MODERN MINIMALIST TEMPLATE -->
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 880px; margin: 0 auto; padding: 34px 30px; color: #1e293b; line-height: 1.65; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04);">
+  <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 20px;">
+    <span style="font-size: 13px; font-weight: 800; color: #0284c7; text-transform: uppercase; letter-spacing: 1.2px;">⭐ ${brand}</span>
+    <span style="font-size: 12px; color: #64748b; font-weight: 600;">${specs['Condition'] || 'Brand New'} • Verified Authentic</span>
+  </div>
+  <h1 style="font-size: 24px; font-weight: 800; color: #0f172a; line-height: 1.35; margin: 0 0 16px 0; letter-spacing: -0.2px;">${title}</h1>
+  <p style="font-size: 15px; color: #475569; margin-bottom: 26px; line-height: 1.75;">${aiCopy.usageIntro}</p>
 
-  <h3 style="font-size: 17px; margin-top: 24px; color: #222;">Key Specifications</h3>
+  <h3 style="font-size: 17px; font-weight: 800; margin: 24px 0 12px 0; color: #0f172a; border-left: 3px solid #0284c7; padding-left: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Key Specifications</h3>
   <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
-    ${Object.entries(specs).slice(0, 12).map(([k, v], i) => `
-      <tr style="border-bottom: 1px solid #f0f0f0;">
-        <td style="padding: 8px 0; font-weight: 600; width: 40%; color: #555;">${k}</td>
-        <td style="padding: 8px 0; color: #111;">${v}</td>
+    ${Object.entries(specs).slice(0, 14).map(([k, v], i) => `
+      <tr style="border-bottom: 1px solid #f1f5f9; background: ${i % 2 === 0 ? '#f8fafc' : '#ffffff'};">
+        <td style="padding: 10px 14px; font-weight: 600; width: 38%; color: #475569;">${k}</td>
+        <td style="padding: 10px 14px; color: #0f172a; font-weight: 500;">${v}</td>
       </tr>
     `).join('')}
   </table>
 
-  <div style="margin-top: 30px; padding: 15px 20px; background: #f8f9fa; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
-    <div><strong>${storeName}</strong> • Fast Dispatch & Tracked Delivery</div>
-    <a href="${storeUrl}" target="_blank" style="color: #0064d2; text-decoration: none; font-weight: 600;">Visit Store →</a>
+  <div style="margin-top: 32px; padding: 18px 24px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;">
+    <div>
+      <strong style="color: #0f172a; font-size: 14px;">${storeName}</strong>
+      <div style="font-size: 12px; color: #64748b;">Fast Tracked Dispatch • 100% Quality Inspected</div>
+    </div>
+    <a href="${storeUrl}" target="_blank" style="display: inline-block; background: #0284c7; color: #ffffff; text-decoration: none; padding: 9px 20px; border-radius: 6px; font-size: 13px; font-weight: 700;">Visit Store Inventory →</a>
+  </div>
+</div>
+`.trim();
+    }
+
+    /**
+     * Template 3: TECHNICAL PRO (Engineered for Tools, Electronics & Industrial)
+     */
+    function renderTechnicalPro(product = {}, storeConfig = {}) {
+        const title = product.title || 'Technical Equipment';
+        const brand = product.brand || 'Unbranded';
+        const specs = product.productSpecs || {};
+        const aiCopy = generateAiRevisedCopy(product);
+        const storeName = storeConfig.storeName || 'Official Technical Store';
+        const storeUrl = storeConfig.storeUrl || 'https://www.ebay.com/usr';
+
+        const specEntries = Object.entries(specs).filter(([k, v]) => v && v !== 'Does Not Apply');
+
+        return `
+<!-- ZONBAY TECHNICAL PRO TEMPLATE -->
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 960px; margin: 0 auto; color: #0f172a; line-height: 1.65; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+  <!-- Top Technical Banner -->
+  <div style="background: #0f172a; color: #f8fafc; padding: 26px 28px; border-bottom: 4px solid #38bdf8;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+      <span style="background: #38bdf8; color: #0f172a; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.75px;">ENGINEERED SPECIFICATIONS</span>
+      <span style="font-size: 12px; color: #94a3b8; font-weight: 600;">BRAND: <strong>${brand}</strong> | CONDITION: <strong>${specs['Condition'] || 'BRAND NEW'}</strong></span>
+    </div>
+    <h1 style="margin: 0; font-size: 24px; font-weight: 800; color: #ffffff; line-height: 1.35; letter-spacing: -0.2px;">${title}</h1>
+  </div>
+
+  <div style="padding: 28px;">
+    <!-- Practical Usage & Applications -->
+    <div style="margin-bottom: 30px;">
+      <h3 style="font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px; color: #0f172a; border-left: 4px solid #0284c7; padding-left: 10px; margin: 0 0 12px 0;">Product Overview &amp; Deployment</h3>
+      <p style="font-size: 15px; color: #334155; line-height: 1.7; margin-bottom: 14px;">${aiCopy.usageIntro}</p>
+      
+      ${aiCopy.primaryUseCases.length > 0 ? `
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 14px 18px;">
+        <strong style="color: #0369a1; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">Recommended Applications:</strong>
+        <ul style="margin: 0; padding-left: 18px; font-size: 13.5px; color: #1e293b;">
+          ${aiCopy.primaryUseCases.map(u => `<li style="margin-bottom: 6px;">${u}</li>`).join('')}
+        </ul>
+      </div>
+      ` : ''}
+    </div>
+
+    <!-- Technical Specs Matrix -->
+    <div style="margin-bottom: 30px;">
+      <h3 style="font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px; color: #0f172a; border-left: 4px solid #0284c7; padding-left: 10px; margin: 0 0 12px 0;">Technical Specifications Matrix</h3>
+      <div style="border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 13.5px;">
+          <tbody>
+            ${specEntries.map(([k, v], idx) => `
+            <tr style="background: ${idx % 2 === 0 ? '#f8fafc' : '#ffffff'}; border-bottom: 1px solid #e2e8f0;">
+              <td style="padding: 10px 14px; font-weight: 700; color: #475569; width: 35%; border-right: 1px solid #e2e8f0;">${k}</td>
+              <td style="padding: 10px 14px; color: #0f172a; font-family: 'Consolas', monospace; font-size: 13px;">${v}</td>
+            </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- What's In The Box -->
+    <div style="margin-bottom: 24px;">
+      <h3 style="font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px; color: #0f172a; border-left: 4px solid #0284c7; padding-left: 10px; margin: 0 0 12px 0;">Package Inclusions</h3>
+      <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #334155;">
+        ${aiCopy.includedItems.map(item => `<li style="margin-bottom: 6px; font-weight: 600;">${item}</li>`).join('')}
+      </ul>
+    </div>
+  </div>
+
+  <!-- Store Guarantee Banner -->
+  <div style="background: #1e293b; color: #f8fafc; padding: 20px 28px; border-top: 2px solid #38bdf8; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+    <div>
+      <div style="font-weight: 800; font-size: 15px; color: #ffffff;">${storeName}</div>
+      <div style="font-size: 12px; color: #94a3b8;">Full Tracking Provided • Certified Quality Dispatch</div>
+    </div>
+    <a href="${storeUrl}" target="_blank" style="background: #0284c7; color: #ffffff; text-decoration: none; padding: 8px 18px; border-radius: 6px; font-size: 13px; font-weight: 700;">View Store Catalog →</a>
   </div>
 </div>
 `.trim();
@@ -553,6 +662,8 @@
         switch (templateKey) {
             case 'modern_minimalist':
                 return renderModernMinimalist(product, storeConfig);
+            case 'technical_pro':
+                return renderTechnicalPro(product, storeConfig);
             case 'storefront_showcase':
             default:
                 return renderStorefrontShowcase(product, storeConfig);
@@ -563,6 +674,7 @@
         renderEbayTemplate,
         renderStorefrontShowcase,
         renderModernMinimalist,
+        renderTechnicalPro,
         renderEbayBuyerPageMockup,
         generateAiRevisedCopy
     };

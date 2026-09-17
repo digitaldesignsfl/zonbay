@@ -464,6 +464,83 @@
     .ebay-preview-thumb-btn:hover {
       border-color: #0053a0 !important;
     }
+
+    /* Listing Template & Buyer Presentation Studio Styles */
+    .presentation-tabs-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 14px;
+      padding-bottom: 0;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .pres-tab-btn {
+      background: none;
+      border: none;
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pres-tab-btn:hover {
+      color: #0f172a;
+    }
+    .pres-tab-btn.active {
+      color: #0064d2;
+      border-bottom-color: #0064d2;
+      font-weight: 700;
+    }
+    .viewport-toggle-btn {
+      background: transparent;
+      border: none;
+      padding: 5px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #475569;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .viewport-toggle-btn:hover {
+      color: #0f172a;
+    }
+    .viewport-toggle-btn.active {
+      background: #ffffff;
+      color: #0064d2;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+      font-weight: 700;
+    }
+    #inlineTemplateFrame {
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+      transition: max-width 0.25s ease, box-shadow 0.25s ease;
+    }
+    #inlineTemplateFrame.mobile-mode {
+      max-width: 420px !important;
+      background: #ffffff;
+      border: 8px solid #1e293b;
+      border-radius: 32px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.18);
+      overflow: hidden;
+      margin: 12px auto !important;
+    }
+    #inlineTemplatePreviewContainer {
+      width: 100%;
+      min-height: 280px;
+    }
   </style>
 </head>
 <body>
@@ -731,41 +808,106 @@
       </div>
 
       <!-- Description & Features Card -->
-      <div class="card">
-        <div class="card-title">
-          <span>📄 Listing Template & Buyer Presentation</span>
-          <div style="display:flex; gap:8px;">
-            <button id="aiReviseBtn" class="btn btn-sm btn-success">🤖 AI Revise & Apply Template</button>
-            <button id="previewBuyerBtn" class="btn btn-sm btn-light">👁️ Live Buyer Preview</button>
+      <div class="card" id="templateStudioCard">
+        <div class="card-title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span>📄 Listing Template & Buyer Presentation</span>
+            <span style="background:#eef4fc; color:#0053a0; font-size:11px; padding:3px 9px; border-radius:12px; font-weight:700;">Live Simulation</span>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <button id="aiReviseBtn" class="btn btn-sm btn-success" title="Generate AI usage copy and recompile template">
+              🤖 AI Revise &amp; Apply
+            </button>
+            <button id="copyHtmlBtn" class="btn btn-sm btn-light" title="Copy raw HTML to clipboard">
+              📋 Copy HTML
+            </button>
+            <button id="previewBuyerBtn" class="btn btn-sm btn-primary" style="background:#0053a0; color:#fff;" title="Open full-screen 1:1 eBay simulation">
+              👁️ Full eBay Simulation
+            </button>
           </div>
         </div>
 
-        <div class="form-row" style="margin-bottom: 14px;">
-          <div class="form-col" style="flex: 1.2;">
-            <label>eBay Listing Template Style</label>
-            <select id="templateStyleSelect">
-              <option value="storefront_showcase" selected>🌟 Storefront Showcase (Title, Usage, Specs, Box & Store Ad)</option>
-              <option value="modern_minimalist">✨ Modern Minimalist (Clean & Mobile Focused)</option>
-            </select>
-          </div>
-          <div class="form-col">
-            <label>Seller Store Name (Footer Banner)</label>
-            <input type="text" id="storeNameInput" placeholder="e.g. Precision Store" value="Our Official Store">
-          </div>
-          <div class="form-col">
-            <label>Store / Profile URL</label>
-            <input type="text" id="storeUrlInput" placeholder="https://www.ebay.com/usr/..." value="https://www.ebay.com/usr">
+        <!-- Template Style & Store Settings Ribbon -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px;">
+          <div class="form-row" style="margin-bottom: 0;">
+            <div class="form-col" style="flex: 1.3;">
+              <label style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                🎨 Template Design Style
+              </label>
+              <select id="templateStyleSelect" style="font-weight: 600; color: #0f172a; margin-bottom: 0;">
+                <option value="storefront_showcase" selected>🌟 Storefront Showcase (Flagship Banner, Usage, Specs, Box & Store Ad)</option>
+                <option value="modern_minimalist">✨ Modern Minimalist (Clean, Typography-focused, Fast Mobile)</option>
+                <option value="technical_pro">⚡ Technical Pro (High-Impact Specifications & Engineered Details)</option>
+              </select>
+            </div>
+            <div class="form-col">
+              <label style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                🏪 Seller Store Name
+              </label>
+              <input type="text" id="storeNameInput" placeholder="e.g. Precision Store" value="Our Official Store" style="margin-bottom: 0;">
+            </div>
+            <div class="form-col">
+              <label style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                🔗 Store / Profile URL
+              </label>
+              <input type="text" id="storeUrlInput" placeholder="https://www.ebay.com/usr/..." value="https://www.ebay.com/usr" style="margin-bottom: 0;">
+            </div>
           </div>
         </div>
 
-        <div class="form-group">
-          <label>Feature Bullet Points (One per line)</label>
-          <textarea id="bulletsEditor" rows="4" placeholder="Bullet 1&#10;Bullet 2"></textarea>
+        <!-- Presentation Tabs -->
+        <div class="presentation-tabs-bar">
+          <div style="display: flex; gap: 4px;">
+            <button type="button" id="tabVisualPreviewBtn" class="pres-tab-btn active">
+              👁️ Live Visual Preview
+            </button>
+            <button type="button" id="tabBulletsBtn" class="pres-tab-btn">
+              📝 Feature Bullets
+            </button>
+            <button type="button" id="tabHtmlCodeBtn" class="pres-tab-btn">
+              💻 HTML Source Code
+            </button>
+          </div>
+          
+          <div id="inlineViewportControls" style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-size: 11px; color: #64748b; font-weight: 600;">Viewport:</span>
+            <div style="display: inline-flex; background: #e2e8f0; border-radius: 6px; padding: 2px;">
+              <button type="button" id="inlineDesktopBtn" class="viewport-toggle-btn active" title="Full Desktop Width">🖥️ Desktop</button>
+              <button type="button" id="inlineMobileBtn" class="viewport-toggle-btn" title="Simulated Mobile Smartphone">📱 Mobile</button>
+            </div>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label>Compiled eBay HTML Description</label>
-          <textarea id="descriptionEditor" rows="7" placeholder="Detailed product narrative or compiled HTML..."></textarea>
+        <!-- Pane 1: Live Visual Preview -->
+        <div id="paneVisualPreview" class="presentation-pane">
+          <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 10px; padding: 16px; overflow-x: auto;">
+            <div id="inlineTemplateFrame">
+              <div id="inlineTemplatePreviewContainer">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 12px; color: #64748b;">
+            <span>💡 Live visual preview updates automatically as you adjust titles, specifics, bullets, and styles.</span>
+            <button type="button" id="refreshPreviewBtn" class="btn btn-sm btn-light" style="padding: 4px 10px; font-size: 11px;">🔄 Refresh Preview</button>
+          </div>
+        </div>
+
+        <!-- Pane 2: Feature Bullets -->
+        <div id="paneBullets" class="presentation-pane" style="display: none;">
+          <p style="font-size: 12px; color: #64748b; margin-top: 0; margin-bottom: 8px;">
+            Enter high-ranking product feature bullets (one per line). These are utilized by the AI Synthesizer to formulate the product overview narrative and highlight technical applications.
+          </p>
+          <textarea id="bulletsEditor" rows="6" placeholder="Bullet 1&#10;Bullet 2&#10;Bullet 3" style="font-family: inherit; font-size: 13px; line-height: 1.5;"></textarea>
+        </div>
+
+        <!-- Pane 3: HTML Source Code -->
+        <div id="paneHtmlCode" class="presentation-pane" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-size: 12px; color: #64748b;">Raw compiled eBay HTML description. Direct edits here immediately update the visual preview.</span>
+            <button type="button" id="formatHtmlBtn" class="btn btn-sm btn-light" style="font-size: 11px; padding: 2px 8px;">✨ Clean HTML</button>
+          </div>
+          <textarea id="descriptionEditor" rows="12" style="font-family: 'Consolas', 'Courier New', monospace; font-size: 12px; line-height: 1.45; background: #0f172a; color: #e2e8f0; border-radius: 8px; padding: 12px;" placeholder="Detailed product narrative or compiled HTML..."></textarea>
         </div>
       </div>
 
@@ -891,23 +1033,41 @@
 
   <!-- Live Buyer Preview Modal -->
   <div class="modal-overlay" id="buyerPreviewModal">
-    <div class="modal-dialog" style="width: 1280px; max-width: 98vw; height: 92vh; background: #f7f7f7;">
-      <div class="modal-header" style="background: #ffffff; color: #191919; border-bottom: 1px solid #e5e5e5; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px;">
-        <div style="display: flex; align-items: center; gap: 16px;">
-          <span style="font-weight: 800; font-size: 15px; color: #191919;">👁️ Live eBay Listing Buyer Preview</span>
-          <div style="display: flex; border: 1px solid #ccc; border-radius: 4px; overflow: hidden;">
-            <button id="viewDesktopBtn" class="btn btn-sm btn-light active" style="border-radius: 0; padding: 4px 12px; font-size: 11px; font-weight: bold; background: #eef4fc; color: #0053a0;">🖥️ Desktop View</button>
-            <button id="viewMobileBtn" class="btn btn-sm btn-light" style="border-radius: 0; padding: 4px 12px; font-size: 11px; font-weight: bold; background: #ffffff; color: #555;">📱 Mobile View</button>
+    <div class="modal-dialog" style="width: 1280px; max-width: 98vw; height: 92vh; background: #f8f9fa; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+      <div class="modal-header" style="background: #ffffff; color: #191919; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <span style="display: inline-block; width: 11px; height: 11px; border-radius: 50%; background: #ff5f56;"></span>
+            <span style="display: inline-block; width: 11px; height: 11px; border-radius: 50%; background: #ffbd2e;"></span>
+            <span style="display: inline-block; width: 11px; height: 11px; border-radius: 50%; background: #27c93f;"></span>
           </div>
+          <span style="font-weight: 800; font-size: 14px; color: #191919;">👁️ Live eBay Listing Buyer Simulation</span>
         </div>
-        <button id="closePreviewBtn" class="btn-icon" style="color:#555; font-size: 22px; cursor:pointer; font-weight: bold;">&times;</button>
+
+        <!-- Simulated Browser Address Pill -->
+        <div style="display: flex; align-items: center; gap: 8px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 20px; padding: 4px 16px; font-size: 12px; color: #475569; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;">
+          <span>🔒</span>
+          <span style="font-weight: 600; color: #0064d2;">ebay.com</span>
+          <span style="color: #94a3b8;">/itm/live-buyer-experience</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="display: flex; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; background: #f8fafc;">
+            <button id="viewDesktopBtn" class="btn btn-sm btn-light active" style="border-radius: 0; padding: 5px 14px; font-size: 11px; font-weight: bold; background: #eef4fc; color: #0053a0; border: none;">🖥️ Desktop (1200px)</button>
+            <button id="viewMobileBtn" class="btn btn-sm btn-light" style="border-radius: 0; padding: 5px 14px; font-size: 11px; font-weight: bold; background: #ffffff; color: #555; border: none; border-left: 1px solid #cbd5e1;">📱 Mobile (440px)</button>
+          </div>
+          <button id="closePreviewBtn" class="btn-icon" style="color:#64748b; font-size: 24px; cursor:pointer; font-weight: bold; background:none; border:none; line-height: 1;">&times;</button>
+        </div>
       </div>
-      <div class="modal-body" style="padding: 0; overflow-y: auto; background: #f8f8f8; display: block;">
+      <div class="modal-body" style="padding: 0; overflow-y: auto; background: #f8f9fa; display: block;">
         <div id="buyerPreviewContainer" style="width: 100%; margin: 0 auto; transition: max-width 0.25s ease;"></div>
       </div>
-      <div class="modal-footer" style="padding: 8px 20px; background: #ffffff; border-top: 1px solid #e5e5e5;">
-        <span style="font-size: 12px; color: #666; margin-right: auto;">✨ Authentic 1:1 buyer view including eBay hero, price box, item specifics, and your custom listing template.</span>
-        <button id="closePreviewFooterBtn" class="btn btn-light">Close Preview</button>
+      <div class="modal-footer" style="padding: 10px 20px; background: #ffffff; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 12px; color: #64748b;">✨ Authentic 1:1 buyer presentation including eBay gallery, verified seller card, buy box, item specifics, and your custom listing template.</span>
+        <div style="display: flex; gap: 8px;">
+          <button id="modalCopyHtmlBtn" class="btn btn-sm btn-light">📋 Copy HTML</button>
+          <button id="closePreviewFooterBtn" class="btn btn-light">Close Simulation</button>
+        </div>
       </div>
     </div>
   </div>
