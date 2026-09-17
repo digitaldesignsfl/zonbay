@@ -45,10 +45,10 @@ function resolvePublicImages(packageData, rawData = {}) {
 
     // Check raw scraped data for live web CDN images
     if (Array.isArray(rawData.alternateImages) && rawData.alternateImages.length > 0) {
-        images = rawData.alternateImages.filter(url => typeof url === 'string' && url.startsWith('http') && !url.includes('localhost'));
+        images = rawData.alternateImages.filter(url => typeof url === 'string' && url.startsWith('http') && !url.includes('localhost') && !url.toLowerCase().includes('.svg'));
     }
 
-    if (images.length === 0 && rawData.mainImgUrl && !rawData.mainImgUrl.includes('localhost')) {
+    if (images.length === 0 && rawData.mainImgUrl && !rawData.mainImgUrl.includes('localhost') && !rawData.mainImgUrl.toLowerCase().includes('.svg')) {
         images = [rawData.mainImgUrl];
     }
 

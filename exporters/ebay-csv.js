@@ -83,9 +83,9 @@ function generateEbayCsvString(product) {
     // Collect public images (pipe-separated)
     let images = [];
     if (Array.isArray(product.alternateImages) && product.alternateImages.length > 0) {
-        images = product.alternateImages.filter(url => typeof url === 'string' && url.startsWith('http') && !url.includes('localhost'));
+        images = product.alternateImages.filter(url => typeof url === 'string' && url.startsWith('http') && !url.includes('localhost') && !url.toLowerCase().includes('.svg'));
     }
-    if (images.length === 0 && product.mainImgUrl && !product.mainImgUrl.includes('localhost')) {
+    if (images.length === 0 && product.mainImgUrl && !product.mainImgUrl.includes('localhost') && !product.mainImgUrl.toLowerCase().includes('.svg')) {
         images = [product.mainImgUrl];
     }
     const picUrl = images.slice(0, 12).join('|');

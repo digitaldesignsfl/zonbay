@@ -100,7 +100,7 @@ function extractAmazonProduct() {
     const thumbElements = document.querySelectorAll('#altImages img, #imageBlock_feature_div img, #imageBlock img');
     thumbElements.forEach(img => {
         const src = img.getAttribute('src');
-        if (src && !src.includes('play-icon') && !src.includes('transparent-pixel') && !src.includes('blank.gif')) {
+        if (src && !src.includes('play-icon') && !src.includes('transparent-pixel') && !src.includes('blank.gif') && !src.toLowerCase().includes('.svg')) {
             const hiRes = toHighRes(src);
             if (hiRes && !images.includes(hiRes) && hiRes.startsWith('http')) {
                 images.push(hiRes);
