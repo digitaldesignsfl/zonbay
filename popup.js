@@ -79,7 +79,79 @@ function autoDetectCategory(titleText) {
     }
 }
 
+function renderProductDataInPopup(data) {
+    if (!data) return;
+    if (typeof ZonbayCleaner !== 'undefined') {
+        currentProduct = ZonbayCleaner.cleanProductData(data);
+    } else {
+        currentProduct = { ...data };
+    }
+
+    // Auto-apply preferred template if not set
+    if (typeof ZonbayTemplates !== 'undefined' && (!currentProduct.htmlDescription || !currentProduct.htmlDescription.includes('<!-- ZONBAY'))) {
+        currentProduct.htmlDescription = ZonbayTemplates.renderEbayTemplate('storefront_showcase', currentProduct, {
+            storeName: "Our Official Store",
+            storeUrl: "https://www.ebay.com/usr"
+        });
+    }
+
+    const preview = document.getElementById('productPreview');
+    if (preview) preview.style.display = 'block';
+
+    const previewImg = document.getElementById('previewImg');
+    if (previewImg) previewImg.src = currentProduct.mainImgUrl || (currentProduct.alternateImages && currentProduct.alternateImages[0]) || '';
+
+    const previewBrand = document.getElementById('previewBrand');
+    if (previewBrand) previewBrand.innerText = currentProduct.brand || 'UNBRANDED';
+
+    const countEl = document.getElementById('previewImgCount');
+    const totalImgs = (currentProduct.alternateImages || []).length || (currentProduct.imageList || []).length || 1;
+    if (countEl) countEl.innerText = `🖼️ ${totalImgs} High-Res Photos`;
+
+    const sourcePrice = document.getElementById('sourcePriceDisplay');
+    if (sourcePrice) sourcePrice.innerText = `$${currentProduct.price || '0.00'}`;
+
+    const titleInput = document.getElementById('listingTitle');
+    const cleanTitle = (currentProduct.title || '').replace(/\s+/g, ' ').trim();
+    if (titleInput) {
+        titleInput.value = cleanTitle.substring(0, 80);
+        updateCharCounter();
+    }
+
+    if (currentProduct.categoryId) {
+        const catSelect = document.getElementById('listingCategory');
+        if (catSelect) {
+            if (catSelect.querySelector(`option[value="${currentProduct.categoryId}"]`)) {
+                catSelect.value = currentProduct.categoryId;
+            } else {
+                catSelect.value = 'custom';
+                const customInput = document.getElementById('customCategoryId');
+                if (customInput) {
+                    customInput.style.display = 'block';
+                    customInput.value = currentProduct.categoryId;
+                }
+            }
+        }
+    } else {
+        autoDetectCategory(cleanTitle);
+    }
+
+    calculatePricing();
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
+    // 0. Pre-load previously extracted product if available
+    try {
+        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+            const stored = await chrome.storage.local.get('lastScrapedProduct');
+            if (stored && stored.lastScrapedProduct) {
+                renderProductDataInPopup(stored.lastScrapedProduct);
+            }
+        }
+    } catch (e) {
+        console.warn("Storage pre-load error:", e);
+    }
+
     // 1. Inspect current tab
     try {
         const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -135,38 +207,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 throw new Error("Could not extract product data. Make sure you are on a product page.");
             }
 
-            currentProduct = results[0].result;
+            const extracted = results[0].result;
+            renderProductDataInPopup(extracted);
             
             // Persist locally in chrome.storage.local
-            await chrome.storage.local.set({ lastScrapedProduct: currentProduct });
-
-            // Render Preview
-            const preview = document.getElementById('productPreview');
-            preview.style.display = 'block';
-
-            const previewImg = document.getElementById('previewImg');
-            if (previewImg) previewImg.src = currentProduct.mainImgUrl || (currentProduct.alternateImages && currentProduct.alternateImages[0]) || '';
-
-            const previewBrand = document.getElementById('previewBrand');
-            if (previewBrand) previewBrand.innerText = currentProduct.brand || 'UNBRANDED';
-
-            const countEl = document.getElementById('previewImgCount');
-            const totalImgs = (currentProduct.alternateImages || []).length;
-            if (countEl) countEl.innerText = `🖼️ ${totalImgs} High-Res Photos`;
-
-            const sourcePrice = document.getElementById('sourcePriceDisplay');
-            if (sourcePrice) sourcePrice.innerText = `$${currentProduct.price || '0.00'}`;
-
-            const titleInput = document.getElementById('listingTitle');
-            const cleanTitle = (currentProduct.title || '').replace(/\s+/g, ' ').trim();
-            if (titleInput) {
-                titleInput.value = cleanTitle.substring(0, 80);
-                updateCharCounter();
+            if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+                await chrome.storage.local.set({ lastScrapedProduct: currentProduct });
             }
 
-            autoDetectCategory(cleanTitle);
-            calculatePricing();
-            showStatus("✅ Extracted successfully!", "success");
+            showStatus("✅ Extracted & auto-cleaned for eBay!", "success");
 
         } catch (err) {
             console.error("Extraction error:", err);
