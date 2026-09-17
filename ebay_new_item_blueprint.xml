@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AddFixedPriceItemRequest xmlns="urn:ebay:apis:eBLBaseComponents">
+  <RequesterCredentials>
+    <eBayAuthToken>MOCK_TOKEN_PENDING_ACCOUNT_APPROVAL</eBayAuthToken>
+  </RequesterCredentials>
+  <ErrorLanguage>en_US</ErrorLanguage>
+  <WarningLevel>High</WarningLevel>
+  <Item>
+    <!-- Core Details -->
+    <Title>12V 6A Smart Battery Charger Automatic Smart Trickle Maintainer Desulfator</Title>
+    <Description><![CDATA[<div style="font-family: Arial; padding: 20px;"><h1 style="color:#333;">12V 6A Smart Battery Charger Automatic Smart Trickle Maintainer Desulfator</h1><h3>Features</h3><ul><li>【QUICK BATTERY CHARGER】12V 6-Amp 7-stage quick battery charger. Intelligent 7-stage charging include: desulfation, soft start, bulk charge, analysis, recondition, float, and pulse maintenance. MCU controller monitor the whole charging progress, add charging precision, optimize battery power, and extend battery life. Suitable for charging and repairing all 12V lead-acid batteries, including AGM, GEL, SLA, and Flooded types, in cars, trucks, SUVs, motorcycles, lawnmowers, boats, and more.</li><li>【High-Efficiency Pulse Repair】Advanced pulse repair functionality. The battery charger utilizes a slow pulse repair technique to automatically detect battery sulfation and acid stratification, achieving stronger engine starts and longer battery life. It restores the performance loss of batteries, assists in repairing old/idle batteries, and prolongs battery life. If your battery cannot be charged, you can try using the "Repair" mode to repair the battery. Note: It cannot repair completely dead batteries.</li><li>【Reliable Quality】 Manufactured using high-quality electronic components and advanced manufacturing processes, ensuring stable performance and high reliability of the protection board. After strict quality inspections and long-term practical verification, it can work stably in various harsh environments, providing strong protection for your battery safety. Choose our lead-acid iron lithium battery protection board for a safe, reliable, and efficient battery usage experience. Protect your battery while maximizing its performance to meet all your needs.</li><li>【Temperature Detection & Flame-Retardant Design】 Monitors battery temperature in real-time and is built with flame-retardant materials for added safety and durability.</li><li>【Multi-Protection Safety System】 Offers comprehensive safety features, including over-temperature, over-current, high/low voltage, and short-circuit protection, ensuring safe and reliable charging</li><li>【Smart LCD Display】 Features a clear LCD screen that shows real-time charging status, voltage, and temperature, providing you with all the information you need at a glance</li><li>【A Must Have Emergency Battery Charger】Flame-retardant ABS shell solid material, wear-resistant, drop-resistant, and corrosion-resistant, portable and light weight charger, can be used under harsh environments. The deep cycle battery charger performs well as lead acid battery charger, agm battery charger, auto battery charger, motorcycle battery charger tender, boat battery charger,12v float charger, etc</li></ul><h3>Description</h3><p>🌟 All-Round Protection for Peace of Mind: This protection board, specially designed for lead-acid iron lithium batteries, integrates six core protective functions: voltage protection, reverse connection protection, over-power protection, short-circuit protection, over-current protection, and over-discharge protection. Whether you are exploring outdoors, using home energy storage, or in industrial applications, it provides comprehensive security for your battery, allowing you to use it with confidence and without worry. 🔋 Voltage Protection: Accurately monitors the battery voltage. When the voltage exceeds the safe range, the protection board responds quickly to automatically disconnect the circuit, preventing damage to the battery from over-voltage charging or discharging, and effectively extending its lifespan. AC Input: 100-240V 50/60HZ Output Voltage: 12V Size(L*W*H): 147*80*60MM Net Weight: 430G Output Current: 6AMax Cooling: Fan Input Power With Load: Max.96W Input Power Under No Load: 2.6W</p></div>]]></Description>
+    <PrimaryCategory>
+      <CategoryID>111422</CategoryID>
+    </PrimaryCategory>
+    <StartPrice>23.99</StartPrice>
+    <ConditionID>1000</ConditionID>
+    <Country>US</Country>
+    <Currency>USD</Currency>
+    <DispatchTimeMax>3</DispatchTimeMax>
+    <ListingDuration>GTC</ListingDuration>
+    <ListingType>FixedPriceItem</ListingType>
+    <Quantity>1</Quantity>
+
+    <!-- Hardcoded Business & Return Policies -->
+    <ReturnPolicy>
+      <ReturnsAcceptedOption>ReturnsNotAccepted</ReturnsAcceptedOption>
+    </ReturnPolicy>
+    <ShippingDetails>
+      <ShippingServiceOptions>
+        <ShippingService>USPSGroundAdvantage</ShippingService>
+        <ShippingServiceCost>0.00</ShippingServiceCost>
+        <FreeShipping>true</FreeShipping>
+      </ShippingServiceOptions>
+    </ShippingDetails>
+
+    <!-- Media Assets -->
+    <PictureDetails>
+      <PictureURL>http://localhost:3000/images/Battery_Ch/image_1.jpg</PictureURL>
+      <PictureURL>http://localhost:3000/images/Battery_Ch/image_2.jpg</PictureURL>
+      <PictureURL>http://localhost:3000/images/Battery_Ch/image_3.jpg</PictureURL>
+      <PictureURL>http://localhost:3000/images/Battery_Ch/image_4.jpg</PictureURL>
+      <PictureURL>http://localhost:3000/images/Battery_Ch/image_5.jpg</PictureURL>
+      <PictureURL>http://localhost:3000/images/Battery_Ch/image_6.jpg</PictureURL>
+      <PictureURL>http://localhost:3000/images/Battery_Ch/image_7.jpg</PictureURL>
+      <PictureURL>http://localhost:3000/images/Battery_Ch/image_8.jpg</PictureURL>
+      <PictureURL>http://localhost:3000/images/Battery_Ch/image_9.jpg</PictureURL>
+      <PictureURL>http://localhost:3000/images/Battery_Ch/image_10.jpg</PictureURL>
+    </PictureDetails>
+
+    <!-- Technical Item Specifics -->
+    <ItemSpecifics>
+      <NameValueList>
+        <Name>ASIN</Name>
+        <Value>B0F2TPC4DC</Value>
+      </NameValueList>
+      <NameValueList>
+        <Name>Amperage</Name>
+        <Value>6 A</Value>
+      </NameValueList>
+      <NameValueList>
+        <Name>Battery Charge Time</Name>
+        <Value>12 hours</Value>
+      </NameValueList>
+      <NameValueList>
+        <Name>Best Sellers Rank</Name>
+        <Value>#60,533 in Automotive (See Top 100 in Automotive) #291 in Battery Chargers</Value>
+      </NameValueList>
+      <NameValueList>
+        <Name>Brand</Name>
+        <Value>Generic</Value>
+      </NameValueList>
+      <NameValueList>
+        <Name>Color</Name>
+        <Value>Red</Value>
+      </NameValueList>
+      <NameValueList>
+        <Name>Compatible Devices</Name>
+        <Value>Car, Truck, Motorcycle, Lawn Mower, Marine</Value>
+      </NameValueList>
+      <NameValueList>
+        <Name>Connector Type Used on Cable</Name>
+        <Value>Cigarette Lighter Socket/Battery Clamp Connector</Value>
+      </NameValueList>
+      <NameValueList>
+        <Name>Current Rating</Name>
+        <Value>6 A</Value>
+      </NameValueList>
+      <NameValueList>
+        <Name>Customer Reviews</Name>
+        <Value>4.6 4.6 out of 5 stars (45) var dpAcrHasRegisteredArcLinkClickAction; P.when(&apos;A&apos;, &apos;ready&apos;).execute(function(A) { if (dpAcrHasRegisteredArcLinkClickAction !== true) { dpAcrHasRegisteredArcLinkClickAction = true; A.declarative( &apos;acrLink-click-metrics&apos;, &apos;click&apos;, { &quot;allowLinkDefault&quot;: true }, function (event) { if (window.ue) { ue.count(&quot;acrLinkClickCount&quot;, (ue.count(&quot;acrLinkClickCount&quot;) || 0) + 1); } } ); } }); P.when(&apos;A&apos;, &apos;cf&apos;).execute(function(A) { A.declarative(&apos;acrStarsLink-click-metrics&apos;, &apos;click&apos;, { &quot;allowLinkDefault&quot; : true }, function(event){ if(window.ue) { ue.count(&quot;acrStarsLinkWithPopoverClickCount&quot;, (ue.count(&quot;acrStarsLinkWithPopoverClickCount&quot;) || 0) + 1); } }); }); 4.6 out of 5 stars</Value>
+      </NameValueList>
+      <NameValueList>
+        <Name>Input Voltage</Name>
+        <Value>110 volts</Value>
+      </NameValueList>
+      <NameValueList>
+        <Name>Item Dimensions D x W x H</Name>
+        <Value>3.14&quot;D x 5.8&quot;W x 2.36&quot;H</Value>
+      </NameValueList>
+      <NameValueList>
+        <Name>Item Weight</Name>
+        <Value>400 g</Value>
+      </NameValueList>
+      <NameValueList>
+        <Name>Manufacturer</Name>
+        <Value>china</Value>
+      </NameValueList>
+      <NameValueList>
+        <Name>Mfr Part Number</Name>
+        <Value>12V-6A</Value>
+      </NameValueList>
+      <NameValueList>
+        <Name>MPN</Name>
+        <Value>4210</Value>
+      </NameValueList>
+      <NameValueList>
+        <Name>Number of Items</Name>
+        <Value>1</Value>
+      </NameValueList>
+      <NameValueList>
+        <Name>Output Voltage</Name>
+        <Value>12 volts</Value>
+      </NameValueList>
+      <NameValueList>
+        <Name>Specification Met</Name>
+        <Value>CE, FCC</Value>
+      </NameValueList>
+      <NameValueList>
+        <Name>Unit Count</Name>
+        <Value>1 Count</Value>
+      </NameValueList>
+      <NameValueList>
+        <Name>Warranty Description</Name>
+        <Value>1Year Manufacturer</Value>
+      </NameValueList>
+    </ItemSpecifics>
+  </Item>
+</AddFixedPriceItemRequest>

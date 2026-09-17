@@ -1,0 +1,18 @@
+# eBay Item History Ledger (Append-Only)
+# Format: [ISO_TIMESTAMP] [EVENT_TYPE] details
+[2026-09-17T13:09:20.346Z] [OPTIMIZED] title: Battery Charger 6 Amp 12V Automatic Smart Trickle Maintainer Desulfator | categoryId: 111422 | categoryName: Automotive Tools: Battery Chargers & Tenders | price: 23.99 | imagesCount: 10
+[2026-09-17T13:09:31.900Z] [UPLOADED] title: Battery Charger 6 Amp 12V Automatic Smart Trickle Maintainer Desulfator | hostedUrlsCount: 10
+[2026-09-17T13:28:16.224Z] [SCRAPED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1/2-Inch | price: $99.00 | imagesCount: 1
+[2026-09-17T13:28:16.615Z] [OPTIMIZED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1 2 Inch | categoryId: 172008 | categoryName: Electronics: Consumer Electronics | price: 99.00 | imagesCount: 1
+[2026-09-17T13:28:16.702Z] [UPLOADED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1 2 Inch | hostedUrlsCount: 1
+[2026-09-17T13:28:16.720Z] [MANUAL_ENTRY] title: Smart Wi-Fi Power Strip Surge Protector 4 Outlets 4 USB Ports | price: 27.50
+[2026-09-17T13:28:16.859Z] [OPTIMIZED] title: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports | categoryId: 20138 | categoryName: Consumer Electronics: Surge Protectors & Power Strips | price: 27.50 | imagesCount: 0
+[2026-09-17T13:28:16.941Z] [UPLOADED] title: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports | hostedUrlsCount: 0
+[2026-09-17T13:28:16.957Z] [REVISION] itemId: v1-29472940294-0 | title: Updated 12V 6A Smart Battery Charger - Special Edition | price: 39.99
+[2026-09-17T13:29:47.801Z] [SCRAPED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1/2-Inch | price: $99.00 | imagesCount: 1
+[2026-09-17T13:29:48.159Z] [OPTIMIZED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1 2 Inch | categoryId: 172008 | categoryName: Electronics: Consumer Electronics | price: 99.00 | imagesCount: 1
+[2026-09-17T13:29:48.243Z] [UPLOADED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1 2 Inch | hostedUrlsCount: 1
+[2026-09-17T13:29:48.264Z] [MANUAL_ENTRY] title: Smart Wi-Fi Power Strip Surge Protector 4 Outlets 4 USB Ports | price: 27.50
+[2026-09-17T13:29:48.399Z] [OPTIMIZED] title: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports | categoryId: 20138 | categoryName: Consumer Electronics: Surge Protectors & Power Strips | price: 27.50 | imagesCount: 0
+[2026-09-17T13:29:48.474Z] [UPLOADED] title: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports | hostedUrlsCount: 0
+[2026-09-17T13:29:48.492Z] [REVISION] itemId: v1-29472940294-0 | title: Updated 12V 6A Smart Battery Charger - Special Edition | price: 39.99

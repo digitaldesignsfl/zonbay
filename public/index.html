@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>eBay Listing & Management Control Center</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { background: #0046af; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+        .tab-btn { padding: 10px 20px; background: #e9ecef; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .tab-btn.active { background: #0046af; color: white; }
+        .view-panel { display: none; }
+        .view-panel.active { display: block; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        label { font-weight: bold; display: block; margin-bottom: 5px; color: #555; }
+        input[type="text"], textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; margin-bottom: 15px; }
+        textarea { height: 180px; }
+        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+        .gallery img { width: 100%; border-radius: 4px; height: 100px; object-fit: cover; }
+        .btn { background: #28a745; color: white; border: none; padding: 12px 20px; border-radius: 4px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        .btn-blue { background: #0046af; }
+        .inventory-list { display: flex; flex-direction: column; gap: 15px; }
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 6px; }
+        .item-info h4 { margin: 0 0 5px 0; color: #222; }
+        .item-info p { margin: 0; color: #666; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h2>📦 eBay Automated Control Center</h2>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchView('scraperPanel')">➕ Scrape & Optimize</button>
+            <button class="tab-btn" onclick="switchView('manualPanel')">✍️ Manual Product Entry</button>
+            <button class="tab-btn" onclick="switchView('inventoryPanel')">🏪 Live eBay Listings</button>
+            <button class="tab-btn" onclick="switchView('historyPanel')">📜 History Ledger</button>
+        </div>
+
+        <div id="scraperPanel" class="view-panel active">
+            <div class="grid">
+                <div class="card">
+                    <h3>📝 Optimize Scraped Product Details</h3>
+                    <label>eBay Title</label>
+                    <input type="text" id="ebayTitle">
+                    <label>Auto-Detected eBay Category</label>
+                    <input type="text" id="ebayCategory" readonly style="background:#e9ecef;">
+                    <label>Target Price ($)</label>
+                    <input type="text" id="ebayPrice" style="width: 150px;">
+                    <label>Product HTML Description</label>
+                    <textarea id="ebayDesc"></textarea>
+                    <button class="btn" id="loadDataBtn">🔄 Load Last Scraped</button>
+                </div>
+                <div>
+                    <div class="card">
+                        <h3>🖼️ Image Gallery</h3>
+                        <div class="gallery" id="imageGallery"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="manualPanel" class="view-panel">
+            <div class="card">
+                <h3>✍️ Enter Product Details Manually</h3>
+                <label>Raw Item Title</label>
+                <input type="text" id="manualTitle" placeholder="Generic Product Title">
+                <label>Item Price ($)</label>
+                <input type="text" id="manualPrice" placeholder="29.99" style="width: 150px;">
+                <label>Main Image URL</label>
+                <input type="text" id="manualImageUrl" placeholder="https://example.com">
+                <label>Product Features / Bullets (One per line)</label>
+                <textarea id="manualBullets" placeholder="Feature 1\nFeature 2" style="height: 100px;"></textarea>
+                <label>Long Description / Product Overview</label>
+                <textarea id="manualDesc" placeholder="Enter details here..."></textarea>
+                <button class="btn btn-blue" id="submitManualBtn">⚙️ Process and Compile to eBay Package</button>
+            </div>
+        </div>
+
+        <div id="inventoryPanel" class="view-panel">
+            <div class="card">
+                <h3>📋 Active eBay Inventory Storefront Manager</h3>
+                <div class="inventory-list" id="activeListingsContainer"></div>
+            </div>
+            <div class="card" id="editModal" style="display:none; border-top: 4px solid #0046af;">
+                <h3>✏️ Edit Live Listing: <span id="editingItemId" style="color:#0046af;"></span></h3>
+                <label>Listing Title</label>
+                <input type="text" id="editItemTitle">
+                <label>Listing Price ($)</label>
+                <input type="text" id="editItemPrice" style="width: 150px;">
+                <button class="btn btn-blue" id="pushEditsBtn">⚡ Push Edits Live to eBay</button>
+            </div>
+        </div>
+
+        <div id="historyPanel" class="view-panel">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0;">📜 Item History & Activity Ledger (history.log)</h3>
+                    <button class="btn btn-blue" onclick="fetchHistory()" style="padding: 8px 16px; font-size: 14px;">🔄 Refresh Ledger</button>
+                </div>
+                <pre id="historyLogs" style="background: #1e1e1e; color: #4af626; padding: 15px; border-radius: 6px; overflow-x: auto; max-height: 450px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.5; white-space: pre-wrap; margin: 0;"></pre>
+            </div>
+        </div>
+    </div>
+    <script>
+        let currentEditingId = null;
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            if (event && event.target) event.target.classList.add('active');
+            if (viewId === 'inventoryPanel') { fetchLiveInventory(); }
+            if (viewId === 'historyPanel') { fetchHistory(); }
+        }
+
+        async function fetchHistory() {
+            const container = document.getElementById('historyLogs');
+            container.innerText = 'Loading ledger...';
+            try {
+                const res = await fetch('/api/history');
+                const data = await res.json();
+                if (data.history && data.history.length > 0) {
+                    container.innerText = data.history.join('\n');
+                } else {
+                    container.innerText = 'No ledger entries recorded yet.';
+                }
+            } catch (err) {
+                container.innerText = 'Failed connecting to server for history log.';
+            }
+        }
+
+        document.getElementById('loadDataBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/view-product');
+                const data = await response.json();
+                document.getElementById('ebayTitle').value = data.title || "";
+                document.getElementById('ebayPrice').value = data.price || "";
+                document.getElementById('ebayDesc').value = data.htmlDescription || "";
+                document.getElementById('ebayCategory').value = `${data.categoryName || ""} (#${data.categoryId || ""})`;
+                const gallery = document.getElementById('imageGallery');
+                gallery.innerHTML = '';
+                if (data.imageUrls) {
+                    data.imageUrls.forEach(url => {
+                        const img = document.createElement('img'); img.src = url; gallery.appendChild(img);
+                    });
+                }
+            } catch (err) { alert("Error loading data."); }
+        });
+
+        document.getElementById('submitManualBtn').addEventListener('click', async () => {
+            const manualData = {
+                title: document.getElementById('manualTitle').value,
+                price: document.getElementById('manualPrice').value,
+                alternateImages: [document.getElementById('manualImageUrl').value].filter(Boolean),
+                bulletPoints: document.getElementById('manualBullets').value.split('\n').filter(Boolean),
+                longDescription: document.getElementById('manualDesc').value,
+                productSpecs: {}
+            };
+            if (!manualData.title || !manualData.price) { alert("Fields required!"); return; }
+            try {
+                const response = await fetch('/api/manual-product', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(manualData)
+                });
+                const result = await response.json();
+                alert(result.message);
+                document.getElementById('manualTitle').value = '';
+                document.getElementById('manualPrice').value = '';
+                document.getElementById('manualImageUrl').value = '';
+                document.getElementById('manualBullets').value = '';
+                document.getElementById('manualDesc').value = '';
+            } catch (err) { alert("Error processing package."); }
+        });
+
+        async function fetchLiveInventory() {
+            const container = document.getElementById('activeListingsContainer');
+            container.innerHTML = '<p>Retrieving listings...</p>';
+            try {
+                const res = await fetch('/api/get-listings');
+                const listings = await res.json();
+                container.innerHTML = '';
+                listings.forEach(item => {
+                    const row = document.createElement('div');
+                    row.className = 'item-row';
+                    row.innerHTML = '<div class="item-info"><h4>' + item.title + '</h4><p>ID: ' + item.itemId + ' | Price: $' + item.price + '</p></div><button class="btn btn-blue" onclick="openEditor(\'' + item.itemId + '\', \'' + item.title.replace(/'/g, "\\'") + '\', \'' + item.price + '\')">✏️ Edit</button>';
+                    container.appendChild(row);
+                });
+            } catch (err) { container.innerHTML = '<p>Failed connecting to server.</p>'; }
+        }
+
+        function openEditor(itemId, title, price) {
+            currentEditingId = itemId;
+            document.getElementById('editingItemId').innerText = itemId;
+            document.getElementById('editItemTitle').value = title;
+            document.getElementById('editItemPrice').value = price;
+            document.getElementById('editModal').style.display = 'block';
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+
+        document.getElementById('pushEditsBtn').addEventListener('click', async () => {
+            const updatedPayload = { itemId: currentEditingId, title: document.getElementById('editItemTitle').value, price: document.getElementById('editItemPrice').value };
+            try {
+                const response = await fetch('/api/update-listing', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updatedPayload) });
+                const resData = await response.json(); alert(resData.message);
+                document.getElementById('editModal').style.display = 'none';
+                fetchLiveInventory();
+            } catch (err) { alert("Error updating."); }
+        });
+    </script>
+</body>
+</html>

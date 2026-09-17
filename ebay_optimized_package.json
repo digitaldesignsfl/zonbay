@@ -1,0 +1,29 @@
+{
+  "title": "Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports",
+  "categoryId": "20138",
+  "categoryName": "Consumer Electronics: Surge Protectors & Power Strips",
+  "price": "27.50",
+  "itemSpecifics": [
+    {
+      "name": "Brand",
+      "value": "Kasa"
+    },
+    {
+      "name": "Color",
+      "value": "White"
+    }
+  ],
+  "htmlDescription": "<div style=\"font-family: Arial, sans-serif; padding: 20px;\"><h1 style=\"color:#333;\">Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports</h1><h3>Features</h3><ul><li>App Remote Control</li><li>Voice Control compatible with Alexa</li></ul><h3>Description</h3><p>Control appliances anywhere with smart Wi-Fi power strip.</p></div>",
+  "localImages": [],
+  "shippingPolicy": {
+    "type": "Standard",
+    "handlingTimeDays": 3,
+    "cost": 0
+  },
+  "returnPolicy": {
+    "returnsAccepted": false
+  },
+  "paymentPolicy": {
+    "requireInstantPayment": true
+  }
+}

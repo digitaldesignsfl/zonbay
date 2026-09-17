@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Amazon to eBay Lister",
+  "version": "1.0",
+  "description": "Extracts Amazon product details for relisting.",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
