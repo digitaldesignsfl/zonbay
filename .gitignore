@@ -5,6 +5,8 @@ downloads/
 Thumbs.db
 swarm_messages.json
 swarm_secret.json
+aura_lattice_state.json
+swarm_crates/
 mmcl/target/
 *.node
 bin/

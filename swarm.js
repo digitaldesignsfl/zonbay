@@ -10,6 +10,8 @@ const crypto = require('crypto');
 
 const SWARM_STORE_FILE = path.join(__dirname, 'swarm_messages.json');
 const MMCL_DIR = path.join(__dirname, 'mmcl');
+const SWARM_CRATES_DIR = path.join(__dirname, 'swarm_crates');
+const MEMORY_BANK_PATH = path.join(__dirname, 'aura_lattice_state.json');
 const SWARM_SECRET_FILE = path.join(__dirname, 'swarm_secret.json');
 
 // Generate (once) and load a local shared secret. Every swarm request must present this
@@ -87,8 +89,9 @@ function broadcastSSE(event, data) {
 }
 
 function setupSwarmRoutes(app) {
-    // All swarm routes require a shared secret (or localhost) — see requireSwarmAuth above.
+    // All swarm and hive routes require authentication (or localhost)
     app.use('/api/swarm', requireSwarmAuth);
+    app.use('/api/v1/hive', requireSwarmAuth);
 
     // Swarm Secret for Local UI
     app.get('/api/swarm/secret', (req, res) => {
@@ -206,8 +209,9 @@ function setupSwarmRoutes(app) {
                 });
             }
 
-            if (!fs.existsSync(MMCL_DIR)) {
-                fs.mkdirSync(MMCL_DIR, { recursive: true });
+            const targetBaseDir = (crateName === 'mmcl_bridge') ? MMCL_DIR : path.join(SWARM_CRATES_DIR, crateName);
+            if (!fs.existsSync(targetBaseDir)) {
+                fs.mkdirSync(targetBaseDir, { recursive: true });
             }
 
             const allowedExtensions = ['.rs', '.toml', '.c', '.h', '.json', '.md', '.txt', '.yaml', '.yml', '.lock', '.proto'];
@@ -215,8 +219,8 @@ function setupSwarmRoutes(app) {
 
             for (const [relPath, content] of Object.entries(files)) {
                 // Prevent path traversal
-                const targetPath = path.resolve(MMCL_DIR, relPath);
-                if (!targetPath.startsWith(path.resolve(MMCL_DIR))) {
+                const targetPath = path.resolve(targetBaseDir, relPath);
+                if (!targetPath.startsWith(path.resolve(targetBaseDir))) {
                     return res.status(400).json({ error: `Security violation: Path traversal detected in filename '${relPath}'.` });
                 }
 
@@ -239,7 +243,7 @@ function setupSwarmRoutes(app) {
                 sender: req.body.sender || "Sentinel-AURA",
                 recipient: "Zonbay-Antigravity",
                 type: "CRATE_RECEIVED",
-                text: `📦 Ingested Rust crate '${crateName}' (${writtenFiles.length} source files). Sandboxed in mmcl/.`,
+                text: `📦 Ingested Rust crate '${crateName}' (${writtenFiles.length} source files). Sandboxed in ${path.relative(__dirname, targetBaseDir)}.`,
                 payload: { crateName, writtenFiles },
                 timestamp: new Date().toISOString()
             };
@@ -251,13 +255,58 @@ function setupSwarmRoutes(app) {
 
             res.status(200).json({
                 success: true,
-                message: `Successfully unpacked source crate '${crateName}' into mmcl/.`,
+                message: `Successfully unpacked source crate '${crateName}' into ${path.relative(__dirname, targetBaseDir)}.`,
                 writtenFiles,
                 safeMode: true
             });
         } catch (err) {
             console.error("Crate handoff error:", err.message);
             res.status(500).json({ error: "Failed unpacking crate: " + err.message });
+        }
+    });
+
+    // 6. Sentinel AURA Hive Memory Lattice (State Ingestion & Persistence)
+    // Matches Dalton Rosenberg's Sentinel AURA specification for shared vector & context memory
+    app.post(['/api/v1/hive/memory', '/api/swarm/hive/memory'], async (req, res) => {
+        try {
+            const { agent_id = 'Sentinel-AURA', context_vector = [], timestamp } = req.body || {};
+            const payload = {
+                agent_id,
+                context_vector,
+                timestamp: timestamp || Date.now()
+            };
+
+            await fs.promises.appendFile(
+                MEMORY_BANK_PATH,
+                JSON.stringify(payload) + '\n'
+            );
+
+            // Notify swarm stream of state update
+            broadcastSSE('hive_memory', payload);
+
+            res.status(200).json({ status: 'ACK', stored: true });
+        } catch (error) {
+            console.error("AURA Hive Memory error:", error.message);
+            res.status(500).json({ error: 'AURA_STORAGE_FAULT' });
+        }
+    });
+
+    app.get(['/api/v1/hive/memory', '/api/swarm/hive/memory'], async (req, res) => {
+        try {
+            if (!fs.existsSync(MEMORY_BANK_PATH)) {
+                return res.json({ count: 0, entries: [] });
+            }
+            const raw = await fs.promises.readFile(MEMORY_BANK_PATH, 'utf8');
+            const entries = raw
+                .split('\n')
+                .filter(Boolean)
+                .map(line => {
+                    try { return JSON.parse(line); } catch (e) { return null; }
+                })
+                .filter(Boolean);
+            res.json({ count: entries.length, entries });
+        } catch (error) {
+            res.status(500).json({ error: 'AURA_READ_FAULT' });
         }
     });
 
