@@ -41,6 +41,32 @@ let editState = {
     rotation: 0
 };
 
+const API_BASE = (typeof window !== 'undefined' && window.location.protocol.startsWith('http')) 
+    ? '' 
+    : 'http://localhost:3000';
+
+function autoDetectCategory(titleText) {
+    const text = String(titleText || '').toLowerCase();
+    const select = document.getElementById('listingCategory');
+    if (!select) return '67779';
+
+    let catId = '11700'; // Default: Home & Garden
+    if (text.includes('charger') && text.includes('battery')) {
+        catId = '179471';
+    } else if (text.includes('strip') || text.includes('surge') || text.includes('outlet')) {
+        catId = '67779';
+    } else if (text.includes('drill') || text.includes('driver') || text.includes('wrench')) {
+        catId = '184655';
+    } else if (text.includes('cable') || text.includes('usb') || text.includes('adapter') || text.includes('phone')) {
+        catId = '172008';
+    }
+
+    if (select.querySelector(`option[value="${catId}"]`)) {
+        select.value = catId;
+    }
+    return catId;
+}
+
 /* ==========================================================================
    INITIALIZATION & DATA LOADING
    ========================================================================== */
@@ -50,6 +76,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupEventListeners();
     updateProfitStats();
     updateTitleCounter();
+    updateInlineTemplatePreview();
 });
 
 async function loadInitialData() {
@@ -60,15 +87,22 @@ async function loadInitialData() {
     const queryId = urlParams.get('id');
     if (queryId) {
         try {
-            const res = await fetch(`http://localhost:3000/api/inventory/${encodeURIComponent(queryId)}`);
+            const res = await fetch(`${API_BASE}/api/inventory/${encodeURIComponent(queryId)}`);
             if (res.ok) {
                 const item = await res.json();
-                const productData = item.productData || item;
-                productData.status = item.status || 'APPROVED';
-                productData.id = item.id;
-                productData.sourcePlatform = item.sourcePlatform || productData.sourcePlatform;
-                productData.sellingPrice = item.sellingPrice || productData.price;
-                applyLoadedProduct(productData);
+                const merged = {
+                    ...item,
+                    ...(item.productData || {}),
+                    id: item.id,
+                    sku: item.sku || (item.productData && item.productData.sku),
+                    status: item.status || 'APPROVED',
+                    sourcePlatform: item.sourcePlatform || (item.productData && item.productData.sourcePlatform),
+                    sellingPrice: item.sellingPrice || (item.productData && item.productData.sellingPrice) || item.price || (item.productData && item.productData.price),
+                    costPrice: item.costPrice || (item.productData && (item.productData.costPrice || item.productData.cost)),
+                    mainImgUrl: (item.productData && item.productData.mainImgUrl) || item.mainImage || '',
+                    alternateImages: (item.productData && item.productData.alternateImages) || (item.mainImage ? [item.mainImage] : [])
+                };
+                applyLoadedProduct(merged);
                 updateApprovalBadge(item.status);
                 loaded = true;
             }
@@ -101,10 +135,25 @@ async function loadInitialData() {
         }
     }
 
-    // 3. Try Local Node.js server fallback (localhost:3000/api/view-product)
+    // 3. Try Local Node.js server inventory (latest active item)
     if (!loaded) {
         try {
-            const res = await fetch('http://localhost:3000/api/view-product');
+            const res = await fetch(`${API_BASE}/api/inventory/latest`);
+            if (res.ok) {
+                const item = await res.json();
+                if (item && (item.id || item.title)) {
+                    applyLoadedProduct(item);
+                    updateApprovalBadge(item.status);
+                    loaded = true;
+                }
+            }
+        } catch (e) {}
+    }
+
+    // 4. Try Local Node.js server fallback (/api/view-product)
+    if (!loaded) {
+        try {
+            const res = await fetch(`${API_BASE}/api/view-product`);
             if (res.ok) {
                 const serverData = await res.json();
                 applyLoadedProduct(serverData);
@@ -123,6 +172,8 @@ async function loadInitialData() {
             alternateImages: []
         });
     }
+
+    updateInlineTemplatePreview();
 }
 
 function updateApprovalBadge(status) {
@@ -145,6 +196,8 @@ function updateApprovalBadge(status) {
 }
 
 function applyLoadedProduct(data) {
+    if (!data) return;
+
     if (typeof ZonbayCleaner !== 'undefined') {
         product = ZonbayCleaner.cleanProductData({ ...product, ...data });
     } else {
@@ -154,42 +207,55 @@ function applyLoadedProduct(data) {
         updateApprovalBadge(data.status);
     }
 
-    // Badge
+    // Source platform badge
     const badge = document.getElementById('sourcePlatformBadge');
     if (badge) {
-        const src = (product.source || 'generic').toUpperCase();
-        badge.innerText = `${src} #${product.sourceId || 'NEW'}`;
+        const src = (product.sourcePlatform || product.source || 'generic').toUpperCase();
+        badge.innerText = `${src} #${product.sourceId || product.id || 'NEW'}`;
     }
 
-    // Displays
-    document.getElementById('sourceUrlDisplay').value = product.url || '';
-    document.getElementById('sourceIdDisplay').value = product.sourceId || '';
-    document.getElementById('sourceCostDisplay').value = `$${product.price || '0.00'}`;
-    document.getElementById('statCost').innerText = `$${product.price || '0.00'}`;
+    // Sourcing displays
+    const sourceUrl = product.sourceUrl || product.url || '';
+    const sourceId = product.sourceId || product.id || '';
+    const costVal = parseFloat(product.costPrice || product.cost || product.sourceCost || 0);
+    const sellVal = parseFloat(product.sellingPrice || product.price || 0);
 
-    // Title & Category
+    document.getElementById('sourceUrlDisplay').value = sourceUrl;
+    document.getElementById('sourceIdDisplay').value = sourceId;
+    document.getElementById('sourceCostDisplay').value = costVal > 0 ? `$${costVal.toFixed(2)}` : (sellVal > 0 ? `$${sellVal.toFixed(2)}` : '$0.00');
+    document.getElementById('statCost').innerText = costVal > 0 ? `$${costVal.toFixed(2)}` : '$0.00';
+
+    // Title
     const titleInput = document.getElementById('listingTitle');
     titleInput.value = (product.title || '').substring(0, 80);
-    
-    if (product.categoryId) {
+
+    // Category auto-detection and selection
+    let activeCatId = product.categoryId;
+    if (!activeCatId && product.title) {
+        activeCatId = autoDetectCategory(product.title);
+    }
+    if (activeCatId) {
         const catSelect = document.getElementById('listingCategory');
-        if (catSelect.querySelector(`option[value="${product.categoryId}"]`)) {
-            catSelect.value = product.categoryId;
+        if (catSelect.querySelector(`option[value="${activeCatId}"]`)) {
+            catSelect.value = activeCatId;
         } else {
             catSelect.value = 'custom';
             const customInput = document.getElementById('customCategoryId');
-            customInput.style.display = 'block';
-            customInput.value = product.categoryId;
+            if (customInput) {
+                customInput.style.display = 'block';
+                customInput.value = activeCatId;
+            }
         }
     }
 
-    document.getElementById('customSku').value = product.customSku || product.sourceId || '';
+    document.getElementById('customSku').value = product.customSku || product.sku || sourceId || '';
     document.getElementById('listingCondition').value = product.conditionId || '1000';
 
-    // Pricing
-    const cost = parseFloat(product.price) || 0;
-    const initialPrice = (cost > 0) ? (cost * 1.4).toFixed(2) : '19.99';
-    document.getElementById('listingPrice').value = initialPrice;
+    // Pricing: Preserve selling price if provided, else apply markup to cost
+    const finalPrice = sellVal > 0 
+        ? sellVal.toFixed(2) 
+        : (costVal > 0 ? (costVal * 1.4).toFixed(2) : '19.99');
+    document.getElementById('listingPrice').value = finalPrice;
     document.getElementById('listingQuantity').value = product.quantity || '1';
 
     // Policies
@@ -201,10 +267,33 @@ function applyLoadedProduct(data) {
     if (product.immediatePayRequired !== undefined) document.getElementById('immediatePayRequired').value = product.immediatePayRequired;
     if (product.returnsAcceptedOption) document.getElementById('returnsAcceptedOption').value = product.returnsAcceptedOption;
 
-    // Bullets & Description / Template
-    const bullets = Array.isArray(product.bulletPoints) ? product.bulletPoints : [];
+    // Item Specifics normalization (merge array itemSpecifics and object productSpecs)
+    let specs = {};
+    if (product.productSpecs && typeof product.productSpecs === 'object' && !Array.isArray(product.productSpecs)) {
+        specs = { ...product.productSpecs };
+    }
+    if (Array.isArray(product.itemSpecifics)) {
+        product.itemSpecifics.forEach(s => {
+            if (s && s.name && s.value) specs[s.name] = s.value;
+        });
+    }
+    if (Array.isArray(data.itemSpecifics)) {
+        data.itemSpecifics.forEach(s => {
+            if (s && s.name && s.value) specs[s.name] = s.value;
+        });
+    }
+    if (!specs['Brand']) {
+        specs['Brand'] = product.brand || data.brand || 'Unbranded';
+    }
+    product.productSpecs = specs;
+
+    // Bullets
+    let bullets = Array.isArray(product.bulletPoints) && product.bulletPoints.length > 0 
+        ? product.bulletPoints 
+        : (Array.isArray(data.bulletPoints) ? data.bulletPoints : []);
     document.getElementById('bulletsEditor').value = bullets.join('\n');
 
+    // Store Configuration & Template Style
     if (product.storeConfig) {
         if (product.storeConfig.storeName && document.getElementById('storeNameInput')) {
             document.getElementById('storeNameInput').value = product.storeConfig.storeName;
@@ -217,6 +306,7 @@ function applyLoadedProduct(data) {
         document.getElementById('templateStyleSelect').value = product.templateStyle;
     }
 
+    // HTML Description & Template Generation
     let desc = product.htmlDescription || product.longDescription || '';
     if ((!desc || !desc.includes('<!-- ZONBAY')) && typeof ZonbayTemplates !== 'undefined') {
         const storeConfig = {
@@ -227,24 +317,36 @@ function applyLoadedProduct(data) {
         desc = ZonbayTemplates.renderEbayTemplate(templateKey, product, storeConfig);
     }
     document.getElementById('descriptionEditor').value = desc;
-    if (typeof updateInlineTemplatePreview === 'function') {
-        updateInlineTemplatePreview();
-    }
 
-    // Images
+    // Images normalization (robust support for all image schema variants)
     if (Array.isArray(product.imageList) && product.imageList.length > 0) {
         imageList = product.imageList.map(img => ({
-            url: img.url,
-            originalUrl: img.originalUrl || img.url,
-            isHero: Boolean(img.isHero),
-            isExcluded: Boolean(img.isExcluded),
-            isEdited: Boolean(img.isEdited || (typeof img.url === 'string' && img.url.startsWith('data:'))),
-            hostedUrl: img.hostedUrl || null
+            url: typeof img === 'string' ? img : img.url,
+            originalUrl: typeof img === 'string' ? img : (img.originalUrl || img.url),
+            isHero: typeof img === 'object' ? Boolean(img.isHero) : false,
+            isExcluded: typeof img === 'object' ? Boolean(img.isExcluded) : false,
+            isEdited: typeof img === 'object' ? Boolean(img.isEdited || (typeof img.url === 'string' && img.url.startsWith('data:'))) : false,
+            hostedUrl: typeof img === 'object' ? (img.hostedUrl || null) : null
         }));
+        if (!imageList.some(img => img.isHero)) {
+            imageList[0].isHero = true;
+        }
     } else {
-        const rawImgs = Array.isArray(product.alternateImages) && product.alternateImages.length > 0
-            ? product.alternateImages
-            : (product.mainImgUrl ? [product.mainImgUrl] : []);
+        let rawImgs = [];
+        if (Array.isArray(product.alternateImages)) rawImgs.push(...product.alternateImages);
+        if (Array.isArray(product.imageUrls)) rawImgs.push(...product.imageUrls);
+        if (Array.isArray(data.alternateImages)) rawImgs.push(...data.alternateImages);
+        if (Array.isArray(data.imageUrls)) rawImgs.push(...data.imageUrls);
+        if (product.mainImgUrl) rawImgs.push(product.mainImgUrl);
+        if (product.mainImage) rawImgs.push(product.mainImage);
+        if (data.mainImgUrl) rawImgs.push(data.mainImgUrl);
+        if (data.mainImage) rawImgs.push(data.mainImage);
+        if (product.photoUrl || product.picUrl || data.photoUrl || data.picUrl) {
+            const extra = String(product.photoUrl || product.picUrl || data.photoUrl || data.picUrl);
+            extra.split(/[,;|]/).map(s => s.trim()).filter(Boolean).forEach(u => rawImgs.push(u));
+        }
+
+        rawImgs = [...new Set(rawImgs.filter(u => u && typeof u === 'string'))];
 
         imageList = rawImgs.map((url, idx) => ({
             url: url,
@@ -260,6 +362,7 @@ function applyLoadedProduct(data) {
     renderSpecificsTable();
     updateTitleCounter();
     updateProfitStats();
+    updateInlineTemplatePreview();
 }
 
 /* ==========================================================================
@@ -691,6 +794,28 @@ async function saveCurrentState() {
     }
 }
 
+// Inline Template Live Preview Renderer (Top-Level Scope)
+function updateInlineTemplatePreview() {
+    const previewEl = document.getElementById('inlineTemplatePreviewContainer');
+    if (!previewEl) return;
+    const descEditor = document.getElementById('descriptionEditor');
+    let currentHtml = descEditor ? descEditor.value.trim() : '';
+
+    if (!currentHtml || !currentHtml.includes('<!-- ZONBAY')) {
+        if (typeof ZonbayTemplates !== 'undefined') {
+            const current = compileCurrentProduct();
+            const storeConfig = {
+                storeName: document.getElementById('storeNameInput') ? document.getElementById('storeNameInput').value.trim() : 'Our Official Store',
+                storeUrl: document.getElementById('storeUrlInput') ? document.getElementById('storeUrlInput').value.trim() : 'https://www.ebay.com/usr'
+            };
+            const templateStyle = document.getElementById('templateStyleSelect') ? document.getElementById('templateStyleSelect').value : 'storefront_showcase';
+            currentHtml = ZonbayTemplates.renderEbayTemplate(templateStyle, current, storeConfig);
+            if (descEditor) descEditor.value = currentHtml;
+        }
+    }
+    previewEl.innerHTML = currentHtml || '<div style="color:#64748b; padding:30px; text-align:center;">No template compiled yet. Click <strong>🤖 AI Revise & Apply</strong> to generate one.</div>';
+}
+
 /* ==========================================================================
    EVENT LISTENERS & MODAL BINDINGS
    ========================================================================== */
@@ -770,28 +895,6 @@ function setupEventListeners() {
                 showToast("🧹 Clutter removed: Amazon junk purged & eBay specifics prioritized!");
             }
         });
-    }
-
-    // Inline Template Live Preview Renderer
-    function updateInlineTemplatePreview() {
-        const previewEl = document.getElementById('inlineTemplatePreviewContainer');
-        if (!previewEl) return;
-        const descEditor = document.getElementById('descriptionEditor');
-        let currentHtml = descEditor ? descEditor.value.trim() : '';
-
-        if (!currentHtml || !currentHtml.includes('<!-- ZONBAY')) {
-            if (typeof ZonbayTemplates !== 'undefined') {
-                const current = compileCurrentProduct();
-                const storeConfig = {
-                    storeName: document.getElementById('storeNameInput') ? document.getElementById('storeNameInput').value.trim() : 'Our Official Store',
-                    storeUrl: document.getElementById('storeUrlInput') ? document.getElementById('storeUrlInput').value.trim() : 'https://www.ebay.com/usr'
-                };
-                const templateStyle = document.getElementById('templateStyleSelect') ? document.getElementById('templateStyleSelect').value : 'storefront_showcase';
-                currentHtml = ZonbayTemplates.renderEbayTemplate(templateStyle, current, storeConfig);
-                if (descEditor) descEditor.value = currentHtml;
-            }
-        }
-        previewEl.innerHTML = currentHtml || '<div style="color:#64748b; padding:30px; text-align:center;">No template compiled yet. Click <strong>🤖 AI Revise & Apply</strong> to generate one.</div>';
     }
 
     // AI Revise & Apply Template button
@@ -1057,6 +1160,7 @@ function setupEventListeners() {
                 modal.style.display = 'none';
             }
         }
+    });
     // Photo additions & selections
     document.getElementById('addPhotoBtn').addEventListener('click', () => {
         const input = document.getElementById('newPhotoUrlInput');
@@ -1148,7 +1252,7 @@ function setupEventListeners() {
             // Attempt saving to local server disk if server is running
             try {
                 const filename = `item_${product.sourceId || 'draft'}_img${activeImageIndex + 1}_${Date.now()}`;
-                const res = await fetch('http://localhost:3000/api/save-edited-image', {
+                const res = await fetch(`${API_BASE}/api/save-edited-image`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ dataUrl, filename })
@@ -1180,7 +1284,7 @@ function setupEventListeners() {
             try {
                 saveCurrentState();
                 
-                const res = await fetch('http://localhost:3000/api/inventory/save', {
+                const res = await fetch(`${API_BASE}/api/inventory/save`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(compiled)
@@ -1238,7 +1342,7 @@ function setupEventListeners() {
 
             try {
                 // 1. Save and approve to inventory first
-                await fetch('http://localhost:3000/api/inventory/save', {
+                await fetch(`${API_BASE}/api/inventory/save`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(compiled)
@@ -1262,7 +1366,7 @@ function setupEventListeners() {
                 } else if (selectedMethod === 'csv') {
                     downloadCsvBlob(csvString, filename);
                 } else if (selectedMethod === 'api') {
-                    await fetch('http://localhost:3000/api/update-listing', {
+                    await fetch(`${API_BASE}/api/update-listing`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ itemId: compiled.sourceId || compiled.id, title: compiled.title, price: compiled.price })
@@ -1270,7 +1374,7 @@ function setupEventListeners() {
                 }
 
                 // 3. Mark live on eBay in inventory database
-                await fetch('http://localhost:3000/api/inventory/upload', {
+                await fetch(`${API_BASE}/api/inventory/upload`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id: compiled.id || compiled.sourceId || compiled.customSku, method: selectedMethod })
@@ -1314,7 +1418,7 @@ function setupEventListeners() {
         syncServerBtn.addEventListener('click', async () => {
             const compiled = compileCurrentProduct();
             try {
-                const res = await fetch('http://localhost:3000/api/inventory/save', {
+                const res = await fetch(`${API_BASE}/api/inventory/save`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(compiled)

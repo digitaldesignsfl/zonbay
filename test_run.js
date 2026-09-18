@@ -389,8 +389,36 @@ async function runTest() {
         assert("Inventory GET returns items and stats", invAllRes.status === 200 && invAllRes.data.items.length >= 3);
         assert("Inventory stats contains liveCount and valuation", invAllRes.data.stats.liveCount >= 2 && parseFloat(invAllRes.data.stats.totalValue) > 0);
 
+        // Test 28: RFC 4180 CSV Import with complex quotes, empty fields, and PicURL
+        const uniqueRfcId = 'RUN-RFC-' + Date.now();
+        const complexCsv = `Item number,Title,Custom label (SKU),Price,Quantity available,PicURL,Brand,Category ID
+${uniqueRfcId},"Impact Driver, 20V Cordless ""Pro Edition""",SKU-RFC-1,79.95,5,"https://i.ebayimg.com/images/g/rfc1/s-l1600.jpg|https://i.ebayimg.com/images/g/rfc2/s-l1600.jpg",DeWalt,184655`;
+        const rfcImportRes = await axios.post(`${baseUrl}/api/inventory/import-ebay-csv`, { csvText: complexCsv });
+        assert("RFC 4180 CSV import returns 200", rfcImportRes.status === 200 && rfcImportRes.data.addedCount >= 1);
+
+        // Test 29: Single item by ID returns complete merged schema with photos & specifics
+        const rfcItemRes = await axios.get(`${baseUrl}/api/inventory/${uniqueRfcId}`);
+        assert("Inventory item by ID returns 200", rfcItemRes.status === 200);
+        assert("Imported item title preserved with commas and quotes", rfcItemRes.data.title.includes("Impact Driver, 20V"));
+        assert("Imported item has primary photo", rfcItemRes.data.mainImage.includes("rfc1"));
+        assert("Imported item productData has alternateImages array", Array.isArray(rfcItemRes.data.alternateImages) && rfcItemRes.data.alternateImages.length === 2);
+        assert("Imported item has Brand and Category ID", rfcItemRes.data.brand === 'DeWalt' && rfcItemRes.data.productData.categoryId === '184655');
+
+        // Test 30: GET /api/inventory/latest returns the most recently imported item
+        const latestRes = await axios.get(`${baseUrl}/api/inventory/latest`);
+        assert("Inventory latest item returns 200", latestRes.status === 200 && latestRes.data.id === uniqueRfcId);
+        assert("Latest item has mainImgUrl and alternateImages", Boolean(latestRes.data.mainImgUrl) && latestRes.data.alternateImages.length >= 1);
+
+        // Test 31: GET /editor.js contains API_BASE, autoDetectCategory, and updateInlineTemplatePreview
+        const editorJsContentRes = await axios.get(`${baseUrl}/editor.js`);
+        assert("editor.js serves without error", editorJsContentRes.status === 200);
+        assert("editor.js defines API_BASE", editorJsContentRes.data.includes("const API_BASE"));
+        assert("editor.js defines autoDetectCategory", editorJsContentRes.data.includes("function autoDetectCategory"));
+        assert("editor.js defines top-level updateInlineTemplatePreview", editorJsContentRes.data.includes("function updateInlineTemplatePreview()"));
+
         // Cleanup
         await axios.delete(`${baseUrl}/api/inventory/RUN-TEST-001`);
+        await axios.delete(`${baseUrl}/api/inventory/${uniqueRfcId}`);
 
     } catch (err) {
         console.error("❌ Unexpected test exception:", err.message);

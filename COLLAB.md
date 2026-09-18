@@ -113,20 +113,30 @@ amazon-scraper/
 - ✅ **Estimated fee/profit labeling**: Dashboard metrics in `public/index.html` and Studio now explicitly mark profit, margin, and fees as "Est." with reference to the ~13.25% flat baseline, advising sellers to cross-reference final fee statements.
 - ✅ **Category fallback verification**: Tested and validated empty category fallback with `[REVIEW CATEGORY]` title flags. All 79 pipeline tests pass cleanly.
 
----
+### Bug Fix — Sep 17-18, 2026 (Imported Item Viewing in Studio)
+- **User Issue**: "importing an item seemed to work, but viewing it in the studio isnt."
+- **Root Cause & Fixes**:
+  1. **Syntax error in `editor.js`**: An unclosed parenthesis at the `Escape` key event listener caused a fatal parse error on page load in browser environments. Closed listener properly (`node -c editor.js` verifies clean syntax).
+  2. **Unscoped `updateInlineTemplatePreview`**: Was nested within `setupEventListeners()`, leaving it undefined when `applyLoadedProduct()` ran during initial data load. Lifted to top-level scope and called immediately.
+  3. **CSV Parser field skipping**: `server.js` regex `match(/(".*?"|[^",\s]+)/g)` skipped empty fields (`,,`), throwing off column indexes and ignoring `PicURL`, `Category ID`, `Brand`, and `Description`. Replaced with RFC 4180 state-machine parser `parseCsvRow()`.
+  4. **Dynamic Origin & Latest Fallback**: Added `API_BASE` for cross-origin/extension context and added `GET /api/inventory/latest` so opening `/editor` without `?id=` loads the newest imported item.
+  5. **Schema Normalization**: `applyLoadedProduct()` in `editor.js` now accepts both array-of-objects (`itemSpecifics`) and key-value maps (`productSpecs`), combines all image field sources (`imageList`, `alternateImages`, `imageUrls`, `mainImgUrl`, `picUrl`), and auto-detects categories when blank.
+- **Verification**: 97 automated tests passing in `test_run.js` (including tests 28-31 covering RFC 4180 CSV parsing, merged single-item schema, latest item retrieval, and editor frontend functions).
 
+---
 
 ## 📡 API Endpoint Reference
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `GET` | `/api/inventory` | Returns all items + aggregate business stats (valuation, cost, profits, margins). |
+| `GET` | `/api/inventory/latest` | Returns the most recently added or imported inventory item. |
 | `GET` | `/api/inventory/:id` | Returns single product by ID or SKU (for Studio preloading). |
 | `POST` | `/api/inventory/save` | Saves/approves item (marks `APPROVED`), updates working files. |
 | `POST` | `/api/inventory/upload` | Marks item `LIVE_ON_EBAY` with timestamp and upload method. |
 | `DELETE` | `/api/inventory/:id` | Deletes item from inventory database. |
 | `POST` | `/api/inventory/sync-ebay` | Batch syncs eBay active listings listing-by-listing as `LIVE_ON_EBAY`. |
-| `POST` | `/api/inventory/import-ebay-csv`| Parses eBay Seller Hub Active Listings CSV report. |
+| `POST` | `/api/inventory/import-ebay-csv`| Parses eBay Seller Hub Active Listings CSV report (RFC 4180). |
 | `POST` | `/api/inventory/sync-ebay-api`| Attempts Trading API `GetMyeBaySelling` sync with local fallback. |
 | `GET` | `/api/history` | Fetches append-only history ledger. |
 | `GET` | `/api/export-csv` | Exports current working listing as eBay Seller Hub CSV. |
@@ -141,7 +151,7 @@ amazon-scraper/
 | **Primary Environment** | Active terminal shell, system tools, git executor, live runner. | Claude Desktop connected via MCP Filesystem server. | Browser / Desktop standalone app (`Gemini.exe` / web chat). |
 | **Core Strengths** | Live command execution, background daemons, test automation, file creation, Git pushes. | Deep code reviews, algorithmic design, edge-case detection, architectural refactoring. | Strategic brainstorming, prompt drafting, code review backup, logic sanity checks. |
 | **Tool Capabilities** | Terminal (`run_command`), file editors, test execution, process lifecycle management. | Direct file system access via `@modelcontextprotocol/server-filesystem` (`read_file`, `write_file`). | High-level conversation, architecture second opinion, copy drafting. |
-| **Testing & Validation** | Executes `npm.cmd test` (or `node test_run.js`) to verify all 85 pipeline assertions. | Writes unit test cases, audits CSV and XML schemas, verifies category rules. | Audits logic flow, reviews edge cases, assists user in crafting targeted prompts. |
+| **Testing & Validation** | Executes `npm.cmd test` (or `node test_run.js`) to verify all 97 pipeline assertions. | Writes unit test cases, audits CSV and XML schemas, verifies category rules. | Audits logic flow, reviews edge cases, assists user in crafting targeted prompts. |
 
 ---
 
@@ -160,8 +170,7 @@ amazon-scraper/
      ```powershell
      npm.cmd test
      ```
-   - Test suite in `test_run.js` currently validates **85 passing assertions**.
+   - Test suite in `test_run.js` currently validates **97 passing assertions**.
 4. **Current Git Status**:
    - Branch: `main`
    - Remote: `origin/main` (up to date, pushed to GitHub).
-

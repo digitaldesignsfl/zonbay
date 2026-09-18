@@ -15,7 +15,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    if (req.method === 'OPTIONS') return res.sendStatus(200);
     next();
 });
 
@@ -274,6 +276,28 @@ app.get('/api/inventory', (req, res) => {
     res.json({ items, stats });
 });
 
+// Get latest inventory item (for Studio default load)
+app.get('/api/inventory/latest', (req, res) => {
+    const items = getInventoryDatabase();
+    if (!items || items.length === 0) {
+        return res.status(404).json({ error: "No inventory items found." });
+    }
+    const item = items[0];
+    const merged = {
+        ...item,
+        ...(item.productData || {}),
+        id: item.id,
+        sku: item.sku || (item.productData && item.productData.sku),
+        status: item.status || 'APPROVED',
+        sourcePlatform: item.sourcePlatform || (item.productData && item.productData.sourcePlatform),
+        sellingPrice: item.sellingPrice || (item.productData && item.productData.sellingPrice) || item.price,
+        costPrice: item.costPrice || (item.productData && (item.productData.costPrice || item.productData.cost)),
+        mainImgUrl: (item.productData && item.productData.mainImgUrl) || item.mainImage || '',
+        alternateImages: (item.productData && item.productData.alternateImages) || (item.mainImage ? [item.mainImage] : [])
+    };
+    res.json(merged);
+});
+
 // Get single inventory item by ID (for Studio preloading)
 app.get('/api/inventory/:id', (req, res) => {
     const { id } = req.params;
@@ -282,7 +306,19 @@ app.get('/api/inventory/:id', (req, res) => {
     if (!item) {
         return res.status(404).json({ error: `Product with ID ${id} not found in inventory.` });
     }
-    res.json(item);
+    const merged = {
+        ...item,
+        ...(item.productData || {}),
+        id: item.id,
+        sku: item.sku || (item.productData && item.productData.sku),
+        status: item.status || 'APPROVED',
+        sourcePlatform: item.sourcePlatform || (item.productData && item.productData.sourcePlatform),
+        sellingPrice: item.sellingPrice || (item.productData && item.productData.sellingPrice) || item.price,
+        costPrice: item.costPrice || (item.productData && (item.productData.costPrice || item.productData.cost)),
+        mainImgUrl: (item.productData && item.productData.mainImgUrl) || item.mainImage || '',
+        alternateImages: (item.productData && item.productData.alternateImages) || (item.mainImage ? [item.mainImage] : [])
+    };
+    res.json(merged);
 });
 
 // Save & Approve Listing (Step 1 of 2-step workflow)
@@ -521,6 +557,30 @@ app.post('/api/inventory/sync-ebay', (req, res) => {
     }
 });
 
+function parseCsvRow(line) {
+    const row = [];
+    let insideQuotes = false;
+    let current = '';
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+            if (insideQuotes && line[i + 1] === '"') {
+                current += '"';
+                i++;
+            } else {
+                insideQuotes = !insideQuotes;
+            }
+        } else if (char === ',' && !insideQuotes) {
+            row.push(current.trim());
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    row.push(current.trim());
+    return row;
+}
+
 // IMPORT ACTIVE LISTINGS CSV: Parse eBay Active Listings Report
 app.post('/api/inventory/import-ebay-csv', (req, res) => {
     try {
@@ -535,7 +595,7 @@ app.post('/api/inventory/import-ebay-csv', (req, res) => {
         }
 
         // Parse header row
-        const headers = lines[0].split(',').map(h => h.replace(/^["']|["']$/g, '').trim());
+        const headers = parseCsvRow(lines[0]).map(h => h.replace(/^["']|["']$/g, '').trim());
         
         function getCol(rowCols, possibleNames) {
             for (const name of possibleNames) {
@@ -549,13 +609,20 @@ app.post('/api/inventory/import-ebay-csv', (req, res) => {
 
         const parsedListings = [];
         for (let i = 1; i < lines.length; i++) {
-            // Regex handles quoted CSV values with commas inside
-            const rowCols = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || lines[i].split(',');
+            const rowCols = parseCsvRow(lines[i]);
             const itemId = getCol(rowCols, ['Item number', 'ItemID', 'Item ID', 'Action(SiteID=US|Country=US|Currency=USD)']);
             const title = getCol(rowCols, ['Title', 'Item title', 'Product Title']);
             const price = getCol(rowCols, ['Price', 'StartPrice', 'Buy It Now price', 'Current price']);
             const qty = getCol(rowCols, ['Quantity available', 'Quantity', 'Available quantity']);
             const sku = getCol(rowCols, ['Custom label (SKU)', 'CustomLabel', 'SKU']);
+            const picRaw = getCol(rowCols, ['PicURL', 'Picture URL', 'PhotoURL', 'Image URL', 'Gallery URL', 'mainImage']);
+            const brand = getCol(rowCols, ['Brand', 'C:Brand', 'Manufacturer']);
+            const categoryId = getCol(rowCols, ['Category ID', 'CategoryID', 'Custom category 1', 'Primary Category', 'Category']);
+            const description = getCol(rowCols, ['Description', 'HTML Description', 'Body']);
+
+            const picUrls = picRaw 
+                ? picRaw.split(/[,;|]/).map(u => u.trim()).filter(u => u.startsWith('http')) 
+                : [];
 
             if (title && (itemId || sku)) {
                 parsedListings.push({
@@ -563,7 +630,12 @@ app.post('/api/inventory/import-ebay-csv', (req, res) => {
                     title: title,
                     price: price ? price.replace(/[^0-9.]/g, '') : '0.00',
                     quantity: qty ? parseInt(qty, 10) : 1,
-                    sku: sku || itemId
+                    sku: sku || itemId,
+                    mainImage: picUrls[0] || '',
+                    alternateImages: picUrls,
+                    brand: brand || 'eBay Store Item',
+                    categoryId: categoryId || '',
+                    description: description || ''
                 });
             }
         }
@@ -587,13 +659,26 @@ app.post('/api/inventory/import-ebay-csv', (req, res) => {
                 items[existingIdx].quantity = fin.quantity;
                 items[existingIdx].status = 'LIVE_ON_EBAY';
                 items[existingIdx].updatedAt = new Date().toISOString();
+                if (p.mainImage && !items[existingIdx].mainImage) {
+                    items[existingIdx].mainImage = p.mainImage;
+                    items[existingIdx].imagesCount = p.alternateImages.length;
+                }
+                if (items[existingIdx].productData) {
+                    items[existingIdx].productData.title = p.title;
+                    items[existingIdx].productData.price = fin.sellingPrice;
+                    items[existingIdx].productData.sellingPrice = fin.sellingPrice;
+                    if (p.mainImage && (!items[existingIdx].productData.alternateImages || items[existingIdx].productData.alternateImages.length === 0)) {
+                        items[existingIdx].productData.mainImgUrl = p.mainImage;
+                        items[existingIdx].productData.alternateImages = p.alternateImages;
+                    }
+                }
                 updatedCount++;
             } else {
                 items.unshift({
                     id: p.itemId,
                     sku: p.sku || p.itemId,
                     title: p.title,
-                    brand: 'eBay Store Item',
+                    brand: p.brand || 'eBay Store Item',
                     sourcePlatform: 'eBay Store',
                     sourceId: p.itemId,
                     sourceUrl: `https://www.ebay.com/itm/${p.itemId}`,
@@ -605,16 +690,31 @@ app.post('/api/inventory/import-ebay-csv', (req, res) => {
                     estimatedFees: fin.estimatedFees,
                     estimatedProfit: fin.estimatedProfit,
                     profitMarginPercent: fin.profitMarginPercent,
-                    mainImage: '',
-                    imagesCount: 0,
+                    mainImage: p.mainImage || '',
+                    imagesCount: p.alternateImages.length,
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString(),
                     syncedAt: new Date().toISOString(),
                     uploadedAt: new Date().toISOString(),
                     productData: {
+                        id: p.itemId,
                         title: p.title,
+                        brand: p.brand || 'eBay Store Item',
                         price: fin.sellingPrice,
-                        sourceId: p.itemId
+                        sellingPrice: fin.sellingPrice,
+                        costPrice: fin.costPrice,
+                        quantity: fin.quantity,
+                        sourceId: p.itemId,
+                        sourceUrl: `https://www.ebay.com/itm/${p.itemId}`,
+                        sourcePlatform: 'eBay Store',
+                        categoryId: p.categoryId || '',
+                        mainImgUrl: p.mainImage || '',
+                        alternateImages: p.alternateImages,
+                        itemSpecifics: p.brand ? [{ name: 'Brand', value: p.brand }] : [],
+                        productSpecs: p.brand ? { 'Brand': p.brand } : {},
+                        bulletPoints: [],
+                        longDescription: p.description || '',
+                        htmlDescription: p.description || ''
                     }
                 });
                 addedCount++;

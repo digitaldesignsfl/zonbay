@@ -351,3 +351,36 @@
 [2026-09-17T23:37:58.489Z] [EBAY_STORE_SYNCED] syncedCount: 1 | addedCount: 0 | updatedCount: 1 | totalInventoryCount: 6
 [2026-09-17T23:37:58.493Z] [CSV_REPORT_IMPORTED] rowsParsed: 1 | addedCount: 0 | updatedCount: 1
 [2026-09-17T23:37:58.499Z] [INVENTORY_ITEM_DELETED] id: RUN-TEST-001
+[2026-09-17T23:57:56.746Z] [SCRAPED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1/2-Inch | price: $99.00 | imagesCount: 1
+[2026-09-17T23:57:57.042Z] [OPTIMIZED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1 2 Inch | categoryId: 184655 | categoryName: Cordless Drills | price: 99.00 | imagesCount: 1
+[2026-09-17T23:57:57.044Z] [UPLOADED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1 2 Inch | hostedUrlsCount: 1
+[2026-09-17T23:57:57.052Z] [MANUAL_ENTRY] title: Smart Wi-Fi Power Strip Surge Protector 4 Outlets 4 USB Ports | price: 27.50
+[2026-09-17T23:57:57.054Z] [OPTIMIZED] title: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports | categoryId: 67779 | categoryName: Power Strips & Surge Protectors | price: 27.50 | imagesCount: 0
+[2026-09-17T23:57:57.055Z] [UPLOADED] title: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports | hostedUrlsCount: 0
+[2026-09-17T23:57:57.062Z] [REVISION] itemId: RUN-CSV-1789685267991 | title: Updated 12V 6A Smart Battery Charger - Special Edition | price: 39.99
+[2026-09-17T23:57:57.754Z] [CSV_EXPORT] exportedCount: 1 | firstItemTitle: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports
+[2026-09-17T23:57:57.757Z] [CSV_EXPORT] exportedCount: 1 | firstItemTitle: Custom Anker USB C Cable 6ft Braided Nylon
+[2026-09-17T23:57:57.790Z] [LISTING_APPROVED] id: RUN-TEST-001 | title: DeWalt 20V MAX XR Brushless Impact Driver Bare Tool High Torque | price: 89.99 | totalInventoryCount: 6
+[2026-09-17T23:57:57.798Z] [LISTING_LIVE_ON_EBAY] id: RUN-TEST-001 | title: DeWalt 20V MAX XR Brushless Impact Driver Bare Tool High Torque | method: Seller Hub
+[2026-09-17T23:57:57.802Z] [EBAY_STORE_SYNCED] syncedCount: 1 | addedCount: 0 | updatedCount: 1 | totalInventoryCount: 6
+[2026-09-17T23:57:57.807Z] [CSV_REPORT_IMPORTED] rowsParsed: 1 | addedCount: 0 | updatedCount: 1
+[2026-09-17T23:57:57.814Z] [INVENTORY_ITEM_DELETED] id: RUN-TEST-001
+[2026-09-17T23:58:42.816Z] [SCRAPED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1/2-Inch | price: $99.00 | imagesCount: 1
+[2026-09-17T23:58:43.089Z] [OPTIMIZED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1 2 Inch | categoryId: 184655 | categoryName: Cordless Drills | price: 99.00 | imagesCount: 1
+[2026-09-17T23:58:43.091Z] [UPLOADED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1 2 Inch | hostedUrlsCount: 1
+[2026-09-17T23:58:43.100Z] [MANUAL_ENTRY] title: Smart Wi-Fi Power Strip Surge Protector 4 Outlets 4 USB Ports | price: 27.50
+[2026-09-17T23:58:43.102Z] [OPTIMIZED] title: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports | categoryId: 67779 | categoryName: Power Strips & Surge Protectors | price: 27.50 | imagesCount: 0
+[2026-09-17T23:58:43.104Z] [UPLOADED] title: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports | hostedUrlsCount: 0
+[2026-09-17T23:58:43.110Z] [REVISION] itemId: RUN-CSV-1789685267991 | title: Updated 12V 6A Smart Battery Charger - Special Edition | price: 39.99
+[2026-09-17T23:58:43.638Z] [CSV_EXPORT] exportedCount: 1 | firstItemTitle: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports
+[2026-09-17T23:58:43.643Z] [CSV_EXPORT] exportedCount: 1 | firstItemTitle: Custom Anker USB C Cable 6ft Braided Nylon
+[2026-09-17T23:58:43.676Z] [LISTING_APPROVED] id: RUN-TEST-001 | title: DeWalt 20V MAX XR Brushless Impact Driver Bare Tool High Torque | price: 89.99 | totalInventoryCount: 6
+[2026-09-17T23:58:43.684Z] [LISTING_LIVE_ON_EBAY] id: RUN-TEST-001 | title: DeWalt 20V MAX XR Brushless Impact Driver Bare Tool High Torque | method: Seller Hub
+[2026-09-17T23:58:43.689Z] [EBAY_STORE_SYNCED] syncedCount: 1 | addedCount: 0 | updatedCount: 1 | totalInventoryCount: 6
+[2026-09-17T23:58:43.694Z] [CSV_REPORT_IMPORTED] rowsParsed: 1 | addedCount: 0 | updatedCount: 1
+[2026-09-17T23:58:43.701Z] [CSV_REPORT_IMPORTED] rowsParsed: 1 | addedCount: 1 | updatedCount: 0
+[2026-09-17T23:58:43.712Z] [INVENTORY_ITEM_DELETED] id: RUN-TEST-001
+[2026-09-17T23:58:43.717Z] [INVENTORY_ITEM_DELETED] id: RUN-RFC-1789689523698
+[2026-09-18T20:00:46.107Z] [SCRAPED] title: ZIYKRIY 3pcs, 60W Nylon Braided, Fast Charging USB-C Cable, High-Speed Data | price: 0.00 | imagesCount: 12
+[2026-09-18T20:00:47.563Z] [LISTING_APPROVED] id: 605748092322893 | title: ZIYKRIY 3pcs, 60W Nylon Braided, Fast Charging USB-C Cable, High-Speed Data | price: 0.00 | totalInventoryCount: 6
+[2026-09-18T20:02:48.378Z] [LISTING_APPROVED] id: 605748092322893 | title: ZIYKRIY 3pcs, 60W Nylon Braided, Fast Charging USB-C Cable, High-Speed Data | price: 0.00 | totalInventoryCount: 6

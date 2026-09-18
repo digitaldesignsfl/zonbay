@@ -215,6 +215,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 await chrome.storage.local.set({ lastScrapedProduct: currentProduct });
             }
 
+            // Sync to local server so http://localhost:3000/editor has the fresh extracted item immediately
+            try {
+                fetch('http://localhost:3000/api/save-product', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(currentProduct)
+                }).catch(() => {});
+            } catch (e) {}
+
             showStatus("✅ Extracted & auto-cleaned for eBay!", "success");
 
         } catch (err) {
@@ -271,14 +280,41 @@ document.addEventListener('DOMContentLoaded', async () => {
             ...currentProduct,
             title: titleVal,
             price: priceVal,
-            categoryId: categoryId
+            sellingPrice: priceVal,
+            costPrice: currentProduct.price || currentProduct.costPrice || '0.00',
+            categoryId: categoryId,
+            sourcePlatform: currentProduct.source || 'Scraped Import',
+            sellingPlatform: 'eBay'
         };
 
+        // 1. Persist in chrome.storage.local
         if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
             await chrome.storage.local.set({ lastScrapedProduct: payload });
-            await chrome.tabs.create({ url: 'editor.html' });
+        }
+
+        // 2. Persist in local inventory database
+        let savedId = payload.id || payload.sourceId;
+        try {
+            const res = await fetch('http://localhost:3000/api/inventory/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.item && data.item.id) savedId = data.item.id;
+            }
+        } catch (e) {
+            console.warn("Could not sync to local server on studio open:", e);
+        }
+
+        // 3. Open studio
+        if (typeof chrome !== 'undefined' && chrome.tabs) {
+            const targetUrl = savedId ? `http://localhost:3000/editor?id=${encodeURIComponent(savedId)}` : 'editor.html';
+            chrome.tabs.create({ url: targetUrl });
         } else {
-            window.open('http://localhost:3000/editor', '_blank');
+            const targetUrl = savedId ? `/editor?id=${encodeURIComponent(savedId)}` : '/editor';
+            window.open(targetUrl, '_blank');
         }
     });
 
