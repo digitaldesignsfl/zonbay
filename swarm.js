@@ -6,9 +6,42 @@
 
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const SWARM_STORE_FILE = path.join(__dirname, 'swarm_messages.json');
 const MMCL_DIR = path.join(__dirname, 'mmcl');
+const SWARM_SECRET_FILE = path.join(__dirname, 'swarm_secret.json');
+
+// Generate (once) and load a local shared secret. Every swarm request must present this
+// via the X-Swarm-Secret header. Without this, ANY device that can reach this server
+// (especially over a public tunnel like loca.lt) could write and execute arbitrary code.
+function getOrCreateSwarmSecret() {
+    try {
+        if (fs.existsSync(SWARM_SECRET_FILE)) {
+            return JSON.parse(fs.readFileSync(SWARM_SECRET_FILE, 'utf8')).secret;
+        }
+    } catch (e) { /* fall through to regenerate */ }
+    const secret = crypto.randomBytes(24).toString('hex');
+    fs.writeFileSync(SWARM_SECRET_FILE, JSON.stringify({ secret, createdAt: new Date().toISOString() }, null, 2));
+    console.log(`\n\ud83d\udd11 Swarm bridge secret generated: ${secret}\n   Keep this private. Any peer must send it as the X-Swarm-Secret header.\n   Stored in swarm_secret.json (make sure this file is in .gitignore).\n`);
+    return secret;
+}
+
+const SWARM_SECRET = getOrCreateSwarmSecret();
+
+function isLocalhost(req) {
+    const ip = req.ip || req.connection?.remoteAddress || '';
+    const host = req.headers['host'] || '';
+    return ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1' || host.startsWith('localhost') || host.startsWith('127.0.0.1');
+}
+
+function requireSwarmAuth(req, res, next) {
+    const provided = req.headers['x-swarm-secret'] || req.query.secret;
+    if (isLocalhost(req) || (provided && provided === SWARM_SECRET)) {
+        return next();
+    }
+    return res.status(401).json({ error: 'Unauthorized: missing or invalid X-Swarm-Secret header or ?secret parameter.' });
+}
 
 let sseClients = [];
 let registeredPeers = new Map();
@@ -44,6 +77,14 @@ function broadcastSSE(event, data) {
 }
 
 function setupSwarmRoutes(app) {
+    // All swarm routes require a shared secret (or localhost) — see requireSwarmAuth above.
+    app.use('/api/swarm', requireSwarmAuth);
+
+    // Swarm Secret for Local UI
+    app.get('/api/swarm/secret', (req, res) => {
+        res.json({ secret: SWARM_SECRET });
+    });
+
     // 1. Swarm Status & Health Check
     app.get('/api/swarm/status', (req, res) => {
         const msgs = getSwarmMessages();
@@ -135,34 +176,45 @@ function setupSwarmRoutes(app) {
         res.json({ messages: msgs });
     });
 
-    // 5. Crate Handoff (Code Ingestion Engine)
+    // 5. Crate Handoff (Code Ingestion Engine - Safe Source Crate Only)
+    // Binary uploads are explicitly disallowed for host security.
+    // Transferred source crates are inspected and compiled locally using cargo/napi.
     app.post('/api/swarm/handoff-crate', (req, res) => {
         try {
-            const { crateName = 'mmcl_bridge', files = {}, binaryBase64 = null, binaryName = 'mmcl_bridge.node' } = req.body || {};
+            const { crateName = 'mmcl_bridge', files = {} } = req.body || {};
+
+            if (req.body.binaryBase64) {
+                return res.status(400).json({
+                    error: "Precompiled native binaries are disabled for host security. Please provide Rust/C crate source files for local compilation."
+                });
+            }
 
             if (!fs.existsSync(MMCL_DIR)) {
                 fs.mkdirSync(MMCL_DIR, { recursive: true });
             }
 
+            const allowedExtensions = ['.rs', '.toml', '.c', '.h', '.json', '.md', '.txt', '.yaml', '.yml', '.lock', '.proto'];
             const writtenFiles = [];
+
             for (const [relPath, content] of Object.entries(files)) {
-                const fullPath = path.join(MMCL_DIR, relPath);
-                const parentDir = path.dirname(fullPath);
+                // Prevent path traversal
+                const targetPath = path.resolve(MMCL_DIR, relPath);
+                if (!targetPath.startsWith(path.resolve(MMCL_DIR))) {
+                    return res.status(400).json({ error: `Security violation: Path traversal detected in filename '${relPath}'.` });
+                }
+
+                // Check extension
+                const ext = path.extname(targetPath).toLowerCase();
+                if (!allowedExtensions.includes(ext) && path.basename(targetPath) !== 'Cargo.toml') {
+                    return res.status(400).json({ error: `File type '${ext}' not permitted in crate source handoff.` });
+                }
+
+                const parentDir = path.dirname(targetPath);
                 if (!fs.existsSync(parentDir)) {
                     fs.mkdirSync(parentDir, { recursive: true });
                 }
-                fs.writeFileSync(fullPath, content, 'utf8');
+                fs.writeFileSync(targetPath, content, 'utf8');
                 writtenFiles.push(relPath);
-            }
-
-            // Write precompiled .node binary if included
-            let binaryPath = null;
-            if (binaryBase64) {
-                const binBuffer = Buffer.from(binaryBase64, 'base64');
-                const targetBin = path.join(__dirname, binaryName);
-                fs.writeFileSync(targetBin, binBuffer);
-                binaryPath = targetBin;
-                writtenFiles.push(binaryName);
             }
 
             const logMsg = {
@@ -170,8 +222,8 @@ function setupSwarmRoutes(app) {
                 sender: req.body.sender || "Sentinel-AURA",
                 recipient: "Zonbay-Antigravity",
                 type: "CRATE_RECEIVED",
-                text: `📦 Ingested Rust crate '${crateName}' (${writtenFiles.length} files). Binary: ${binaryPath ? '✅ Received' : '❌ Source only'}`,
-                payload: { writtenFiles, binaryPath },
+                text: `📦 Ingested Rust crate '${crateName}' (${writtenFiles.length} source files). Sandboxed in mmcl/.`,
+                payload: { crateName, writtenFiles },
                 timestamp: new Date().toISOString()
             };
 
@@ -182,9 +234,9 @@ function setupSwarmRoutes(app) {
 
             res.status(200).json({
                 success: true,
-                message: `Successfully unpacked crate '${crateName}'.`,
+                message: `Successfully unpacked source crate '${crateName}' into mmcl/.`,
                 writtenFiles,
-                binaryDeployed: Boolean(binaryPath)
+                safeMode: true
             });
         } catch (err) {
             console.error("Crate handoff error:", err.message);

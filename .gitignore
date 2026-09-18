@@ -4,4 +4,6 @@ downloads/
 .DS_Store
 Thumbs.db
 swarm_messages.json
+swarm_secret.json
+mmcl/
 *.node
