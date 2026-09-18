@@ -331,8 +331,17 @@ app.post('/api/inventory/save', (req, res) => {
 
         const items = getInventoryDatabase();
         const itemId = productData.id || productData.sourceId || productData.customSku || `ITEM-${Date.now()}`;
-        const cost = productData.costPrice || productData.cost || productData.sourcePrice || '0.00';
-        const price = productData.sellingPrice || productData.price || '0.00';
+        const cost = (parseFloat(productData.costPrice) > 0 ? productData.costPrice : null)
+            || (parseFloat(productData.cost) > 0 ? productData.cost : null)
+            || (parseFloat(productData.sourcePrice) > 0 ? productData.sourcePrice : null)
+            || productData.costPrice
+            || productData.cost
+            || '0.00';
+        const price = (parseFloat(productData.sellingPrice) > 0 ? productData.sellingPrice : null)
+            || (parseFloat(productData.price) > 0 ? productData.price : null)
+            || productData.sellingPrice
+            || productData.price
+            || '0.00';
         const qty = productData.quantity || 1;
         const fin = calculateFinancials(cost, price, qty);
 

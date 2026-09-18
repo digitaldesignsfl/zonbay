@@ -752,6 +752,8 @@ function compileCurrentProduct() {
         customSku: document.getElementById('customSku').value.trim(),
         conditionId: document.getElementById('listingCondition').value,
         price: document.getElementById('listingPrice').value.trim(),
+        sellingPrice: document.getElementById('listingPrice').value.trim(),
+        costPrice: product.costPrice || (product.cost ? String(product.cost) : '0.00'),
         quantity: document.getElementById('listingQuantity').value.trim(),
         
         // Policies
