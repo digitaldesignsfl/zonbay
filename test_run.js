@@ -391,8 +391,9 @@ async function runTest() {
 
         // Test 28: RFC 4180 CSV Import with complex quotes, empty fields, and PicURL
         const uniqueRfcId = 'RUN-RFC-' + Date.now();
+        const uniqueRfcSku = 'SKU-RFC-' + Date.now();
         const complexCsv = `Item number,Title,Custom label (SKU),Price,Quantity available,PicURL,Brand,Category ID
-${uniqueRfcId},"Impact Driver, 20V Cordless ""Pro Edition""",SKU-RFC-1,79.95,5,"https://i.ebayimg.com/images/g/rfc1/s-l1600.jpg|https://i.ebayimg.com/images/g/rfc2/s-l1600.jpg",DeWalt,184655`;
+${uniqueRfcId},"Impact Driver, 20V Cordless ""Pro Edition""",${uniqueRfcSku},79.95,5,"https://i.ebayimg.com/images/g/rfc1/s-l1600.jpg|https://i.ebayimg.com/images/g/rfc2/s-l1600.jpg",DeWalt,184655`;
         const rfcImportRes = await axios.post(`${baseUrl}/api/inventory/import-ebay-csv`, { csvText: complexCsv });
         assert("RFC 4180 CSV import returns 200", rfcImportRes.status === 200 && rfcImportRes.data.addedCount >= 1);
 
@@ -463,14 +464,35 @@ ${uniqueRfcId},"Impact Driver, 20V Cordless ""Pro Edition""",SKU-RFC-1,79.95,5,"
         assert("MMCL View sequence matches written BigInt", mmclView.getSequence() === 100n);
         assert("MMCL View payload reads written bytes", mmclView.readPayload(0, 18).toString() === "Zonbay MMCL Synced");
 
-        // Swarm cleanup
-        await axios.post(`${baseUrl}/api/swarm/clear`);
+        // Test 34: Sentinel AURA Hive Memory Lattice
+        const hiveRes = await axios.post(`${baseUrl}/api/v1/hive/memory`, {
+            agent_id: 'Sentinel-AURA',
+            context_vector: [0.12, 0.45, 0.88, 0.99]
+        });
+        assert("Hive Memory Lattice ingestion returns ACK", hiveRes.status === 200 && hiveRes.data.status === 'ACK');
+
+        const hiveQueryRes = await axios.get(`${baseUrl}/api/v1/hive/memory`);
+        assert("Hive Memory Lattice queries stored vector entries", hiveQueryRes.status === 200 && hiveQueryRes.data.count > 0);
+
+        // Test 35: Silicon Engine Vector Operations
+        const { dotProduct, cosineSimilarity, matrixVectorMultiply } = require('./silicon_engine');
+        const vA = [1.0, 2.0, 3.0];
+        const vB = [4.0, 5.0, 6.0];
+        assert("Silicon Engine dot product calculates accurately", dotProduct(vA, vB) === 32);
+        assert("Silicon Engine cosine similarity is near 1.0 for collinear vectors", cosineSimilarity([1, 1], [2, 2]) > 0.999);
+
+        const mTest = [1, 2, 3, 4];
+        const vTest = [5, 6];
+        const mvRes = matrixVectorMultiply(mTest, vTest, 2);
+        assert("Silicon Engine matrix-vector multiply computes correctly", mvRes[0] === 17 && mvRes[1] === 39);
+
+        // Swarm cleanup omitted to preserve live peer messages
 
         // Cleanup
-        await axios.delete(`${baseUrl}/api/inventory/RUN-TEST-001`);
-        await axios.delete(`${baseUrl}/api/inventory/${uniqueRfcId}`);
-        await axios.delete(`${baseUrl}/api/inventory/${uniqueStoreId}`);
-        await axios.delete(`${baseUrl}/api/inventory/${uniqueCsvId}`);
+        await axios.delete(`${baseUrl}/api/inventory/RUN-TEST-001`).catch(() => {});
+        await axios.delete(`${baseUrl}/api/inventory/${uniqueRfcId}`).catch(() => {});
+        await axios.delete(`${baseUrl}/api/inventory/${uniqueStoreId}`).catch(() => {});
+        await axios.delete(`${baseUrl}/api/inventory/${uniqueCsvId}`).catch(() => {});
 
     } catch (err) {
         console.error("❌ Unexpected test exception:", err.message);
