@@ -1008,23 +1008,34 @@
                         Give these commands to your friend’s Antigravity (or run them inside Termux on Android) to establish the direct bridge:
                     </p>
 
+                    <!-- Swarm Auth Token Display -->
+                    <div style="background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 6px; padding: 10px 12px; margin-bottom: 14px; font-size: 12px; color: #9d174d;">
+                        <div style="font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between;">
+                            <span>🔐 Active Swarm Secret Key:</span>
+                            <button class="btn btn-outline btn-sm" style="padding: 2px 8px; font-size: 11px;" onclick="copySwarmSecret()">📋 Copy</button>
+                        </div>
+                        <code id="swarmSecretCode" style="font-family: monospace; word-break: break-all; font-weight: bold; color: #831843;">Loading secret...</code>
+                    </div>
+
                     <!-- Step 1: Handshake -->
                     <label style="font-size: 12px; font-weight: 700;">1. Instant Agent Handshake (Run in Termux):</label>
-                    <pre style="background: #0f172a; color: #38bdf8; padding: 12px; border-radius: 6px; font-size: 11px; overflow-x: auto; white-space: pre-wrap; margin: 4px 0 12px 0;">curl -X POST https://zonbay-swarm.loca.lt/api/swarm/handshake \
+                    <pre id="handshakeCmdPre" style="background: #0f172a; color: #38bdf8; padding: 12px; border-radius: 6px; font-size: 11px; overflow-x: auto; white-space: pre-wrap; margin: 4px 0 12px 0;">curl -X POST https://zonbay-swarm.loca.lt/api/swarm/handshake \
   -H "Content-Type: application/json" \
   -H "bypass-tunnel-reminder: true" \
+  -H "X-Swarm-Secret: YOUR_SECRET" \
   -d '{"peerId":"Sentinel-AURA","platform":"Android/Termux","capabilities":["MMCL","RUST"]}'</pre>
 
                     <!-- Step 2: Push Rust Crate -->
                     <label style="font-size: 12px; font-weight: 700;">2. Automated Rust Crate / Code Ingestion:</label>
-                    <pre style="background: #0f172a; color: #4ade80; padding: 12px; border-radius: 6px; font-size: 11px; overflow-x: auto; white-space: pre-wrap; margin: 4px 0 12px 0;">curl -X POST https://zonbay-swarm.loca.lt/api/swarm/handoff-crate \
+                    <pre id="crateCmdPre" style="background: #0f172a; color: #4ade80; padding: 12px; border-radius: 6px; font-size: 11px; overflow-x: auto; white-space: pre-wrap; margin: 4px 0 12px 0;">curl -X POST https://zonbay-swarm.loca.lt/api/swarm/handoff-crate \
   -H "Content-Type: application/json" \
   -H "bypass-tunnel-reminder: true" \
+  -H "X-Swarm-Secret: YOUR_SECRET" \
   -d '{"crateName":"mmcl_bridge","files":{"Cargo.toml":"[package]\nname=\"mmcl_bridge\"...","src/lib.rs":"// rust code"}}'</pre>
 
                     <!-- Step 3: Realtime Event Stream -->
                     <label style="font-size: 12px; font-weight: 700;">3. Realtime Stream (No Polling Needed):</label>
-                    <pre style="background: #0f172a; color: #facc15; padding: 12px; border-radius: 6px; font-size: 11px; overflow-x: auto; white-space: pre-wrap; margin: 4px 0 0 0;">curl -N -H "bypass-tunnel-reminder: true" https://zonbay-swarm.loca.lt/api/swarm/stream</pre>
+                    <pre id="streamCmdPre" style="background: #0f172a; color: #facc15; padding: 12px; border-radius: 6px; font-size: 11px; overflow-x: auto; white-space: pre-wrap; margin: 4px 0 0 0;">curl -N -H "bypass-tunnel-reminder: true" -H "X-Swarm-Secret: YOUR_SECRET" https://zonbay-swarm.loca.lt/api/swarm/stream</pre>
                 </div>
             </div>
         </div>
@@ -1138,7 +1149,7 @@
             }
             if (viewId === 'inventoryPanel') { fetchLiveInventory(); }
             if (viewId === 'historyPanel') { fetchHistory(); }
-            if (viewId === 'swarmPanel') { fetchSwarmMessages(); }
+            if (viewId === 'swarmPanel') { fetchSwarmSecret(); fetchSwarmMessages(); }
         }
 
         async function fetchLiveInventory() {
@@ -1774,6 +1785,38 @@
         // SWARM BRIDGE FUNCTIONS
         // ==========================================
         let swarmEventSource = null;
+        let activeSwarmSecret = '';
+
+        async function fetchSwarmSecret() {
+            try {
+                const res = await fetch(`${API_BASE}/api/swarm/secret`);
+                if (res.ok) {
+                    const data = await res.json();
+                    activeSwarmSecret = data.secret;
+                    const codeEl = document.getElementById('swarmSecretCode');
+                    if (codeEl) codeEl.innerText = activeSwarmSecret;
+
+                    // Update pre blocks with the live secret
+                    const handshakePre = document.getElementById('handshakeCmdPre');
+                    if (handshakePre) handshakePre.innerText = handshakePre.innerText.replace(/YOUR_SECRET|X-Swarm-Secret: [^\s]+/g, `X-Swarm-Secret: ${activeSwarmSecret}`);
+
+                    const cratePre = document.getElementById('crateCmdPre');
+                    if (cratePre) cratePre.innerText = cratePre.innerText.replace(/YOUR_SECRET|X-Swarm-Secret: [^\s]+/g, `X-Swarm-Secret: ${activeSwarmSecret}`);
+
+                    const streamPre = document.getElementById('streamCmdPre');
+                    if (streamPre) streamPre.innerText = streamPre.innerText.replace(/YOUR_SECRET|X-Swarm-Secret: [^\s]+/g, `X-Swarm-Secret: ${activeSwarmSecret}`);
+                }
+            } catch (err) {
+                console.warn("Could not fetch swarm secret:", err);
+            }
+        }
+
+        function copySwarmSecret() {
+            if (!activeSwarmSecret) return;
+            navigator.clipboard.writeText(activeSwarmSecret).then(() => {
+                showToast("📋 Swarm Secret copied to clipboard!");
+            });
+        }
 
         async function fetchSwarmMessages() {
             try {
@@ -1937,6 +1980,7 @@
 
         // Initialize inventory on load
         fetchLiveInventory();
+        fetchSwarmSecret();
         setupSwarmSSE();
     </script>
 </body>

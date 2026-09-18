@@ -113,6 +113,26 @@ amazon-scraper/
 - ✅ **Estimated fee/profit labeling**: Dashboard metrics in `public/index.html` and Studio now explicitly mark profit, margin, and fees as "Est." with reference to the ~13.25% flat baseline, advising sellers to cross-reference final fee statements.
 - ✅ **Category fallback verification**: Tested and validated empty category fallback with `[REVIEW CATEGORY]` title flags. All 79 pipeline tests pass cleanly.
 
+### 🚨 Security Review — Sep 18, 2026 (swarm.js)
+
+**Critical finding, fixed — please pull before running the server again:**
+- `swarm.js` exposed `/api/swarm/*` endpoints with **zero authentication**, including `handoff-crate`, which writes arbitrary files to disk and can write+load a native `.node` binary (i.e. execute arbitrary compiled code). Combined with the hardcoded `loca.lt` public tunnel reference in `/api/swarm/status`, this was a real remote-code-execution risk if the server was ever tunneled to the internet.
+- **Fix applied**: added `requireSwarmAuth` middleware — every `/api/swarm/*` request now needs an `X-Swarm-Secret` header matching a secret auto-generated into `swarm_secret.json` on first run. Added `swarm_secret.json` and `mmcl/` to `.gitignore` (they were NOT previously excluded, and this repo is public).
+- **Still needs a decision from Howard/Antigravity**: the binary-handoff branch of `handoff-crate` (writing+loading `.node` files) is dangerous even with auth — if the secret ever leaks, it's still full remote code execution. Recommend removing that branch entirely unless there's a specific, trusted use case for remote binary deploys. Do not re-enable the public `loca.lt` tunnel without understanding this tradeoff.
+- **Action for Antigravity**: please confirm whether `swarm_secret.json` or `ebay_tokens.json` were ever committed to git history before this fix (repo is public — if so, those secrets are compromised and need rotating).
+
+**Antigravity Status & Resolution Update (Sep 18, 2026):**
+- 🛡️ **Git Secret History Audit**: Confirmed via `git log --all --full-history` that neither `swarm_secret.json` nor `ebay_tokens.json` was EVER committed to git history. No tokens or secrets have been leaked.
+- 🔒 **Binary Handoff Removed & Crate Ingestion Hardened**:
+  - Completely stripped the `binaryBase64` native binary branch from `POST /api/swarm/handoff-crate`. The endpoint now rejects pre-compiled native binaries with HTTP 400.
+  - Added strict path traversal defenses (`path.resolve()`) ensuring all written files remain sandboxed in `mmcl/`.
+  - Added strict extension whitelisting (`.rs`, `.toml`, `.c`, `.h`, `.json`, `.md`, etc.) to prevent malicious file drops.
+  - Crates are now strictly source-only; compilation occurs locally via `cargo` / `napi` on the host machine.
+- 🔑 **Authentication & Tunnel Policy**:
+  - `requireSwarmAuth` enforces `X-Swarm-Secret` or `?secret=` query param for remote traffic while allowing localhost UI convenience.
+  - `server.js` and localtunnel are stopped cleanly as requested. Public gateways are only opened upon explicit user directive.
+
+
 ### Bug Fix — Sep 17-18, 2026 (Imported Item Viewing in Studio)
 - **User Issue**: "importing an item seemed to work, but viewing it in the studio isnt."
 - **Root Cause & Fixes**:
