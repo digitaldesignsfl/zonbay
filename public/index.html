@@ -966,8 +966,11 @@
                 </div>
 
                 <div style="display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; font-size: 12.5px;">
-                    <div class="meta-tag" style="background: #ecfdf5; border-color: #a7f3d0; color: #065f46;">
-                        🌐 <strong>Public Gateway:</strong> <span style="font-family: monospace; margin-left: 4px;">https://zonbay-swarm.loca.lt</span>
+                    <div class="meta-tag" style="background: #f0fdf4; border-color: #86efac; color: #166534;">
+                        ☁️ <strong>Cloudflare Gateway:</strong> <span id="swarmGatewayUrl" style="font-family: monospace; margin-left: 4px;">https://facts-nato-intelligence-baseball.trycloudflare.com</span>
+                    </div>
+                    <div class="meta-tag" style="background: #f8fafc; border-color: #cbd5e1; color: #334155;">
+                        📶 <strong>Local Wi-Fi IP:</strong> <span style="font-family: monospace; margin-left: 4px;">http://192.168.1.223:3000</span>
                     </div>
                     <div class="meta-tag" style="background: #eff6ff; border-color: #bfdbfe; color: #1e40af;">
                         🏠 <strong>Local Port:</strong> <span style="font-family: monospace; margin-left: 4px;">http://localhost:3000</span>
@@ -1019,23 +1022,21 @@
 
                     <!-- Step 1: Handshake -->
                     <label style="font-size: 12px; font-weight: 700;">1. Instant Agent Handshake (Run in Termux):</label>
-                    <pre id="handshakeCmdPre" style="background: #0f172a; color: #38bdf8; padding: 12px; border-radius: 6px; font-size: 11px; overflow-x: auto; white-space: pre-wrap; margin: 4px 0 12px 0;">curl -X POST https://zonbay-swarm.loca.lt/api/swarm/handshake \
+                    <pre id="handshakeCmdPre" style="background: #0f172a; color: #38bdf8; padding: 12px; border-radius: 6px; font-size: 11px; overflow-x: auto; white-space: pre-wrap; margin: 4px 0 12px 0;">curl -X POST https://facts-nato-intelligence-baseball.trycloudflare.com/api/swarm/handshake \
   -H "Content-Type: application/json" \
-  -H "bypass-tunnel-reminder: true" \
   -H "X-Swarm-Secret: YOUR_SECRET" \
   -d '{"peerId":"Sentinel-AURA","platform":"Android/Termux","capabilities":["MMCL","RUST"]}'</pre>
 
                     <!-- Step 2: Push Rust Crate -->
                     <label style="font-size: 12px; font-weight: 700;">2. Automated Rust Crate / Code Ingestion:</label>
-                    <pre id="crateCmdPre" style="background: #0f172a; color: #4ade80; padding: 12px; border-radius: 6px; font-size: 11px; overflow-x: auto; white-space: pre-wrap; margin: 4px 0 12px 0;">curl -X POST https://zonbay-swarm.loca.lt/api/swarm/handoff-crate \
+                    <pre id="crateCmdPre" style="background: #0f172a; color: #4ade80; padding: 12px; border-radius: 6px; font-size: 11px; overflow-x: auto; white-space: pre-wrap; margin: 4px 0 12px 0;">curl -X POST https://facts-nato-intelligence-baseball.trycloudflare.com/api/swarm/handoff-crate \
   -H "Content-Type: application/json" \
-  -H "bypass-tunnel-reminder: true" \
   -H "X-Swarm-Secret: YOUR_SECRET" \
   -d '{"crateName":"mmcl_bridge","files":{"Cargo.toml":"[package]\nname=\"mmcl_bridge\"...","src/lib.rs":"// rust code"}}'</pre>
 
                     <!-- Step 3: Realtime Event Stream -->
                     <label style="font-size: 12px; font-weight: 700;">3. Realtime Stream (No Polling Needed):</label>
-                    <pre id="streamCmdPre" style="background: #0f172a; color: #facc15; padding: 12px; border-radius: 6px; font-size: 11px; overflow-x: auto; white-space: pre-wrap; margin: 4px 0 0 0;">curl -N -H "bypass-tunnel-reminder: true" -H "X-Swarm-Secret: YOUR_SECRET" https://zonbay-swarm.loca.lt/api/swarm/stream</pre>
+                    <pre id="streamCmdPre" style="background: #0f172a; color: #facc15; padding: 12px; border-radius: 6px; font-size: 11px; overflow-x: auto; white-space: pre-wrap; margin: 4px 0 0 0;">curl -N -H "X-Swarm-Secret: YOUR_SECRET" https://facts-nato-intelligence-baseball.trycloudflare.com/api/swarm/stream</pre>
                 </div>
             </div>
         </div>

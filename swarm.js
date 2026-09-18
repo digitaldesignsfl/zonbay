@@ -30,9 +30,19 @@ function getOrCreateSwarmSecret() {
 const SWARM_SECRET = getOrCreateSwarmSecret();
 
 function isLocalhost(req) {
-    const ip = req.ip || req.connection?.remoteAddress || '';
-    const host = req.headers['host'] || '';
-    return ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1' || host.startsWith('localhost') || host.startsWith('127.0.0.1');
+    const host = (req.headers['host'] || '').toLowerCase();
+    const forwardedHost = (req.headers['x-forwarded-host'] || '').toLowerCase();
+    
+    // Any tunnel or forwarded domain is remote traffic and requires authentication
+    if (host.includes('loca.lt') || forwardedHost.includes('loca.lt') || host.includes('ngrok') || host.includes('cloudflare')) {
+        return false;
+    }
+    
+    // Direct local connections only
+    if (host.startsWith('localhost') || host.startsWith('127.0.0.1') || host.startsWith('[::1]')) {
+        return true;
+    }
+    return false;
 }
 
 function requireSwarmAuth(req, res, next) {
@@ -95,7 +105,7 @@ function setupSwarmRoutes(app) {
             runtime: `Node.js ${process.version}`,
             activePeers: Array.from(registeredPeers.values()),
             totalMessages: msgs.length,
-            publicUrl: "https://zonbay-swarm.loca.lt",
+            publicUrl: process.env.SWARM_PUBLIC_URL || "https://facts-nato-intelligence-baseball.trycloudflare.com",
             mmclBinaryPresent: fs.existsSync(path.join(__dirname, 'mmcl_bridge.node'))
         });
     });
