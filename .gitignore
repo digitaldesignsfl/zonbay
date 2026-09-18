@@ -3,3 +3,5 @@ ebay_tokens.json
 downloads/
 .DS_Store
 Thumbs.db
+swarm_messages.json
+*.node

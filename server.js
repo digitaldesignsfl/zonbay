@@ -4,6 +4,7 @@ const path = require('path');
 const { exec } = require('child_process');
 const axios = require('axios');
 const { appendHistory, getHistory } = require('./logger');
+const { setupSwarmRoutes } = require('./swarm');
 
 const app = express();
 const PORT = 3000;
@@ -16,10 +17,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, bypass-tunnel-reminder');
     if (req.method === 'OPTIONS') return res.sendStatus(200);
     next();
 });
+
+// Setup Agent-to-Agent Sovereign Swarm Routes
+setupSwarmRoutes(app);
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));

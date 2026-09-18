@@ -416,6 +416,43 @@ ${uniqueRfcId},"Impact Driver, 20V Cordless ""Pro Edition""",SKU-RFC-1,79.95,5,"
         assert("editor.js defines autoDetectCategory", editorJsContentRes.data.includes("function autoDetectCategory"));
         assert("editor.js defines top-level updateInlineTemplatePreview", editorJsContentRes.data.includes("function updateInlineTemplatePreview()"));
 
+        // Test 32: Sovereign Swarm Bridge Endpoints
+        const swarmStatusRes = await axios.get(`${baseUrl}/api/swarm/status`);
+        assert("Swarm status returns 200 and ONLINE", swarmStatusRes.status === 200 && swarmStatusRes.data.status === 'ONLINE');
+        assert("Swarm agent identifies as Zonbay-Antigravity", swarmStatusRes.data.agent === 'Zonbay-Antigravity');
+
+        const swarmHandshakeRes = await axios.post(`${baseUrl}/api/swarm/handshake`, {
+            peerId: 'Test-Sentinel-AURA',
+            platform: 'Android/Termux',
+            capabilities: ['MMCL', 'RUST']
+        });
+        assert("Swarm handshake returns CONNECTED", swarmHandshakeRes.status === 200 && swarmHandshakeRes.data.status === 'CONNECTED');
+        assert("Swarm handshake targets x86_64-pc-windows-msvc", swarmHandshakeRes.data.target === 'x86_64-pc-windows-msvc');
+
+        const swarmMsgRes = await axios.post(`${baseUrl}/api/swarm/message`, {
+            sender: 'Test-Sentinel-AURA',
+            recipient: 'Zonbay',
+            type: 'CHAT',
+            text: 'Hello from Termux agent'
+        });
+        assert("Swarm post message returns 200", swarmMsgRes.status === 200 && swarmMsgRes.data.success === true);
+
+        const swarmMsgsRes = await axios.get(`${baseUrl}/api/swarm/messages`);
+        assert("Swarm messages contains sent message", swarmMsgsRes.status === 200 && swarmMsgsRes.data.messages.some(m => m.text === 'Hello from Termux agent'));
+
+        const swarmCrateRes = await axios.post(`${baseUrl}/api/swarm/handoff-crate`, {
+            crateName: 'test_crate',
+            files: {
+                'Cargo.toml': '[package]\nname = "test_crate"\nversion = "0.1.0"\n',
+                'src/lib.rs': '// test crate rust file'
+            }
+        });
+        assert("Swarm crate handoff returns 200", swarmCrateRes.status === 200 && swarmCrateRes.data.success === true);
+        assert("Swarm crate handoff writes files", swarmCrateRes.data.writtenFiles.includes('Cargo.toml'));
+
+        // Swarm cleanup
+        await axios.post(`${baseUrl}/api/swarm/clear`);
+
         // Cleanup
         await axios.delete(`${baseUrl}/api/inventory/RUN-TEST-001`);
         await axios.delete(`${baseUrl}/api/inventory/${uniqueRfcId}`);
