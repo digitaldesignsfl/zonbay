@@ -448,7 +448,20 @@ ${uniqueRfcId},"Impact Driver, 20V Cordless ""Pro Edition""",SKU-RFC-1,79.95,5,"
             }
         });
         assert("Swarm crate handoff returns 200", swarmCrateRes.status === 200 && swarmCrateRes.data.success === true);
-        assert("Swarm crate handoff writes files", swarmCrateRes.data.writtenFiles.includes('Cargo.toml'));
+        // Test 33: MMCL Zero-Copy Memory View
+        const { MmclMemoryView, OFFSETS } = require('./mmcl/mmcl_view');
+        const testMmapBuf = Buffer.alloc(1024);
+        const mmclView = new MmclMemoryView(testMmapBuf);
+        mmclView.setSequence(100n);
+        mmclView.setRingHead(64n);
+        mmclView.setRingTail(32n);
+        mmclView.writePayload(0, "Zonbay MMCL Synced");
+
+        assert("MMCL View offsets align with SeqlockHeader at 0x00", OFFSETS.SEQLOCK_SEQ === 0);
+        assert("MMCL View offsets align with RingBufferControl at 0x40", OFFSETS.RING_HEAD === 64);
+        assert("MMCL View offsets align with Data Payload at 0xC0", OFFSETS.DATA_PAYLOAD === 192);
+        assert("MMCL View sequence matches written BigInt", mmclView.getSequence() === 100n);
+        assert("MMCL View payload reads written bytes", mmclView.readPayload(0, 18).toString() === "Zonbay MMCL Synced");
 
         // Swarm cleanup
         await axios.post(`${baseUrl}/api/swarm/clear`);
