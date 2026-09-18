@@ -735,6 +735,7 @@
             <button class="tab-btn" onclick="switchView('scraperPanel')">➕ Sourced Product Optimizer</button>
             <button class="tab-btn" onclick="switchView('manualPanel')">✍️ Manual Product Entry</button>
             <button class="tab-btn" onclick="switchView('historyPanel')">📜 Activity Ledger</button>
+            <button class="tab-btn" onclick="switchView('swarmPanel')">🐝 Swarm Bridge (AURA / Termux)</button>
         </div>
 
         <!-- 1. INVENTORY BASE & STORE TRACKER PANEL -->
@@ -944,6 +945,89 @@
                 <pre id="historyLogs" style="background: #0f172a; color: #4ade80; padding: 20px; border-radius: 8px; overflow-x: auto; max-height: 480px; font-family: 'Consolas', 'Courier New', monospace; font-size: 12.5px; line-height: 1.6; white-space: pre-wrap; margin: 0; box-shadow: inset 0 2px 6px rgba(0,0,0,0.5);"></pre>
             </div>
         </div>
+
+        <!-- 5. SWARM BRIDGE PANEL -->
+        <div id="swarmPanel" class="view-panel">
+            <div class="card" style="margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <h3 style="margin: 0 0 6px 0; display: flex; align-items: center; gap: 8px;">
+                            <span>🐝</span> Sovereign Hive Swarm Bridge
+                            <span class="pill-chip pill-live" style="font-size: 11px;">🟢 Online & Listening</span>
+                        </h3>
+                        <p style="margin: 0; font-size: 13px; color: var(--slate-600);">
+                            Zero-copy agent-to-agent bridge linking <strong>Zonbay (Windows x64)</strong> with <strong>Sentinel AURA / Antigravity (Android Termux)</strong>.
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-outline btn-sm" onclick="fetchSwarmMessages()">🔄 Refresh Feed</button>
+                        <button class="btn btn-danger-outline btn-sm" onclick="clearSwarmFeed()">🧹 Clear Feed</button>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; font-size: 12.5px;">
+                    <div class="meta-tag" style="background: #ecfdf5; border-color: #a7f3d0; color: #065f46;">
+                        🌐 <strong>Public Gateway:</strong> <span style="font-family: monospace; margin-left: 4px;">https://zonbay-swarm.loca.lt</span>
+                    </div>
+                    <div class="meta-tag" style="background: #eff6ff; border-color: #bfdbfe; color: #1e40af;">
+                        🏠 <strong>Local Port:</strong> <span style="font-family: monospace; margin-left: 4px;">http://localhost:3000</span>
+                    </div>
+                    <div class="meta-tag" style="background: #fdf4ff; border-color: #f0abfc; color: #86198f;">
+                        ⚡ <strong>MMCL Crate Target:</strong> <span style="font-family: monospace; margin-left: 4px;">x86_64-pc-windows-msvc</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px;">
+                <!-- Swarm Realtime Feed & Chat -->
+                <div class="card" style="display: flex; flex-direction: column; height: 580px;">
+                    <h4 style="margin: 0 0 12px 0; font-size: 14px; text-transform: uppercase; color: var(--slate-700); display: flex; justify-content: space-between;">
+                        <span>📡 Live Swarm Message Stream</span>
+                        <span id="swarmPeerCount" style="font-size: 11px; color: var(--slate-400);">0 Connected Peers</span>
+                    </h4>
+
+                    <div id="swarmMessageFeed" style="flex: 1; overflow-y: auto; background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 10px; font-size: 12.5px; margin-bottom: 14px;">
+                        <div style="color: var(--slate-400); text-align: center; padding: 30px;">
+                            Waiting for incoming peer transmission...
+                        </div>
+                    </div>
+
+                    <!-- Send Message Bar -->
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="swarmOutboxInput" placeholder="Send message or ping to Sentinel AURA / remote agent..." style="flex: 1; margin-bottom: 0;">
+                        <button class="btn btn-secondary" onclick="sendSwarmMessage()">🚀 Send</button>
+                    </div>
+                </div>
+
+                <!-- Connect Guide for Friend's Android/Termux Agent -->
+                <div class="card" style="overflow-y: auto; max-height: 580px;">
+                    <h4 style="margin: 0 0 10px 0; font-size: 14px; text-transform: uppercase; color: var(--slate-700);">
+                        📱 Android / Termux One-Line Instructions
+                    </h4>
+                    <p style="font-size: 12.5px; color: var(--slate-600); margin-top: 0;">
+                        Give these commands to your friend’s Antigravity (or run them inside Termux on Android) to establish the direct bridge:
+                    </p>
+
+                    <!-- Step 1: Handshake -->
+                    <label style="font-size: 12px; font-weight: 700;">1. Instant Agent Handshake (Run in Termux):</label>
+                    <pre style="background: #0f172a; color: #38bdf8; padding: 12px; border-radius: 6px; font-size: 11px; overflow-x: auto; white-space: pre-wrap; margin: 4px 0 12px 0;">curl -X POST https://zonbay-swarm.loca.lt/api/swarm/handshake \
+  -H "Content-Type: application/json" \
+  -H "bypass-tunnel-reminder: true" \
+  -d '{"peerId":"Sentinel-AURA","platform":"Android/Termux","capabilities":["MMCL","RUST"]}'</pre>
+
+                    <!-- Step 2: Push Rust Crate -->
+                    <label style="font-size: 12px; font-weight: 700;">2. Automated Rust Crate / Code Ingestion:</label>
+                    <pre style="background: #0f172a; color: #4ade80; padding: 12px; border-radius: 6px; font-size: 11px; overflow-x: auto; white-space: pre-wrap; margin: 4px 0 12px 0;">curl -X POST https://zonbay-swarm.loca.lt/api/swarm/handoff-crate \
+  -H "Content-Type: application/json" \
+  -H "bypass-tunnel-reminder: true" \
+  -d '{"crateName":"mmcl_bridge","files":{"Cargo.toml":"[package]\nname=\"mmcl_bridge\"...","src/lib.rs":"// rust code"}}'</pre>
+
+                    <!-- Step 3: Realtime Event Stream -->
+                    <label style="font-size: 12px; font-weight: 700;">3. Realtime Stream (No Polling Needed):</label>
+                    <pre style="background: #0f172a; color: #facc15; padding: 12px; border-radius: 6px; font-size: 11px; overflow-x: auto; white-space: pre-wrap; margin: 4px 0 0 0;">curl -N -H "bypass-tunnel-reminder: true" https://zonbay-swarm.loca.lt/api/swarm/stream</pre>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- MODAL: QUICK PRODUCT INSPECTOR / DETAIL VIEW -->
@@ -1054,6 +1138,7 @@
             }
             if (viewId === 'inventoryPanel') { fetchLiveInventory(); }
             if (viewId === 'historyPanel') { fetchHistory(); }
+            if (viewId === 'swarmPanel') { fetchSwarmMessages(); }
         }
 
         async function fetchLiveInventory() {
@@ -1685,12 +1770,174 @@
             window.location.href = `${API_BASE}/api/export-csv`;
         });
 
+        // ==========================================
+        // SWARM BRIDGE FUNCTIONS
+        // ==========================================
+        let swarmEventSource = null;
+
+        async function fetchSwarmMessages() {
+            try {
+                // Check Swarm status and peer count
+                const statusRes = await fetch(`${API_BASE}/api/swarm/status`);
+                if (statusRes.ok) {
+                    const statusData = await statusRes.json();
+                    const peerCount = (statusData.activePeers && statusData.activePeers.length) || 0;
+                    const peerEl = document.getElementById('swarmPeerCount');
+                    if (peerEl) {
+                        peerEl.innerText = `${peerCount} Connected Peer${peerCount === 1 ? '' : 's'}`;
+                        if (peerCount > 0) {
+                            peerEl.style.color = '#10b981';
+                            peerEl.style.fontWeight = '700';
+                        } else {
+                            peerEl.style.color = 'var(--slate-400)';
+                            peerEl.style.fontWeight = 'normal';
+                        }
+                    }
+                }
+
+                // Fetch Swarm messages ledger
+                const res = await fetch(`${API_BASE}/api/swarm/messages`);
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                const data = await res.json();
+                renderSwarmFeed(data.messages || []);
+            } catch (err) {
+                console.warn("Error fetching swarm messages:", err);
+            }
+        }
+
+        function renderSwarmFeed(messages) {
+            const feed = document.getElementById('swarmMessageFeed');
+            if (!feed) return;
+
+            if (!messages || messages.length === 0) {
+                feed.innerHTML = `
+                    <div style="color: var(--slate-400); text-align: center; padding: 40px;">
+                        📡 No swarm activity yet. Listening on <strong style="font-family: monospace;">/api/swarm/stream</strong>...
+                    </div>
+                `;
+                return;
+            }
+
+            feed.innerHTML = messages.map(msg => {
+                const isHost = (msg.sender === 'Zonbay-Host' || msg.sender === 'Zonbay-Antigravity');
+                const timeStr = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '';
+                
+                let badgeBg = '#f1f5f9';
+                let badgeBorder = '#cbd5e1';
+                let badgeColor = '#334155';
+                let icon = '💬';
+
+                if (msg.type === 'HANDSHAKE_ACK' || msg.type === 'HANDSHAKE') {
+                    badgeBg = '#ecfdf5';
+                    badgeBorder = '#a7f3d0';
+                    badgeColor = '#065f46';
+                    icon = '🤝';
+                } else if (msg.type === 'CRATE_RECEIVED') {
+                    badgeBg = '#eff6ff';
+                    badgeBorder = '#bfdbfe';
+                    badgeColor = '#1e40af';
+                    icon = '📦';
+                } else if (isHost) {
+                    badgeBg = '#f8fafc';
+                    badgeBorder = '#e2e8f0';
+                    badgeColor = '#0284c7';
+                    icon = '🚀';
+                }
+
+                return `
+                    <div style="background: ${isHost ? '#ffffff' : '#f8fafc'}; border: 1px solid ${isHost ? 'var(--slate-300)' : 'var(--slate-200)'}; border-radius: 8px; padding: 10px 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <span style="font-size: 11px; font-weight: 700; background: ${badgeBg}; border: 1px solid ${badgeBorder}; color: ${badgeColor}; padding: 2px 7px; border-radius: 4px;">
+                                ${icon} ${escapeHtml(msg.sender || 'Unknown')} ➔ ${escapeHtml(msg.recipient || 'All')}
+                            </span>
+                            <span style="font-size: 11px; color: var(--slate-400);">${timeStr}</span>
+                        </div>
+                        <div style="font-family: inherit; font-size: 12.5px; line-height: 1.5; color: var(--slate-800); white-space: pre-wrap; word-break: break-word;">
+                            ${escapeHtml(msg.text || '')}
+                        </div>
+                        ${msg.payload ? `
+                            <pre style="background: #0f172a; color: #38bdf8; padding: 8px; border-radius: 4px; font-size: 10.5px; margin-top: 6px; overflow-x: auto;">${escapeHtml(JSON.stringify(msg.payload, null, 2))}</pre>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            feed.scrollTop = feed.scrollHeight;
+        }
+
+        async function sendSwarmMessage() {
+            const input = document.getElementById('swarmOutboxInput');
+            if (!input) return;
+            const text = input.value.trim();
+            if (!text) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/swarm/message`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sender: 'Zonbay-Host',
+                        recipient: 'Sentinel-AURA',
+                        type: 'CHAT',
+                        text: text
+                    })
+                });
+                if (!res.ok) throw new Error("Failed sending message");
+                input.value = '';
+                fetchSwarmMessages();
+            } catch (err) {
+                showToast("⚠️ Failed to send swarm message: " + err.message, true);
+            }
+        }
+
+        async function clearSwarmFeed() {
+            if (!confirm("Are you sure you want to clear the swarm message ledger?")) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/swarm/clear`, { method: 'POST' });
+                if (res.ok) {
+                    showToast("🧹 Swarm message ledger cleared");
+                    fetchSwarmMessages();
+                }
+            } catch (err) {
+                alert("Error clearing feed: " + err.message);
+            }
+        }
+
+        function setupSwarmSSE() {
+            if (swarmEventSource) {
+                swarmEventSource.close();
+            }
+            try {
+                swarmEventSource = new EventSource(`${API_BASE}/api/swarm/stream`);
+                swarmEventSource.addEventListener('message', () => {
+                    fetchSwarmMessages();
+                });
+                swarmEventSource.addEventListener('handshake', () => {
+                    fetchSwarmMessages();
+                    showToast("🤝 New Swarm Peer connected!");
+                });
+                swarmEventSource.addEventListener('crate_received', () => {
+                    fetchSwarmMessages();
+                    showToast("📦 Rust Crate ingested from remote agent!");
+                });
+            } catch (err) {
+                console.warn("SSE not supported or connection error:", err);
+            }
+        }
+
+        document.getElementById('swarmOutboxInput')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                sendSwarmMessage();
+            }
+        });
+
         function escapeHtml(str) {
             return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
 
         // Initialize inventory on load
         fetchLiveInventory();
+        setupSwarmSSE();
     </script>
 </body>
 </html>
