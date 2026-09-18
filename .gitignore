@@ -5,7 +5,7 @@ downloads/
 Thumbs.db
 swarm_messages.json
 swarm_secret.json
-mmcl/
+mmcl/target/
 *.node
 bin/
 *.exe
