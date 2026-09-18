@@ -110,9 +110,11 @@ function setupSwarmRoutes(app) {
         });
     });
 
-    // 2. Peer Handshake
-    app.post('/api/swarm/handshake', (req, res) => {
-        const { peerId = 'Anonymous-Agent', platform = 'Unknown', capabilities = [] } = req.body || {};
+    // 2. Peer Handshake (Supports both GET and POST with ?secret= or headers)
+    app.all('/api/swarm/handshake', (req, res) => {
+        const peerId = req.body?.peerId || req.query.peerId || 'Sentinel-AURA';
+        const platform = req.body?.platform || req.query.platform || 'Android/Termux';
+        const capabilities = req.body?.capabilities || ['MMCL', 'RUST'];
         const peerInfo = {
             peerId,
             platform,
@@ -146,9 +148,14 @@ function setupSwarmRoutes(app) {
         });
     });
 
-    // 3. Post Message
-    app.post('/api/swarm/message', (req, res) => {
-        const { sender = 'External-Agent', recipient = 'Zonbay', type = 'CHAT', text = '', payload = null } = req.body || {};
+    // 3. Post Message (Supports GET & POST, JSON or query parameters)
+    app.all('/api/swarm/message', (req, res) => {
+        const sender = req.body?.sender || req.query.sender || 'Sentinel-AURA';
+        const recipient = req.body?.recipient || req.query.recipient || 'Zonbay';
+        const type = req.body?.type || req.query.type || 'CHAT';
+        const text = req.body?.text || req.query.text || '';
+        const payload = req.body?.payload || null;
+
         if (!text && !payload) {
             return res.status(400).json({ error: "Message text or payload is required." });
         }

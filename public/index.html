@@ -1128,7 +1128,7 @@
     <div id="toastNotification" class="toast"></div>
 
     <script>
-        const API_BASE = (window.location.protocol === 'file:' || !window.location.port) ? 'http://localhost:3000' : '';
+        const API_BASE = (window.location.protocol === 'file:') ? 'http://localhost:3000' : '';
         let allInventoryItems = [];
 
         function showToast(message, isError = false) {
