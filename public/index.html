@@ -3,240 +3,733 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zonbay - Reseller & Dropshipper Control Center</title>
+    <title>Zonbay - Reseller Command Center & Inventory Base</title>
     <style>
         :root {
             --primary: #0046af;
-            --primary-dark: #002c77;
+            --primary-dark: #0b1f3a;
+            --primary-light: #eef4ff;
             --secondary: #0064d2;
-            --success: #28a745;
-            --danger: #dc3545;
-            --warning: #ffc107;
-            --dark: #212529;
-            --light: #f8f9fa;
-            --border: #dee2e6;
+            --success: #10b981;
+            --success-dark: #059669;
+            --success-light: #ecfdf5;
+            --danger: #ef4444;
+            --danger-light: #fef2f2;
+            --warning: #f59e0b;
+            --warning-light: #fffbeb;
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-300: #cbd5e1;
+            --slate-400: #94a3b8;
+            --slate-600: #475569;
+            --slate-700: #334155;
+            --slate-800: #1e293b;
+            --slate-900: #0f172a;
+            --border: #e2e8f0;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
         }
         * { box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f4f6f9;
+            background-color: #f8fafc;
             margin: 0;
             padding: 20px;
-            color: var(--dark);
+            color: var(--slate-900);
+            line-height: 1.5;
         }
-        .container { max-width: 1400px; margin: 0 auto; }
+        .container { max-width: 1480px; margin: 0 auto; }
+
+        /* Top Executive Header */
         header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            background: linear-gradient(135deg, #0b1f3a 0%, #153e75 60%, #1b4f93 100%);
             color: white;
-            padding: 18px 24px;
-            border-radius: 10px;
+            padding: 20px 28px;
+            border-radius: 12px;
             margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 24px rgba(11, 31, 58, 0.18);
+            border-bottom: 3px solid #f59e0b;
+            flex-wrap: wrap;
+            gap: 16px;
         }
-        .header-title h2 { margin: 0; font-size: 22px; display: flex; align-items: center; gap: 8px; }
-        .header-title p { margin: 4px 0 0 0; opacity: 0.85; font-size: 13px; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 10px; flex-wrap: wrap; }
-        .tab-btn {
-            padding: 10px 18px;
-            background: #e9ecef;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
+        .header-title h2 {
+            margin: 0;
+            font-size: 23px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: -0.3px;
+        }
+        .header-title p {
+            margin: 5px 0 0 0;
+            color: #cbd5e1;
             font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s ease;
         }
-        .tab-btn:hover { background: #dde2e6; }
-        .tab-btn.active { background: var(--primary); color: white; }
-        .view-panel { display: none; }
-        .view-panel.active { display: block; }
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            margin-bottom: 20px;
-            border: 1px solid var(--border);
-        }
-        .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-        @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
-        label { font-weight: 600; display: block; margin-bottom: 5px; color: #495057; font-size: 13px; }
-        input[type="text"], input[type="number"], select, textarea {
-            width: 100%;
-            padding: 9px 12px;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            font-size: 13px;
-            margin-bottom: 14px;
-        }
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--secondary);
-            box-shadow: 0 0 0 2px rgba(0,100,210,0.15);
-        }
-        textarea { height: 140px; font-family: inherit; }
-        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
-        .gallery img { width: 100%; border-radius: 6px; height: 100px; object-fit: cover; border: 1px solid #ddd; }
-        .btn {
+        .header-badge-live {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
             gap: 6px;
-            background: var(--success);
-            color: white;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 6px;
-            font-size: 13px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: opacity 0.15s ease;
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #6ee7b7;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
         }
-        .btn:hover { opacity: 0.9; }
-        .btn-blue { background: var(--primary); }
-        .btn-secondary { background: var(--secondary); }
-        .btn-outline { background: white; border: 1px solid #ced4da; color: var(--dark); }
-        .btn-danger { background: var(--danger); }
-        .btn-sm { padding: 6px 12px; font-size: 11px; }
+        .header-badge-live::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            background: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px #10b981;
+        }
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        /* Tabs Navigation */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--slate-200);
+            padding-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            padding: 10px 18px;
+            background: white;
+            border: 1px solid var(--slate-200);
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--slate-700);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+        .tab-btn:hover {
+            background: var(--slate-100);
+            border-color: var(--slate-300);
+            color: var(--slate-900);
+        }
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 10px rgba(0, 70, 175, 0.25);
+        }
+        .view-panel { display: none; }
+        .view-panel.active { display: block; }
 
         /* Metric Cards */
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
             gap: 16px;
-            margin-bottom: 20px;
+            margin-bottom: 22px;
         }
         .metric-card {
             background: white;
-            padding: 16px 18px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
-            display: flex;
-            flex-direction: column;
+            padding: 20px 22px;
+            border-radius: 12px;
+            border: 1px solid var(--slate-200);
+            box-shadow: var(--card-shadow);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
         }
-        .metric-title { font-size: 12px; font-weight: 600; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; }
-        .metric-value { font-size: 24px; font-weight: 700; color: var(--dark); margin-top: 6px; }
-        .metric-sub { font-size: 11px; color: #6c757d; margin-top: 4px; }
-        .text-green { color: var(--success) !important; }
-        .text-blue { color: var(--primary) !important; }
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--card-shadow-hover);
+        }
+        .metric-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary);
+        }
+        .metric-card.accent-emerald::before { background: var(--success); }
+        .metric-card.accent-amber::before { background: var(--warning); }
+        .metric-card.accent-indigo::before { background: #6366f1; }
 
-        /* Inventory Filter Bar */
+        .metric-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .metric-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--slate-600);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+        .metric-icon {
+            font-size: 20px;
+            opacity: 0.85;
+        }
+        .metric-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--slate-900);
+            margin-top: 8px;
+            line-height: 1.15;
+            letter-spacing: -0.5px;
+        }
+        .metric-sub {
+            font-size: 12px;
+            color: var(--slate-600);
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .pill-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+        .pill-live { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+        .pill-approved { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+        .pill-draft { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+
+        /* Card Container */
+        .card {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 22px;
+            border: 1px solid var(--slate-200);
+        }
+
+        /* Toolbar & Controls */
         .toolbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 12px;
-            margin-bottom: 16px;
+            margin-bottom: 18px;
             flex-wrap: wrap;
         }
-        .toolbar-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .toolbar-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
 
-        /* Inventory Table */
-        .inventory-table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+        /* Inputs & Controls */
+        input[type="text"], input[type="number"], select, textarea {
+            padding: 9px 13px;
+            border: 1px solid var(--slate-300);
+            border-radius: 7px;
+            font-size: 13px;
+            color: var(--slate-900);
+            background: white;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 70, 175, 0.12);
+        }
+
+        /* Search input wrapper with icon */
+        .search-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .search-wrap input {
+            padding-left: 34px;
+            width: 280px;
+            margin-bottom: 0;
+        }
+        .search-icon {
+            position: absolute;
+            left: 11px;
+            color: var(--slate-400);
+            pointer-events: none;
+            font-size: 14px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: var(--primary);
+            color: white;
+            border: 1px solid transparent;
+            padding: 9px 16px;
+            border-radius: 7px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.15s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .btn:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .btn-emerald {
+            background: var(--success);
+            color: white;
+        }
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+        .btn-outline {
+            background: white;
+            border: 1px solid var(--slate-300);
+            color: var(--slate-700);
+        }
+        .btn-outline:hover {
+            background: var(--slate-50);
+            border-color: var(--slate-400);
+            color: var(--slate-900);
+        }
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        .btn-danger-outline {
+            background: white;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+        }
+        .btn-danger-outline:hover {
+            background: #fef2f2;
+        }
+        .btn-sm {
+            padding: 6px 11px;
+            font-size: 12px;
+            border-radius: 6px;
+        }
+
+        /* Inventory Table Wrap */
+        .inventory-table-wrap {
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid var(--slate-200);
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
         .inventory-table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
             font-size: 13px;
+            text-align: left;
         }
         .inventory-table th {
-            background: #f8f9fa;
-            color: #495057;
+            background: #f8fafc;
+            color: var(--slate-700);
             font-weight: 700;
-            text-align: left;
-            padding: 12px 14px;
-            border-bottom: 2px solid var(--border);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 13px 16px;
+            border-bottom: 2px solid var(--slate-200);
             white-space: nowrap;
         }
         .inventory-table td {
-            padding: 12px 14px;
-            border-bottom: 1px solid var(--border);
+            padding: 13px 16px;
+            border-bottom: 1px solid var(--slate-200);
             vertical-align: middle;
         }
-        .inventory-table tr:hover { background: #fbfcfe; }
-        .item-thumb {
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
-            border-radius: 6px;
-            border: 1px solid #ddd;
-            background: #f8f9fa;
-        }
-        .badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-        .badge-live { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .badge-approved { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
-        .badge-draft { background: #e2e3e5; color: #383d41; border: 1px solid #d6d8db; }
-        .badge-platform {
-            background: #eef4ff;
-            color: var(--primary);
-            border: 1px solid #d4e2ff;
-            font-size: 10px;
-            font-weight: 600;
-            padding: 2px 6px;
-            border-radius: 4px;
+        .inventory-table tr:hover {
+            background: #f8fafc;
         }
 
-        /* Modal Styles */
+        /* Photo Column */
+        .photo-container {
+            position: relative;
+            width: 62px;
+            height: 62px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--slate-200);
+            background: var(--slate-100);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .photo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.2s;
+        }
+        .photo-container:hover img {
+            transform: scale(1.08);
+        }
+        .photo-count-badge {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            background: rgba(15, 23, 42, 0.85);
+            color: white;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 1px 5px;
+            border-radius: 8px;
+            letter-spacing: 0.2px;
+        }
+        .no-photo-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--slate-400);
+            font-size: 10px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        /* Product Title & Details */
+        .product-title {
+            font-weight: 700;
+            color: var(--slate-900);
+            font-size: 13.5px;
+            line-height: 1.4;
+            max-width: 440px;
+            margin-bottom: 4px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .product-title:hover {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+        .product-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 5px;
+            font-size: 11.5px;
+        }
+        .meta-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--slate-100);
+            color: var(--slate-700);
+            border: 1px solid var(--slate-200);
+            padding: 2px 7px;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+        .meta-brand {
+            background: #eef2ff;
+            color: #3730a3;
+            border-color: #c7d2fe;
+            font-weight: 600;
+        }
+        .meta-cat {
+            background: #f0fdf4;
+            color: #166534;
+            border-color: #bbf7d0;
+            font-weight: 500;
+        }
+
+        /* Sourcing Platform Badges */
+        .badge-platform {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .badge-platform-temu {
+            background: #fff7ed;
+            color: #c2410c;
+            border: 1px solid #ffedd5;
+        }
+        .badge-platform-amazon {
+            background: #fffbeb;
+            color: #b45309;
+            border: 1px solid #fef3c7;
+        }
+        .badge-platform-ebay {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #dbeafe;
+        }
+        .badge-platform-manual {
+            background: #faf5ff;
+            color: #7e22ce;
+            border: 1px solid #f3e8ff;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: 11.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            white-space: nowrap;
+        }
+        .status-live {
+            background: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        .status-live::before {
+            content: "";
+            width: 6px;
+            height: 6px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #10b981;
+        }
+        .status-approved {
+            background: #fffbeb;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+        .status-approved::before {
+            content: "";
+            width: 6px;
+            height: 6px;
+            background: #f59e0b;
+            border-radius: 50%;
+        }
+        .status-draft {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+        }
+        .status-draft::before {
+            content: "";
+            width: 6px;
+            height: 6px;
+            background: #94a3b8;
+            border-radius: 50%;
+        }
+
+        /* Pricing & Profit Cell */
+        .price-val {
+            font-weight: 800;
+            font-size: 14px;
+            color: var(--slate-900);
+        }
+        .cost-val {
+            font-size: 12px;
+            color: var(--slate-600);
+        }
+        .profit-pill {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .profit-amount {
+            font-weight: 800;
+            font-size: 13.5px;
+        }
+        .profit-margin {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--slate-500);
+        }
+        .text-green { color: #059669 !important; }
+        .text-red { color: #dc2626 !important; }
+
+        /* Quick Editable fields in table */
+        .editable-cell {
+            cursor: pointer;
+            border-bottom: 1px dashed var(--slate-300);
+            display: inline-block;
+            transition: color 0.15s, border-color 0.15s;
+        }
+        .editable-cell:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* Empty State */
+        .empty-state {
+            padding: 48px 24px;
+            text-align: center;
+            color: var(--slate-600);
+        }
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.8;
+        }
+        .empty-state h4 {
+            margin: 0 0 6px 0;
+            font-size: 17px;
+            color: var(--slate-800);
+        }
+        .empty-state p {
+            margin: 0 auto 16px auto;
+            max-width: 440px;
+            font-size: 13px;
+        }
+
+        /* Modals */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(3px);
             display: none;
             align-items: center;
             justify-content: center;
             z-index: 9999;
+            padding: 20px;
         }
         .modal-box {
             background: white;
-            border-radius: 10px;
-            width: 580px;
-            max-width: 92vw;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            border-radius: 12px;
+            width: 640px;
+            max-width: 95vw;
+            box-shadow: 0 20px 35px -5px rgba(0, 0, 0, 0.25);
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
+        }
+        .modal-box-large {
+            width: 920px;
         }
         .modal-header {
-            background: var(--primary);
+            background: linear-gradient(135deg, #0b1f3a, #153e75);
             color: white;
-            padding: 14px 20px;
+            padding: 16px 22px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-weight: 700;
+            font-size: 15px;
         }
-        .modal-body { padding: 20px; }
+        .modal-body {
+            padding: 22px;
+            overflow-y: auto;
+        }
         .modal-footer {
-            padding: 12px 20px;
-            background: #f8f9fa;
-            border-top: 1px solid var(--border);
+            padding: 14px 22px;
+            background: var(--slate-50);
+            border-top: 1px solid var(--slate-200);
             display: flex;
             justify-content: flex-end;
             gap: 10px;
         }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #0f172a;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 99999;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            border-left: 4px solid var(--success);
+        }
+
+        /* Quick View Modal Specs Grid */
+        .specs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            background: var(--slate-50);
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid var(--slate-200);
+            margin: 12px 0;
+            font-size: 12.5px;
+        }
+        .spec-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .spec-label {
+            font-size: 11px;
+            color: var(--slate-500);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .spec-value {
+            font-weight: 600;
+            color: var(--slate-800);
+        }
+
+        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+        .gallery img { width: 100%; border-radius: 6px; height: 100px; object-fit: cover; border: 1px solid #ddd; }
+        .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- TOP EXECUTIVE HEADER -->
         <header>
             <div class="header-title">
                 <h2>⚡ Zonbay Reseller & Dropshipper Control Center</h2>
-                <p>📦 eBay Automated Control Center: All-in-one multi-platform import/export, store inventory syncer, and direct eBay publisher</p>
+                <p>📦 eBay Automated Control Center: Multi-platform inventory base, catalog syncer, and 1-click studio publisher</p>
             </div>
-            <div style="display: flex; gap: 10px;">
+            <div class="header-actions">
+                <span class="header-badge-live">🟢 System Online • Port 3000</span>
                 <button class="btn btn-secondary" onclick="window.open('/editor', '_blank')">🖥️ Open Reseller Studio</button>
             </div>
         </header>
 
+        <!-- NAVIGATION TABS -->
         <div class="tabs">
             <button class="tab-btn active" onclick="switchView('inventoryPanel')">📦 Inventory Base & Store Tracker</button>
             <button class="tab-btn" onclick="switchView('scraperPanel')">➕ Sourced Product Optimizer</button>
@@ -246,76 +739,115 @@
 
         <!-- 1. INVENTORY BASE & STORE TRACKER PANEL -->
         <div id="inventoryPanel" class="view-panel active">
-            <!-- Business Metrics -->
+            <!-- Business Metrics Grid -->
             <div class="metrics-grid">
-                <div class="metric-card">
-                    <span class="metric-title">Total Products / SKUs</span>
-                    <span class="metric-value text-blue" id="statTotalItems">0</span>
-                    <span class="metric-sub" id="statLiveCount">0 Live on eBay</span>
+                <div class="metric-card accent-indigo">
+                    <div class="metric-top">
+                        <span class="metric-title">Active Inventory Portfolio</span>
+                        <span class="metric-icon">📦</span>
+                    </div>
+                    <div class="metric-value" id="statTotalItems">0</div>
+                    <div class="metric-sub" id="statLiveCount">
+                        <span class="pill-chip pill-live">0 Live on eBay</span>
+                        <span class="pill-chip pill-approved">0 Approved</span>
+                    </div>
                 </div>
-                <div class="metric-card">
-                    <span class="metric-title">Capital Invested</span>
-                    <span class="metric-value" id="statTotalCost">$0.00</span>
-                    <span class="metric-sub">Total inventory cost</span>
+
+                <div class="metric-card accent-amber">
+                    <div class="metric-top">
+                        <span class="metric-title">Capital Invested</span>
+                        <span class="metric-icon">💵</span>
+                    </div>
+                    <div class="metric-value" id="statTotalCost">$0.00</div>
+                    <div class="metric-sub">Total inventory acquisition basis</div>
                 </div>
+
                 <div class="metric-card">
-                    <span class="metric-title">Potential Revenue</span>
-                    <span class="metric-value" id="statTotalValue">$0.00</span>
-                    <span class="metric-sub">Retail storefront value</span>
+                    <div class="metric-top">
+                        <span class="metric-title">Storefront Valuation</span>
+                        <span class="metric-icon">🏷️</span>
+                    </div>
+                    <div class="metric-value" id="statTotalValue">$0.00</div>
+                    <div class="metric-sub">Potential retail sales catalog volume</div>
                 </div>
-                <div class="metric-card">
-                    <span class="metric-title">Est. Net Profit</span>
-                    <span class="metric-value text-green" id="statTotalProfit">$0.00</span>
-                    <span class="metric-sub" id="statAvgMargin">Est. Margin: 0.0% (~13.25% fee)</span>
+
+                <div class="metric-card accent-emerald">
+                    <div class="metric-top">
+                        <span class="metric-title">Est. Net Profit</span>
+                        <span class="metric-icon">💰</span>
+                    </div>
+                    <div class="metric-value text-green" id="statTotalProfit">$0.00</div>
+                    <div class="metric-sub" id="statAvgMargin">
+                        <span class="pill-chip pill-live">Est. Margin: 0.0%</span>
+                        <span style="font-size: 11px; color: var(--slate-400);">(~13.25% eBay fee)</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Toolbar & Controls -->
-            <div class="card" style="padding: 16px 20px;">
+            <!-- Toolbar & Filter Controls -->
+            <div class="card" style="padding: 18px 22px;">
                 <div class="toolbar">
                     <div class="toolbar-group">
-                        <input type="text" id="inventorySearchInput" placeholder="🔍 Search title, SKU, or Item ID..." style="width: 260px; margin-bottom: 0;">
-                        <select id="filterPlatformSelect" style="width: 160px; margin-bottom: 0;">
-                            <option value="ALL">All Platforms</option>
-                            <option value="eBay Store">eBay Store</option>
-                            <option value="Amazon">Amazon</option>
-                            <option value="Temu">Temu</option>
-                            <option value="Manual Entry">Manual Entry</option>
+                        <div class="search-wrap">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="inventorySearchInput" placeholder="Search title, SKU, brand, ID...">
+                        </div>
+                        <select id="filterPlatformSelect">
+                            <option value="ALL">🌐 All Platforms</option>
+                            <option value="Temu">🟠 Temu</option>
+                            <option value="Amazon">🔶 Amazon</option>
+                            <option value="eBay Store">🔵 eBay Store</option>
+                            <option value="Manual Entry">✍️ Manual Entry</option>
                         </select>
-                        <select id="filterStatusSelect" style="width: 160px; margin-bottom: 0;">
-                            <option value="ALL">All Statuses</option>
+                        <select id="filterStatusSelect">
+                            <option value="ALL">⚡ All Statuses</option>
                             <option value="LIVE_ON_EBAY">🟢 Live on eBay</option>
-                            <option value="APPROVED">🟡 Approved</option>
+                            <option value="APPROVED">🟡 Approved & In Base</option>
                             <option value="DRAFT">⚪ Draft</option>
                         </select>
+                        <select id="filterCategorySelect" style="max-width: 170px;">
+                            <option value="ALL">📁 All Categories</option>
+                        </select>
+                        <select id="sortInventorySelect">
+                            <option value="newest">⏱️ Newest Added</option>
+                            <option value="profit_high">💰 Highest Profit ($)</option>
+                            <option value="margin_high">📈 Highest Margin (%)</option>
+                            <option value="price_high">🏷️ Price: High to Low</option>
+                            <option value="price_low">🏷️ Price: Low to High</option>
+                            <option value="qty_high">📦 Stock Quantity</option>
+                        </select>
                     </div>
+
                     <div class="toolbar-group">
-                        <button class="btn btn-blue btn-sm" onclick="openEbaySyncModal()">🔄 Sync eBay Store</button>
-                        <button class="btn btn-outline btn-sm" onclick="openCsvImportModal()">📁 Import eBay CSV</button>
-                        <button class="btn btn-sm" onclick="switchView('manualPanel')">➕ New Product</button>
+                        <button class="btn btn-outline btn-sm" onclick="fetchLiveInventory()" title="Reload inventory from database">🔄 Refresh</button>
+                        <button class="btn btn-outline btn-sm" onclick="exportFilteredCsv()" title="Download eBay CSV for filtered items">📥 Export CSV</button>
+                        <button class="btn btn-outline btn-sm" onclick="openCsvImportModal()">📁 Import CSV</button>
+                        <button class="btn btn-secondary btn-sm" onclick="openEbaySyncModal()">⚡ Sync Store</button>
+                        <button class="btn btn-emerald btn-sm" onclick="switchView('manualPanel')">➕ New Product</button>
+                        <button class="btn btn-danger-outline btn-sm" onclick="cleanTestItems()" title="Purge mock & test data">🧹 Clean Tests</button>
                     </div>
                 </div>
 
-                <!-- Table -->
+                <!-- Rich Inventory Table -->
                 <div class="inventory-table-wrap">
                     <table class="inventory-table">
                         <thead>
                             <tr>
-                                <th style="width: 60px;">Photo</th>
-                                <th>Product Details & SKU</th>
-                                <th>Platform</th>
-                                <th>Qty</th>
+                                <th style="width: 72px;">Photo</th>
+                                <th style="min-width: 320px;">Product & Specifics</th>
+                                <th>Source</th>
+                                <th style="text-align: center;">Stock</th>
                                 <th>Cost</th>
                                 <th>Price</th>
                                 <th>Est. Net Profit</th>
                                 <th>Status</th>
-                                <th style="text-align: right;">Actions</th>
+                                <th style="text-align: right; min-width: 220px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="inventoryTableBody">
                             <tr>
-                                <td colspan="9" style="text-align: center; padding: 30px; color: #6c757d;">
-                                    Loading inventory database...
+                                <td colspan="9" style="text-align: center; padding: 40px; color: var(--slate-400);">
+                                    ⏳ Loading inventory database...
                                 </td>
                             </tr>
                         </tbody>
@@ -328,24 +860,24 @@
         <div id="scraperPanel" class="view-panel">
             <div class="grid">
                 <div class="card">
-                    <h3>📝 Optimize Sourced Product</h3>
+                    <h3 style="margin-top: 0; display: flex; align-items: center; gap: 8px;">📝 Optimize Sourced Product</h3>
                     <label>Listing Title</label>
                     <input type="text" id="ebayTitle">
                     <label>Detected Category</label>
-                    <input type="text" id="ebayCategory" readonly style="background:#e9ecef;">
+                    <input type="text" id="ebayCategory" readonly style="background: var(--slate-100);">
                     <label>Target Price ($)</label>
-                    <input type="text" id="ebayPrice" style="width: 150px;">
+                    <input type="text" id="ebayPrice" style="width: 160px;">
                     <label>HTML Description</label>
-                    <textarea id="ebayDesc"></textarea>
-                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <textarea id="ebayDesc" style="height: 180px;"></textarea>
+                    <div style="display: flex; gap: 10px; margin-top: 14px;">
                         <button class="btn" id="loadDataBtn">🔄 Load Last Scraped</button>
                         <button class="btn btn-secondary" id="exportCsvBtn">📥 Export CSV</button>
-                        <button class="btn btn-blue" onclick="window.open('/editor', '_blank')">🖥️ Open in Studio</button>
+                        <button class="btn" onclick="window.open('/editor', '_blank')">🖥️ Open in Studio</button>
                     </div>
                 </div>
                 <div>
                     <div class="card">
-                        <h3>🖼️ Sourced Gallery</h3>
+                        <h3 style="margin-top: 0;">🖼️ Sourced Gallery</h3>
                         <div class="gallery" id="imageGallery"></div>
                     </div>
                 </div>
@@ -354,9 +886,9 @@
 
         <!-- 3. MANUAL PRODUCT ENTRY PANEL -->
         <div id="manualPanel" class="view-panel">
-            <div class="card" style="max-width: 800px; margin: 0 auto;">
-                <h3>✍️ Enter Product Details Manually</h3>
-                <p style="font-size: 13px; color: #6c757d; margin-top: -10px; margin-bottom: 16px;">
+            <div class="card" style="max-width: 860px; margin: 0 auto;">
+                <h3 style="margin-top: 0;">✍️ Enter Product Details Manually</h3>
+                <p style="font-size: 13px; color: var(--slate-600); margin-top: -6px; margin-bottom: 20px;">
                     Directly saves to your inventory database with margin calculations and makes ready for 1-click eBay publishing.
                 </p>
 
@@ -390,15 +922,13 @@
                 <input type="text" id="manualImageUrl" placeholder="https://example.com/image.jpg">
 
                 <label>Product Features / Bullets (One per line)</label>
-                <textarea id="manualBullets" placeholder="Microprocessor controlled charging
-Compatible with AGM, GEL, SLA batteries
-LCD display with voltage readout"></textarea>
+                <textarea id="manualBullets" style="height: 100px;" placeholder="Microprocessor controlled charging&#10;Compatible with AGM, GEL, SLA batteries&#10;LCD display with voltage readout"></textarea>
 
                 <label>Detailed Description</label>
-                <textarea id="manualDesc" placeholder="Enter complete product description..."></textarea>
+                <textarea id="manualDesc" style="height: 140px;" placeholder="Enter complete product description..."></textarea>
 
-                <div style="display: flex; gap: 10px; margin-top: 10px;">
-                    <button class="btn btn-blue" id="submitManualBtn">💾 Save to Inventory Database</button>
+                <div style="display: flex; gap: 10px; margin-top: 14px;">
+                    <button class="btn btn-emerald" id="submitManualBtn">💾 Save to Inventory Database</button>
                     <button class="btn btn-secondary" id="exportManualCsvBtn">📥 Export CSV</button>
                 </div>
             </div>
@@ -407,11 +937,28 @@ LCD display with voltage readout"></textarea>
         <!-- 4. ACTIVITY LEDGER PANEL -->
         <div id="historyPanel" class="view-panel">
             <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                     <h3 style="margin: 0;">📜 Item History & Activity Ledger</h3>
-                    <button class="btn btn-blue btn-sm" onclick="fetchHistory()">🔄 Refresh Ledger</button>
+                    <button class="btn btn-outline btn-sm" onclick="fetchHistory()">🔄 Refresh Ledger</button>
                 </div>
-                <pre id="historyLogs" style="background: #1e1e1e; color: #4af626; padding: 16px; border-radius: 6px; overflow-x: auto; max-height: 450px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.5; white-space: pre-wrap; margin: 0;"></pre>
+                <pre id="historyLogs" style="background: #0f172a; color: #4ade80; padding: 20px; border-radius: 8px; overflow-x: auto; max-height: 480px; font-family: 'Consolas', 'Courier New', monospace; font-size: 12.5px; line-height: 1.6; white-space: pre-wrap; margin: 0; box-shadow: inset 0 2px 6px rgba(0,0,0,0.5);"></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: QUICK PRODUCT INSPECTOR / DETAIL VIEW -->
+    <div class="modal-overlay" id="quickViewModal">
+        <div class="modal-box modal-box-large">
+            <div class="modal-header">
+                <span id="quickViewModalTitle">🔍 Product Inspector</span>
+                <button onclick="closeQuickViewModal()" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;">&times;</button>
+            </div>
+            <div class="modal-body" id="quickViewModalBody">
+                <!-- Dynamically injected -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeQuickViewModal()">Close</button>
+                <button class="btn btn-secondary" id="quickViewOpenStudioBtn">✏️ Open in Reseller Studio</button>
             </div>
         </div>
     </div>
@@ -421,33 +968,33 @@ LCD display with voltage readout"></textarea>
         <div class="modal-box">
             <div class="modal-header">
                 <span>🔄 Sync eBay Store Inventory Listing by Listing</span>
-                <button onclick="closeEbaySyncModal()" style="background:none; border:none; color:white; font-size:18px; cursor:pointer;">&times;</button>
+                <button onclick="closeEbaySyncModal()" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;">&times;</button>
             </div>
             <div class="modal-body">
-                <p style="font-size: 13px; color: #495057; margin-top: 0;">
-                    Sync your entire active catalog from eBay into your unified inventory base to edit, re-price, and manage listings without using eBay's editor.
+                <p style="font-size: 13px; color: var(--slate-600); margin-top: 0;">
+                    Sync your active catalog from eBay into your unified inventory base to edit, re-price, and manage listings without using eBay's editor.
                 </p>
-                <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
-                    <div style="border: 1px solid var(--border); border-radius: 8px; padding: 14px; background: #f8f9fa;">
+                <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 16px;">
+                    <div style="border: 1px solid var(--slate-200); border-radius: 8px; padding: 16px; background: var(--slate-50);">
                         <h4 style="margin: 0 0 6px 0; color: var(--primary);">⚡ Method 1: 1-Click Seller Hub Sync (Extension)</h4>
-                        <p style="margin: 0 0 10px 0; font-size: 12px; color: #6c757d;">
+                        <p style="margin: 0 0 12px 0; font-size: 12.5px; color: var(--slate-600);">
                             Opens your active listings in eBay Seller Hub. The Zonbay content script automatically extracts each active listing and transmits it to your database.
                         </p>
-                        <button class="btn btn-blue btn-sm" onclick="triggerSellerHubSyncTab()">🚀 Open Seller Hub Active Listings</button>
+                        <button class="btn btn-sm" onclick="triggerSellerHubSyncTab()">🚀 Open Seller Hub Active Listings</button>
                     </div>
 
-                    <div style="border: 1px solid var(--border); border-radius: 8px; padding: 14px; background: #f8f9fa;">
+                    <div style="border: 1px solid var(--slate-200); border-radius: 8px; padding: 16px; background: var(--slate-50);">
                         <h4 style="margin: 0 0 6px 0; color: var(--primary);">📁 Method 2: Import eBay Active Listings CSV Report</h4>
-                        <p style="margin: 0 0 10px 0; font-size: 12px; color: #6c757d;">
+                        <p style="margin: 0 0 12px 0; font-size: 12.5px; color: var(--slate-600);">
                             Download your Active Listings report from Seller Hub Reports, then import it directly into Zonbay.
                         </p>
                         <button class="btn btn-outline btn-sm" onclick="closeEbaySyncModal(); openCsvImportModal();">📁 Import CSV File</button>
                     </div>
 
-                    <div style="border: 1px solid var(--border); border-radius: 8px; padding: 14px; background: #f8f9fa;">
+                    <div style="border: 1px solid var(--slate-200); border-radius: 8px; padding: 16px; background: var(--slate-50);">
                         <h4 style="margin: 0 0 6px 0; color: var(--primary);">🔑 Method 3: Official eBay API Direct Sync</h4>
-                        <p style="margin: 0 0 10px 0; font-size: 12px; color: #6c757d;">
-                            Fetches your store items directly via eBay Trading API (<code style="background:#e9ecef; padding:2px 4px;">GetMyeBaySelling</code>).
+                        <p style="margin: 0 0 12px 0; font-size: 12.5px; color: var(--slate-600);">
+                            Fetches your store items directly via eBay Trading API (<code style="background:#e2e8f0; padding:2px 4px; border-radius:3px;">GetMyeBaySelling</code>).
                         </p>
                         <button class="btn btn-secondary btn-sm" id="apiSyncBtn" onclick="triggerApiSync()">⚡ Execute API Sync</button>
                     </div>
@@ -464,26 +1011,38 @@ LCD display with voltage readout"></textarea>
         <div class="modal-box">
             <div class="modal-header">
                 <span>📁 Import eBay Active Listings CSV Report</span>
-                <button onclick="closeCsvImportModal()" style="background:none; border:none; color:white; font-size:18px; cursor:pointer;">&times;</button>
+                <button onclick="closeCsvImportModal()" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;">&times;</button>
             </div>
             <div class="modal-body">
-                <p style="font-size: 13px; color: #495057; margin-top: 0;">
+                <p style="font-size: 13px; color: var(--slate-600); margin-top: 0;">
                     Select or paste your exported eBay Seller Hub Active Listings CSV to import all listings into your database:
                 </p>
-                <input type="file" id="csvFileInput" accept=".csv,text/csv" style="margin-bottom: 12px;">
+                <input type="file" id="csvFileInput" accept=".csv,text/csv" style="margin-bottom: 12px; width: 100%;">
                 <label>Or Paste CSV Contents:</label>
-                <textarea id="csvTextarea" placeholder="Paste raw CSV text here..." style="height: 160px; font-family: monospace; font-size: 11px;"></textarea>
+                <textarea id="csvTextarea" placeholder="Paste raw CSV text here..." style="height: 160px; font-family: monospace; font-size: 11px; width: 100%;"></textarea>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-outline" onclick="closeCsvImportModal()">Cancel</button>
-                <button class="btn btn-blue" id="submitCsvImportBtn" onclick="submitCsvImport()">📥 Ingest into Inventory Base</button>
+                <button class="btn btn-emerald" id="submitCsvImportBtn" onclick="submitCsvImport()">📥 Ingest into Inventory Base</button>
             </div>
         </div>
     </div>
 
+    <!-- TOAST ALERT -->
+    <div id="toastNotification" class="toast"></div>
+
     <script>
         const API_BASE = (window.location.protocol === 'file:' || !window.location.port) ? 'http://localhost:3000' : '';
         let allInventoryItems = [];
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toastNotification');
+            if (!toast) return;
+            toast.innerText = message;
+            toast.style.borderLeftColor = isError ? '#ef4444' : '#10b981';
+            toast.style.display = 'flex';
+            setTimeout(() => { toast.style.display = 'none'; }, 3500);
+        }
 
         function switchView(viewId) {
             document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
@@ -499,46 +1058,100 @@ LCD display with voltage readout"></textarea>
 
         async function fetchLiveInventory() {
             const tbody = document.getElementById('inventoryTableBody');
-            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 25px; color:#6c757d;">Fetching inventory items...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px; color: var(--slate-400);">⏳ Fetching live inventory portfolio...</td></tr>';
             try {
                 const res = await fetch(`${API_BASE}/api/inventory`);
                 const data = await res.json();
                 allInventoryItems = data.items || [];
                 renderInventoryStats(data.stats);
+                populateCategoryFilter();
                 applyInventoryFilters();
             } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--danger); padding: 20px;">Failed connecting to server: ${err.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--danger); padding: 30px;">⚠️ Failed connecting to server: ${err.message}</td></tr>`;
             }
         }
 
         function renderInventoryStats(stats) {
             if (!stats) return;
             document.getElementById('statTotalItems').innerText = stats.totalItems || 0;
-            document.getElementById('statLiveCount').innerText = `${stats.liveCount || 0} Live on eBay | ${stats.approvedCount || 0} Approved`;
-            document.getElementById('statTotalCost').innerText = `$${stats.totalCost || '0.00'}`;
-            document.getElementById('statTotalValue').innerText = `$${stats.totalValue || '0.00'}`;
-            document.getElementById('statTotalProfit').innerText = `$${stats.totalProfit || '0.00'}`;
-            document.getElementById('statAvgMargin').innerText = `Est. Margin: ${stats.avgMargin || '0.0%'} (~13.25% fee)`;
+            document.getElementById('statLiveCount').innerHTML = `
+                <span class="pill-chip pill-live">🟢 ${stats.liveCount || 0} Live on eBay</span>
+                <span class="pill-chip pill-approved">🟡 ${stats.approvedCount || 0} Approved</span>
+                <span class="pill-chip pill-draft">⚪ ${stats.draftCount || 0} Draft</span>
+            `;
+            document.getElementById('statTotalCost').innerText = `$${parseFloat(stats.totalCost || 0).toFixed(2)}`;
+            document.getElementById('statTotalValue').innerText = `$${parseFloat(stats.totalValue || 0).toFixed(2)}`;
+            document.getElementById('statTotalProfit').innerText = `$${parseFloat(stats.totalProfit || 0).toFixed(2)}`;
+            document.getElementById('statAvgMargin').innerHTML = `
+                <span class="pill-chip pill-live">Est. Margin: ${stats.avgMargin || '0.0%'}</span>
+                <span style="font-size: 11px; color: var(--slate-400);">(~13.25% eBay fee)</span>
+            `;
+        }
+
+        function populateCategoryFilter() {
+            const catSelect = document.getElementById('filterCategorySelect');
+            if (!catSelect) return;
+            const currentVal = catSelect.value;
+            const categories = new Set();
+            allInventoryItems.forEach(i => {
+                const cat = i.categoryName || (i.productData && i.productData.categoryName);
+                if (cat) categories.add(cat);
+            });
+
+            catSelect.innerHTML = '<option value="ALL">📁 All Categories</option>';
+            Array.from(categories).sort().forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.innerText = `📁 ${cat}`;
+                catSelect.appendChild(opt);
+            });
+            if (currentVal && categories.has(currentVal)) {
+                catSelect.value = currentVal;
+            }
         }
 
         function applyInventoryFilters() {
             const query = (document.getElementById('inventorySearchInput')?.value || '').toLowerCase().trim();
             const platform = document.getElementById('filterPlatformSelect')?.value || 'ALL';
             const status = document.getElementById('filterStatusSelect')?.value || 'ALL';
+            const category = document.getElementById('filterCategorySelect')?.value || 'ALL';
+            const sortBy = document.getElementById('sortInventorySelect')?.value || 'newest';
 
-            const filtered = allInventoryItems.filter(item => {
+            let filtered = allInventoryItems.filter(item => {
                 const matchesQuery = !query || 
                     (item.title && item.title.toLowerCase().includes(query)) ||
                     (item.id && String(item.id).toLowerCase().includes(query)) ||
-                    (item.sku && String(item.sku).toLowerCase().includes(query));
+                    (item.sku && String(item.sku).toLowerCase().includes(query)) ||
+                    (item.brand && item.brand.toLowerCase().includes(query));
 
-                const matchesPlatform = (platform === 'ALL') || 
-                    (item.sourcePlatform && item.sourcePlatform.toLowerCase() === platform.toLowerCase());
+                const itemPlatform = (item.sourcePlatform || 'Manual').toLowerCase();
+                const matchesPlatform = (platform === 'ALL') || (itemPlatform === platform.toLowerCase());
 
                 const itemStatus = (item.status || 'DRAFT').toUpperCase();
                 const matchesStatus = (status === 'ALL') || (itemStatus === status);
 
-                return matchesQuery && matchesPlatform && matchesStatus;
+                const itemCat = (item.categoryName || (item.productData && item.productData.categoryName) || '').toLowerCase();
+                const matchesCategory = (category === 'ALL') || (itemCat === category.toLowerCase());
+
+                return matchesQuery && matchesPlatform && matchesStatus && matchesCategory;
+            });
+
+            // Sorting
+            filtered.sort((a, b) => {
+                if (sortBy === 'profit_high') {
+                    return parseFloat(b.estimatedProfit || 0) - parseFloat(a.estimatedProfit || 0);
+                } else if (sortBy === 'margin_high') {
+                    return parseFloat(b.profitMarginPercent || 0) - parseFloat(a.profitMarginPercent || 0);
+                } else if (sortBy === 'price_high') {
+                    return parseFloat(b.sellingPrice || 0) - parseFloat(a.sellingPrice || 0);
+                } else if (sortBy === 'price_low') {
+                    return parseFloat(a.sellingPrice || 0) - parseFloat(b.sellingPrice || 0);
+                } else if (sortBy === 'qty_high') {
+                    return parseInt(b.quantity || 1, 10) - parseInt(a.quantity || 1, 10);
+                } else {
+                    // newest
+                    return new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0);
+                }
             });
 
             renderInventoryTable(filtered);
@@ -547,66 +1160,270 @@ LCD display with voltage readout"></textarea>
         function renderInventoryTable(items) {
             const tbody = document.getElementById('inventoryTableBody');
             if (!items || items.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 30px; color: #6c757d;">No matching listings found in inventory base.</td></tr>';
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📦</div>
+                                <h4>No Products Found</h4>
+                                <p>No items in your database match the current search or filters. Adjust your search or import new items.</p>
+                                <div style="display: flex; gap: 10px; justify-content: center;">
+                                    <button class="btn btn-outline btn-sm" onclick="resetFilters()">Reset Filters</button>
+                                    <button class="btn btn-secondary btn-sm" onclick="openEbaySyncModal()">Sync eBay Store</button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
                 return;
             }
 
             tbody.innerHTML = items.map(item => {
-                const img = item.mainImage || (item.productData && item.productData.mainImgUrl) || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="%23ccc"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>';
+                const img = item.mainImage || (item.productData && (item.productData.mainImgUrl || (item.productData.alternateImages && item.productData.alternateImages[0]))) || '';
+                const imagesCount = item.imagesCount || (item.productData && item.productData.alternateImages && item.productData.alternateImages.length) || (img ? 1 : 0);
+
                 const status = (item.status || 'DRAFT').toUpperCase();
-                let badgeClass = 'badge-draft';
-                let badgeLabel = '⚪ DRAFT';
-                if (status === 'LIVE_ON_EBAY' || status === 'UPLOADED') {
-                    badgeClass = 'badge-live';
-                    badgeLabel = '🟢 LIVE ON EBAY';
+                let statusClass = 'status-draft';
+                let statusLabel = 'DRAFT';
+                if (status === 'LIVE_ON_EBAY' || status === 'UPLOADED' || status === 'ACTIVE') {
+                    statusClass = 'status-live';
+                    statusLabel = 'LIVE ON EBAY';
                 } else if (status === 'APPROVED') {
-                    badgeClass = 'badge-approved';
-                    badgeLabel = '🟡 APPROVED';
+                    statusClass = 'status-approved';
+                    statusLabel = 'APPROVED';
                 }
 
-                const profitNum = parseFloat(item.estimatedProfit || 0);
-                const profitColor = profitNum >= 0 ? 'text-green' : 'var(--danger)';
+                const platform = item.sourcePlatform || (item.productData && item.productData.source) || 'Manual';
+                let platformClass = 'badge-platform-manual';
+                const pLow = platform.toLowerCase();
+                if (pLow.includes('temu')) platformClass = 'badge-platform-temu';
+                else if (pLow.includes('amazon')) platformClass = 'badge-platform-amazon';
+                else if (pLow.includes('ebay')) platformClass = 'badge-platform-ebay';
 
-                const linkUrl = item.sourceUrl || (item.sellingPlatform === 'eBay' ? `https://www.ebay.com/itm/${item.sourceId || item.id}` : '#');
+                const profitNum = parseFloat(item.estimatedProfit || 0);
+                const profitClass = profitNum >= 0 ? 'text-green' : 'text-red';
+                const brandName = item.brand || (item.productData && item.productData.brand) || 'Unbranded';
+                const catName = item.categoryName || (item.productData && item.productData.categoryName) || (item.categoryId ? `#${item.categoryId}` : '');
+
+                const sourceUrl = item.sourceUrl || (item.productData && item.productData.url) || '';
+                const sourceId = item.sourceId || item.id;
+                const supplierLink = sourceUrl ? `<a href="${sourceUrl}" target="_blank" style="color: var(--primary); text-decoration: none;" title="Open on supplier site">🔗 Sourced</a>` : '';
 
                 return `
                     <tr>
                         <td>
-                            <img src="${img}" class="item-thumb" alt="Product" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'50\' height=\'50\' fill=\'%23ccc\'><rect width=\'50\' height=\'50\'/></svg>'">
-                        </td>
-                        <td>
-                            <div style="font-weight: 600; max-width: 380px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                <a href="${linkUrl}" target="_blank" style="color: var(--dark); text-decoration: none;" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</a>
+                            <div class="photo-container" onclick="openQuickView('${item.id}')" style="cursor: pointer;" title="Click to view photos">
+                                ${img ? `
+                                    <img src="${img}" alt="Product" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'no-photo-box\\'>📷<span>No Photo</span></div>';">
+                                    ${imagesCount > 1 ? `<span class="photo-count-badge">📷 ${imagesCount}</span>` : ''}
+                                ` : `
+                                    <div class="no-photo-box">
+                                        <span style="font-size: 18px;">📷</span>
+                                        <span>No Photo</span>
+                                    </div>
+                                `}
                             </div>
-                            <div style="font-size: 11px; color: #6c757d; margin-top: 3px;">
-                                <span>ID: <strong>${item.id}</strong></span> | <span>SKU: <strong>${item.sku || 'N/A'}</strong></span>
+                        </td>
+                        <td>
+                            <div class="product-title" onclick="openQuickView('${item.id}')" title="Click for complete product overview">
+                                ${escapeHtml(item.title || 'Untitled Listing')}
+                            </div>
+                            <div class="product-meta-row">
+                                <span class="meta-tag meta-brand">🏷️ ${escapeHtml(brandName)}</span>
+                                ${catName ? `<span class="meta-tag meta-cat">📁 ${escapeHtml(catName)}</span>` : ''}
+                                <span class="meta-tag">SKU: <strong>${escapeHtml(item.sku || item.id)}</strong></span>
+                                ${supplierLink}
                             </div>
                         </td>
                         <td>
-                            <span class="badge-platform">${item.sourcePlatform || 'Manual'}</span>
+                            <span class="badge-platform ${platformClass}">${escapeHtml(platform)}</span>
                         </td>
-                        <td style="font-weight: 600;">${item.quantity || 1}</td>
-                        <td style="color: #6c757d;">$${parseFloat(item.costPrice || 0).toFixed(2)}</td>
-                        <td style="font-weight: 700; color: var(--primary);">$${parseFloat(item.sellingPrice || 0).toFixed(2)}</td>
-                        <td>
-                            <div style="font-weight: 700; color: ${profitColor};">${profitNum >= 0 ? '+' : ''}$${profitNum.toFixed(2)}</div>
-                            <div style="font-size: 11px; color: #6c757d;">${item.profitMarginPercent || '0.0'}%</div>
+                        <td style="text-align: center;">
+                            <span class="editable-cell" onclick="quickEditQty('${item.id}', ${item.quantity || 1})" title="Click to edit stock quantity">
+                                <strong>x${item.quantity || 1}</strong>
+                            </span>
                         </td>
                         <td>
-                            <span class="badge ${badgeClass}">${badgeLabel}</span>
+                            <span class="editable-cell cost-val" onclick="quickEditCost('${item.id}', '${item.costPrice || '0.00'}')" title="Click to edit sourcing cost">
+                                $${parseFloat(item.costPrice || 0).toFixed(2)}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="editable-cell price-val" onclick="quickEditPrice('${item.id}', '${item.sellingPrice || '0.00'}')" title="Click to edit retail selling price">
+                                $${parseFloat(item.sellingPrice || 0).toFixed(2)}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="profit-pill">
+                                <span class="profit-amount ${profitClass}">${profitNum >= 0 ? '+' : ''}$${profitNum.toFixed(2)}</span>
+                                <span class="profit-margin">${item.profitMarginPercent || '0.0'}% margin</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="status-badge ${statusClass}">${statusLabel}</span>
                         </td>
                         <td style="text-align: right; white-space: nowrap;">
-                            <button class="btn btn-blue btn-sm" onclick="openItemInStudio('${item.id}')" title="Edit in Full-Screen Studio">✏️ Edit</button>
-                            <button class="btn btn-secondary btn-sm" onclick="markItemLive('${item.id}')" title="Mark Live on eBay">🚀 Live</button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteItem('${item.id}')" title="Remove from inventory">🗑️</button>
+                            <button class="btn btn-secondary btn-sm" onclick="openItemInStudio('${item.id}')" title="Edit in Full-Screen Studio">✏️ Studio</button>
+                            <button class="btn btn-outline btn-sm" onclick="openQuickView('${item.id}')" title="Product details inspector">👁️ View</button>
+                            <button class="btn btn-emerald btn-sm" onclick="markItemLive('${item.id}')" title="Mark Live on eBay">🚀 Live</button>
+                            <button class="btn btn-danger-outline btn-sm" onclick="deleteItem('${item.id}')" title="Remove from inventory">🗑️</button>
                         </td>
                     </tr>
                 `;
             }).join('');
         }
 
+        function resetFilters() {
+            document.getElementById('inventorySearchInput').value = '';
+            document.getElementById('filterPlatformSelect').value = 'ALL';
+            document.getElementById('filterStatusSelect').value = 'ALL';
+            document.getElementById('filterCategorySelect').value = 'ALL';
+            document.getElementById('sortInventorySelect').value = 'newest';
+            applyInventoryFilters();
+        }
+
         function openItemInStudio(itemId) {
             window.open(`/editor?id=${encodeURIComponent(itemId)}`, '_blank');
+        }
+
+        // Quick Product Inspector Modal
+        function openQuickView(itemId) {
+            const item = allInventoryItems.find(i => String(i.id) === String(itemId));
+            if (!item) return;
+
+            document.getElementById('quickViewModalTitle').innerText = `🔍 Product Inspector: ${item.title.slice(0, 50)}...`;
+            document.getElementById('quickViewOpenStudioBtn').onclick = () => openItemInStudio(item.id);
+
+            const images = item.productData?.alternateImages || (item.mainImage ? [item.mainImage] : []);
+            const specs = item.productData?.productSpecs || item.productSpecs || {};
+
+            let imagesHtml = '';
+            if (images.length > 0) {
+                imagesHtml = `
+                    <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 14px;">
+                        ${images.map(img => `<img src="${img}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid var(--slate-200); cursor: pointer;" onclick="document.getElementById('quickViewHeroImg').src='${img}'">`).join('')}
+                    </div>
+                `;
+            }
+
+            let specsHtml = '<p style="font-size: 12px; color: var(--slate-500);">No specific attributes specified.</p>';
+            if (Object.keys(specs).length > 0) {
+                specsHtml = `
+                    <div class="specs-grid">
+                        ${Object.entries(specs).map(([k, v]) => `
+                            <div class="spec-item">
+                                <span class="spec-label">${escapeHtml(k)}</span>
+                                <span class="spec-value">${escapeHtml(v)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            const body = document.getElementById('quickViewModalBody');
+            body.innerHTML = `
+                <div style="display: grid; grid-template-columns: 240px 1fr; gap: 20px;">
+                    <div>
+                        <img id="quickViewHeroImg" src="${item.mainImage || images[0] || ''}" style="width: 100%; height: 240px; object-fit: cover; border-radius: 8px; border: 1px solid var(--slate-200); margin-bottom: 10px;">
+                        ${imagesHtml}
+                    </div>
+                    <div>
+                        <h3 style="margin-top: 0; font-size: 17px; line-height: 1.4; color: var(--slate-900);">${escapeHtml(item.title)}</h3>
+                        <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;">
+                            <span class="meta-tag meta-brand">🏷️ ${escapeHtml(item.brand || 'Unbranded')}</span>
+                            <span class="meta-tag meta-cat">📁 ${escapeHtml(item.categoryName || 'General')}</span>
+                            <span class="meta-tag">ID: ${item.id}</span>
+                            <span class="meta-tag">SKU: ${item.sku || item.id}</span>
+                        </div>
+
+                        <!-- Financials Card -->
+                        <div style="background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 8px; padding: 14px; margin-bottom: 14px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; text-align: center;">
+                                <div>
+                                    <div style="font-size: 11px; color: var(--slate-500); font-weight: 700;">COST</div>
+                                    <div style="font-size: 15px; font-weight: 800;">$${parseFloat(item.costPrice || 0).toFixed(2)}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 11px; color: var(--slate-500); font-weight: 700;">SELLING PRICE</div>
+                                    <div style="font-size: 15px; font-weight: 800; color: var(--primary);">$${parseFloat(item.sellingPrice || 0).toFixed(2)}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 11px; color: var(--slate-500); font-weight: 700;">EST. EBAY FEES</div>
+                                    <div style="font-size: 15px; font-weight: 800; color: var(--danger);">-$${parseFloat(item.estimatedFees || 0).toFixed(2)}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 11px; color: var(--slate-500); font-weight: 700;">EST. NET PROFIT</div>
+                                    <div style="font-size: 15px; font-weight: 800; color: var(--success);">+$${parseFloat(item.estimatedProfit || 0).toFixed(2)} (${item.profitMarginPercent}%)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4 style="margin: 12px 0 6px 0; font-size: 13px; text-transform: uppercase; color: var(--slate-600);">Item Specifics</h4>
+                        ${specsHtml}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('quickViewModal').style.display = 'flex';
+        }
+
+        function closeQuickViewModal() {
+            document.getElementById('quickViewModal').style.display = 'none';
+        }
+
+        // Quick Inline Edits
+        async function quickEditPrice(itemId, currentPrice) {
+            const newPrice = prompt("Enter new Selling Price ($):", currentPrice);
+            if (newPrice === null || isNaN(parseFloat(newPrice))) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/inventory/quick-update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: itemId, sellingPrice: newPrice })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || "Update failed");
+                showToast(`✅ Price updated to $${parseFloat(newPrice).toFixed(2)}`);
+                fetchLiveInventory();
+            } catch (e) {
+                alert(e.message);
+            }
+        }
+
+        async function quickEditCost(itemId, currentCost) {
+            const newCost = prompt("Enter new Sourcing Cost ($):", currentCost);
+            if (newCost === null || isNaN(parseFloat(newCost))) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/inventory/quick-update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: itemId, costPrice: newCost })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || "Update failed");
+                showToast(`✅ Sourcing cost updated to $${parseFloat(newCost).toFixed(2)}`);
+                fetchLiveInventory();
+            } catch (e) {
+                alert(e.message);
+            }
+        }
+
+        async function quickEditQty(itemId, currentQty) {
+            const newQty = prompt("Enter available stock quantity:", currentQty);
+            if (newQty === null || isNaN(parseInt(newQty, 10))) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/inventory/quick-update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: itemId, quantity: newQty })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || "Update failed");
+                showToast(`✅ Quantity updated to ${parseInt(newQty, 10)}`);
+                fetchLiveInventory();
+            } catch (e) {
+                alert(e.message);
+            }
         }
 
         async function markItemLive(itemId) {
@@ -614,9 +1431,10 @@ LCD display with voltage readout"></textarea>
                 const res = await fetch(`${API_BASE}/api/inventory/upload`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: itemId, method: 'Direct Confirm' })
+                    body: JSON.stringify({ id: itemId, method: 'Dashboard One-Click' })
                 });
                 if (!res.ok) throw new Error("Failed updating status");
+                showToast("🚀 Listing marked LIVE on eBay!");
                 fetchLiveInventory();
             } catch (e) {
                 alert(e.message);
@@ -630,25 +1448,69 @@ LCD display with voltage readout"></textarea>
                     method: 'DELETE'
                 });
                 if (!res.ok) throw new Error("Failed deleting item");
+                showToast("🗑️ Item removed from inventory database.");
                 fetchLiveInventory();
             } catch (e) {
                 alert(e.message);
             }
         }
 
+        async function cleanTestItems() {
+            if (!confirm("Clean up test artifacts and temporary mock data? Real imported items will be preserved.")) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/inventory/clean-test-items`, { method: 'POST' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || "Cleanup failed");
+                showToast(`🧹 ${data.message}`);
+                fetchLiveInventory();
+            } catch (e) {
+                alert(e.message);
+            }
+        }
+
+        function exportFilteredCsv() {
+            // Exports currently visible items as CSV
+            const query = (document.getElementById('inventorySearchInput')?.value || '').toLowerCase().trim();
+            const platform = document.getElementById('filterPlatformSelect')?.value || 'ALL';
+            const status = document.getElementById('filterStatusSelect')?.value || 'ALL';
+
+            const filtered = allInventoryItems.filter(item => {
+                const matchesQuery = !query || (item.title && item.title.toLowerCase().includes(query));
+                const itemPlatform = (item.sourcePlatform || 'Manual').toLowerCase();
+                const matchesPlatform = (platform === 'ALL') || (itemPlatform === platform.toLowerCase());
+                const itemStatus = (item.status || 'DRAFT').toUpperCase();
+                const matchesStatus = (status === 'ALL') || (itemStatus === status);
+                return matchesQuery && matchesPlatform && matchesStatus;
+            });
+
+            if (filtered.length === 0) {
+                alert("No items to export!");
+                return;
+            }
+
+            const headers = ["*Action(SiteID=US|Country=US|Currency=USD|Version=1193)", "Item number", "Custom label (SKU)", "Title", "Price", "Quantity available", "Brand", "Status", "Platform"];
+            const rows = [headers.join(',')];
+
+            filtered.forEach(it => {
+                const titleClean = `"${(it.title || '').replace(/"/g, '""')}"`;
+                const brandClean = `"${(it.brand || '').replace(/"/g, '""')}"`;
+                rows.push(`Add,${it.id || ''},${it.sku || ''},${titleClean},${it.sellingPrice || '0.00'},${it.quantity || 1},${brandClean},${it.status || 'APPROVED'},${it.sourcePlatform || 'Manual'}`);
+            });
+
+            const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `zonbay_inventory_export_${Date.now()}.csv`;
+            a.click();
+            showToast("📥 Exported CSV file!");
+        }
+
         // Modal Controls
-        function openEbaySyncModal() {
-            document.getElementById('ebaySyncModal').style.display = 'flex';
-        }
-        function closeEbaySyncModal() {
-            document.getElementById('ebaySyncModal').style.display = 'none';
-        }
-        function openCsvImportModal() {
-            document.getElementById('csvImportModal').style.display = 'flex';
-        }
-        function closeCsvImportModal() {
-            document.getElementById('csvImportModal').style.display = 'none';
-        }
+        function openEbaySyncModal() { document.getElementById('ebaySyncModal').style.display = 'flex'; }
+        function closeEbaySyncModal() { document.getElementById('ebaySyncModal').style.display = 'none'; }
+        function openCsvImportModal() { document.getElementById('csvImportModal').style.display = 'flex'; }
+        function closeCsvImportModal() { document.getElementById('csvImportModal').style.display = 'none'; }
 
         function triggerSellerHubSyncTab() {
             window.open('https://www.ebay.com/sh/lst/active', '_blank');
@@ -699,7 +1561,7 @@ LCD display with voltage readout"></textarea>
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || "Import failed");
-                alert(data.message);
+                showToast("✅ CSV listings successfully ingested!");
                 closeCsvImportModal();
                 fetchLiveInventory();
             } catch (err) {
@@ -710,8 +1572,8 @@ LCD display with voltage readout"></textarea>
             }
         }
 
-        // Manual Product Entry submission directly to Inventory Base
-        document.getElementById('submitManualBtn').addEventListener('click', async () => {
+        // Manual Product Entry submission
+        document.getElementById('submitManualBtn')?.addEventListener('click', async () => {
             const title = document.getElementById('manualTitle').value.trim();
             const price = document.getElementById('manualPrice').value.trim();
             const cost = document.getElementById('manualCost').value.trim() || '0.00';
@@ -753,8 +1615,7 @@ LCD display with voltage readout"></textarea>
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || "Save failed");
 
-                alert("✅ Manual product successfully added to your inventory base!");
-                // Clear fields
+                showToast("✅ Manual product successfully added to your inventory base!");
                 document.getElementById('manualTitle').value = '';
                 document.getElementById('manualPrice').value = '';
                 document.getElementById('manualCost').value = '';
@@ -762,7 +1623,6 @@ LCD display with voltage readout"></textarea>
                 document.getElementById('manualBullets').value = '';
                 document.getElementById('manualDesc').value = '';
 
-                // Switch to inventory tracker to see the item
                 switchView('inventoryPanel');
             } catch (err) {
                 alert("Error saving manual product: " + err.message);
@@ -776,6 +1636,8 @@ LCD display with voltage readout"></textarea>
         document.getElementById('inventorySearchInput')?.addEventListener('input', applyInventoryFilters);
         document.getElementById('filterPlatformSelect')?.addEventListener('change', applyInventoryFilters);
         document.getElementById('filterStatusSelect')?.addEventListener('change', applyInventoryFilters);
+        document.getElementById('filterCategorySelect')?.addEventListener('change', applyInventoryFilters);
+        document.getElementById('sortInventorySelect')?.addEventListener('change', applyInventoryFilters);
 
         // History fetch
         async function fetchHistory() {

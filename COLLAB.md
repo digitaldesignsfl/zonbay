@@ -121,7 +121,22 @@ amazon-scraper/
   3. **CSV Parser field skipping**: `server.js` regex `match(/(".*?"|[^",\s]+)/g)` skipped empty fields (`,,`), throwing off column indexes and ignoring `PicURL`, `Category ID`, `Brand`, and `Description`. Replaced with RFC 4180 state-machine parser `parseCsvRow()`.
   4. **Dynamic Origin & Latest Fallback**: Added `API_BASE` for cross-origin/extension context and added `GET /api/inventory/latest` so opening `/editor` without `?id=` loads the newest imported item.
   5. **Schema Normalization**: `applyLoadedProduct()` in `editor.js` now accepts both array-of-objects (`itemSpecifics`) and key-value maps (`productSpecs`), combines all image field sources (`imageList`, `alternateImages`, `imageUrls`, `mainImgUrl`, `picUrl`), and auto-detects categories when blank.
-- **Verification**: 97 automated tests passing in `test_run.js` (including tests 28-31 covering RFC 4180 CSV parsing, merged single-item schema, latest item retrieval, and editor frontend functions).
+### UI Overhaul & Data Hygiene — Sep 18, 2026 (Inventory Base & Dashboard)
+- **User Issue**: "the inventory base is bad looking. lots of missing stuff and etc. clean that up and then let me try importing and saving a few more products."
+- **Enhancements Implemented**:
+  1. **Sanitized Database & Automatic Test Cleanup**: Purged truncated dummy rows (`Kit`, `RUN-CSV...`, `RUN-STORE...`) and added automatic test deletion in `test_run.js`. Established a realistic baseline of active products (Temu, DeWalt Drill, Power Strip, Heat Gun, Power Inverter) with complete photos, brands, categories, costs, and selling prices.
+  2. **Modern Executive Dashboard (`public/index.html`)**:
+     - Modern slate/navy gradient header with live server heartbeat badge (`🟢 System Online • Port 3000`).
+     - 4 interactive metric cards with SVG iconography, accent top borders, and breakdown pills.
+     - Rich table columns: Photo thumbnail (60x60 with hover zoom and `📷 N` count badge, clean SVG camera placeholder for missing images), Product Title (2-line clamped), Brand chip, Category pill, Sourcing platform badge with platform branding colors, and direct supplier link.
+     - Inline quick-edit for Selling Price, Cost Price, and Stock Quantity with instant database save.
+     - Category filter dynamically populated from current inventory, plus multi-criteria sorting (Newest, Profit, Margin, Price, Stock).
+     - **Quick Product Inspector Modal**: Clicking any product opens a slide-over showing photo gallery, full specifics table, financial metrics, and a one-click button to open in Reseller Studio.
+     - **Test Data Cleanup Action**: Added `POST /api/inventory/clean-test-items` button (`🧹 Clean Tests`) in the toolbar.
+  3. **New API Endpoints**:
+     - `POST /api/inventory/clean-test-items`: Purges mock/test items without touching user data.
+     - `POST /api/inventory/quick-update`: Updates price, cost, and stock quantity directly from dashboard table rows.
+- **Verification**: 97 automated tests passing in `test_run.js`.
 
 ---
 
@@ -133,6 +148,8 @@ amazon-scraper/
 | `GET` | `/api/inventory/latest` | Returns the most recently added or imported inventory item. |
 | `GET` | `/api/inventory/:id` | Returns single product by ID or SKU (for Studio preloading). |
 | `POST` | `/api/inventory/save` | Saves/approves item (marks `APPROVED`), updates working files. |
+| `POST` | `/api/inventory/quick-update` | Quick updates price/cost/qty from dashboard table with instant recalculation. |
+| `POST` | `/api/inventory/clean-test-items`| Purges temporary test items and restores clean state. |
 | `POST` | `/api/inventory/upload` | Marks item `LIVE_ON_EBAY` with timestamp and upload method. |
 | `DELETE` | `/api/inventory/:id` | Deletes item from inventory database. |
 | `POST` | `/api/inventory/sync-ebay` | Batch syncs eBay active listings listing-by-listing as `LIVE_ON_EBAY`. |

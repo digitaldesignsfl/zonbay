@@ -419,6 +419,8 @@ ${uniqueRfcId},"Impact Driver, 20V Cordless ""Pro Edition""",SKU-RFC-1,79.95,5,"
         // Cleanup
         await axios.delete(`${baseUrl}/api/inventory/RUN-TEST-001`);
         await axios.delete(`${baseUrl}/api/inventory/${uniqueRfcId}`);
+        await axios.delete(`${baseUrl}/api/inventory/${uniqueStoreId}`);
+        await axios.delete(`${baseUrl}/api/inventory/${uniqueCsvId}`);
 
     } catch (err) {
         console.error("❌ Unexpected test exception:", err.message);

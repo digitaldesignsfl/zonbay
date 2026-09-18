@@ -458,6 +458,78 @@ app.delete('/api/inventory/:id', (req, res) => {
     }
 });
 
+// Clean up temporary test items
+app.post('/api/inventory/clean-test-items', (req, res) => {
+    try {
+        let items = getInventoryDatabase();
+        const initialCount = items.length;
+        items = items.filter(i => {
+            const id = String(i.id || '');
+            const title = String(i.title || '');
+            const isTest = id.startsWith('RUN-') || 
+                           id.includes('TEST') || 
+                           title === 'Kit' || 
+                           title.includes('CSV Imported Drill Kit') ||
+                           title.includes('Live eBay Store Product Title');
+            return !isTest;
+        });
+
+        saveInventoryDatabase(items);
+        appendHistory('INVENTORY_CLEANED', { purgedCount: initialCount - items.length, remainingCount: items.length });
+
+        res.status(200).json({
+            success: true,
+            message: `Removed ${initialCount - items.length} test items.`,
+            purgedCount: initialCount - items.length,
+            items,
+            stats: calculateInventoryStats(items)
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Quick update item price/cost/qty from dashboard table
+app.post('/api/inventory/quick-update', (req, res) => {
+    try {
+        const { id, sellingPrice, costPrice, quantity } = req.body;
+        if (!id) return res.status(400).json({ error: "Item ID required" });
+
+        const items = getInventoryDatabase();
+        const item = items.find(i => String(i.id) === String(id) || String(i.sku) === String(id));
+        if (!item) return res.status(404).json({ error: `Item ${id} not found` });
+
+        if (sellingPrice !== undefined) item.sellingPrice = parseFloat(sellingPrice || 0).toFixed(2);
+        if (costPrice !== undefined) item.costPrice = parseFloat(costPrice || 0).toFixed(2);
+        if (quantity !== undefined) item.quantity = parseInt(quantity || 1, 10);
+
+        const fin = calculateFinancials(item.costPrice, item.sellingPrice, item.quantity);
+        item.estimatedFees = fin.estimatedFees;
+        item.estimatedProfit = fin.estimatedProfit;
+        item.profitMarginPercent = fin.profitMarginPercent;
+        item.updatedAt = new Date().toISOString();
+
+        if (item.productData) {
+            item.productData.price = item.sellingPrice;
+            item.productData.sellingPrice = item.sellingPrice;
+            item.productData.costPrice = item.costPrice;
+            item.productData.quantity = String(item.quantity);
+        }
+
+        saveInventoryDatabase(items);
+        appendHistory('ITEM_QUICK_UPDATED', { id: item.id, sellingPrice: item.sellingPrice, costPrice: item.costPrice });
+
+        res.status(200).json({
+            success: true,
+            message: `Updated ${item.title.slice(0, 30)}...`,
+            item,
+            stats: calculateInventoryStats(items)
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // SYNC EBAY STORE: Ingest active eBay store listings listing-by-listing
 app.post('/api/inventory/sync-ebay', (req, res) => {
     try {
