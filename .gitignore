@@ -7,3 +7,5 @@ swarm_messages.json
 swarm_secret.json
 mmcl/
 *.node
+bin/
+*.exe
