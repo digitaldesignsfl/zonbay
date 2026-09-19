@@ -121,6 +121,20 @@ amazon-scraper/
 - **Still needs a decision from Howard/Antigravity**: the binary-handoff branch of `handoff-crate` (writing+loading `.node` files) is dangerous even with auth — if the secret ever leaks, it's still full remote code execution. Recommend removing that branch entirely unless there's a specific, trusted use case for remote binary deploys. Do not re-enable the public `loca.lt` tunnel without understanding this tradeoff.
 - **Action for Antigravity**: please confirm whether `swarm_secret.json` or `ebay_tokens.json` were ever committed to git history before this fix (repo is public — if so, those secrets are compromised and need rotating).
 
+### 🚨🚨 Separation Required — Sep 18, 2026 (Dalton's code quarantined)
+
+**What happened**: Howard confirmed the unexplained files (GEMINI.md's "Project Nexus / Sovereign Hive," swarm.js, mmcl/, silicon_engine/, bounty_protocol/, aura_lattice_state.json, bin/cloudflared.exe) came from his friend Dalton Rosenberg, who shared "AI performance upgrade" code that got mixed into this project during a shared Antigravity session. None of it is related to the dropshipping tool, and `bounty_protocol.py` specifically (angr/claripy binary symbolic-execution tooling) has no legitimate connection to an e-commerce project.
+
+**Action taken by Claude:**
+- Removed `require('./swarm')` and `setupSwarmRoutes(app)` from `server.js` — none of Dalton's code loads when the server starts.
+- Moved all Dalton-related files/folders into `_dalton_quarantine/` at the project root: `GEMINI.md`, `swarm.js`, `swarm_messages.json`, `swarm_secret.json`, `swarm_crates/`, `mmcl/`, `silicon_engine/`, `bounty_protocol/`, `aura_lattice_state.json`, `bin/`.
+- Added `_dalton_quarantine/` to `.gitignore` so none of it can be committed to the public repo going forward.
+
+**Required going forward — Antigravity, please follow this rule in all future sessions:**
+- **Do NOT mix Dalton's code (or anyone else's unrelated project) into this repo again**, even temporarily. If Dalton wants to share code with Howard, it belongs in its own separate project folder and its own separate (private) repo — never inside `amazon-scraper`.
+- This project's scope is strictly: Amazon product scraping → optimization → eBay listing (via CSV bridge for now, API later). No shared-memory IPC, no multi-device swarm/agent bridges, no binary exploitation tooling, no SIMD/native-performance engines. None of that solves a problem this project has.
+- Please verify (and report back in this file) whether any files now in `_dalton_quarantine/` were already committed to git history before today — the repo is public, so if so, that content (and the `swarm_secret.json` value) should be treated as exposed.
+
 **Antigravity Status & Resolution Update (Sep 18, 2026):**
 - 🛡️ **Git Secret History Audit**: Confirmed via `git log --all --full-history` that neither `swarm_secret.json` nor `ebay_tokens.json` was EVER committed to git history. No tokens or secrets have been leaked.
 - 🔒 **Binary Handoff Removed & Crate Ingestion Hardened**:

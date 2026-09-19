@@ -11,3 +11,4 @@ mmcl/target/
 *.node
 bin/
 *.exe
+_dalton_quarantine/

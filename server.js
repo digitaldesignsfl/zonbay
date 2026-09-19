@@ -4,7 +4,6 @@ const path = require('path');
 const { exec } = require('child_process');
 const axios = require('axios');
 const { appendHistory, getHistory } = require('./logger');
-const { setupSwarmRoutes } = require('./swarm');
 
 const app = express();
 const PORT = 3000;
@@ -22,8 +21,8 @@ app.use((req, res, next) => {
     next();
 });
 
-// Setup Agent-to-Agent Sovereign Swarm Routes
-setupSwarmRoutes(app);
+// Swarm routes removed — that code belongs to a separate project (see _dalton_quarantine/)
+// and has been disconnected from this server.
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));

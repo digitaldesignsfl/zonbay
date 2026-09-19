@@ -1,5 +1,145 @@
 [
   {
+    "id": "RUN-RFC-1789768552589",
+    "sku": "SKU-RFC-1",
+    "title": "Impact Driver, 20V Cordless \"Pro Edition",
+    "brand": "DeWalt",
+    "sourcePlatform": "eBay Store",
+    "sourceId": "RUN-RFC-1789768552589",
+    "sourceUrl": "https://www.ebay.com/itm/RUN-RFC-1789768552589",
+    "sellingPlatform": "eBay",
+    "status": "LIVE_ON_EBAY",
+    "costPrice": "0.00",
+    "sellingPrice": "79.95",
+    "quantity": 5,
+    "estimatedFees": "10.89",
+    "estimatedProfit": "69.06",
+    "profitMarginPercent": "86.4",
+    "mainImage": "https://i.ebayimg.com/images/g/rfc1/s-l1600.jpg",
+    "imagesCount": 2,
+    "createdAt": "2026-09-18T21:55:52.591Z",
+    "updatedAt": "2026-09-18T21:56:25.637Z",
+    "syncedAt": "2026-09-18T21:55:52.591Z",
+    "uploadedAt": "2026-09-18T21:55:52.591Z",
+    "productData": {
+      "id": "RUN-RFC-1789768552589",
+      "title": "Impact Driver, 20V Cordless \"Pro Edition",
+      "brand": "DeWalt",
+      "price": "79.95",
+      "sellingPrice": "79.95",
+      "costPrice": "0.00",
+      "quantity": 5,
+      "sourceId": "RUN-RFC-1789768552589",
+      "sourceUrl": "https://www.ebay.com/itm/RUN-RFC-1789768552589",
+      "sourcePlatform": "eBay Store",
+      "categoryId": "184655",
+      "mainImgUrl": "https://i.ebayimg.com/images/g/rfc1/s-l1600.jpg",
+      "alternateImages": [
+        "https://i.ebayimg.com/images/g/rfc1/s-l1600.jpg",
+        "https://i.ebayimg.com/images/g/rfc2/s-l1600.jpg"
+      ],
+      "itemSpecifics": [
+        {
+          "name": "Brand",
+          "value": "DeWalt"
+        }
+      ],
+      "productSpecs": {
+        "Brand": "DeWalt"
+      },
+      "bulletPoints": [],
+      "longDescription": "",
+      "htmlDescription": ""
+    }
+  },
+  {
+    "id": "RUN-CSV-1789768552583",
+    "sku": "SKU-CSV-1",
+    "title": "CSV Imported Drill Kit",
+    "brand": "eBay Store Item",
+    "sourcePlatform": "eBay Store",
+    "sourceId": "RUN-CSV-1789768552583",
+    "sourceUrl": "https://www.ebay.com/itm/RUN-CSV-1789768552583",
+    "sellingPlatform": "eBay",
+    "status": "LIVE_ON_EBAY",
+    "costPrice": "0.00",
+    "sellingPrice": "55.00",
+    "quantity": 3,
+    "estimatedFees": "7.59",
+    "estimatedProfit": "47.41",
+    "profitMarginPercent": "86.2",
+    "mainImage": "",
+    "imagesCount": 0,
+    "createdAt": "2026-09-18T21:55:52.585Z",
+    "updatedAt": "2026-09-19T20:02:25.350Z",
+    "syncedAt": "2026-09-18T21:55:52.585Z",
+    "uploadedAt": "2026-09-18T21:55:52.585Z",
+    "productData": {
+      "id": "RUN-CSV-1789768552583",
+      "title": "CSV Imported Drill Kit",
+      "brand": "eBay Store Item",
+      "price": "55.00",
+      "sellingPrice": "55.00",
+      "costPrice": "0.00",
+      "quantity": 3,
+      "sourceId": "RUN-CSV-1789768552583",
+      "sourceUrl": "https://www.ebay.com/itm/RUN-CSV-1789768552583",
+      "sourcePlatform": "eBay Store",
+      "categoryId": "",
+      "mainImgUrl": "",
+      "alternateImages": [],
+      "itemSpecifics": [
+        {
+          "name": "Brand",
+          "value": "eBay Store Item"
+        }
+      ],
+      "productSpecs": {
+        "Brand": "eBay Store Item"
+      },
+      "bulletPoints": [],
+      "longDescription": "",
+      "htmlDescription": ""
+    }
+  },
+  {
+    "id": "RUN-STORE-1789768552579",
+    "sku": "STORE-SKU-1",
+    "title": "Live eBay Store Product Title From Seller Hub",
+    "brand": "StoreBrand",
+    "sourcePlatform": "eBay Store",
+    "sourceId": "RUN-STORE-1789768552579",
+    "sourceUrl": "https://www.ebay.com/itm/RUN-STORE-1789768552579",
+    "sellingPlatform": "eBay",
+    "status": "LIVE_ON_EBAY",
+    "costPrice": "0.00",
+    "sellingPrice": "49.99",
+    "quantity": 2,
+    "estimatedFees": "6.92",
+    "estimatedProfit": "43.07",
+    "profitMarginPercent": "86.1",
+    "mainImage": "",
+    "imagesCount": 0,
+    "createdAt": "2026-09-18T21:55:52.581Z",
+    "updatedAt": "2026-09-19T20:02:25.343Z",
+    "syncedAt": "2026-09-19T20:02:25.343Z",
+    "uploadedAt": "2026-09-18T21:55:52.581Z",
+    "productData": {
+      "title": "Live eBay Store Product Title From Seller Hub",
+      "price": "49.99",
+      "sourceId": "RUN-STORE-1789768552579",
+      "sourceUrl": "https://www.ebay.com/itm/RUN-STORE-1789768552579",
+      "alternateImages": [],
+      "itemSpecifics": [
+        {
+          "name": "Brand",
+          "value": "StoreBrand"
+        }
+      ],
+      "bulletPoints": []
+    }
+  },
+  {
     "id": "605748092322893",
     "sku": "TEMU-ZIY-60W-3PK",
     "title": "ZIYKRIY 3pcs, 60W Nylon Braided, Fast Charging USB-C Cable, High-Speed Data",
