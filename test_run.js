@@ -161,6 +161,9 @@ async function runTest() {
         assert("Temu CSV contains correct category ID", temuCsv.includes('184655'));
         assert("Temu CSV contains clean SKU", temuCsv.includes('TEMU-601099'));
         assert("Temu CSV includes HTML description with specs", temuCsv.includes('Cordless Screwdriver'));
+        assert("Temu CSV auto-applies StandardShippingFromOutsideUS", temuCsv.includes('StandardShippingFromOutsideUS'));
+        assert("Temu CSV auto-applies 5 business days handling buffer", temuCsv.includes(',5,ReturnsNotAccepted'));
+        assert("Temu CSV auto-applies China location", temuCsv.includes(',China,'));
 
         // Test 13: Dynamic Policy Configuration in CSV Exporter
         const mockPolicyItem = {
@@ -183,6 +186,9 @@ async function runTest() {
         // Test 14: GET /editor (Full-Screen Reseller Studio route)
         const editorRes = await axios.get(`${baseUrl}/editor`);
         assert("GET /editor serves Studio HTML", editorRes.status === 200 && editorRes.data.includes("Zonbay Reseller Studio"));
+        assert("Studio HTML includes StandardShippingFromOutsideUS", editorRes.data.includes("StandardShippingFromOutsideUS"));
+        assert("Studio HTML includes intlShippingAlert banner", editorRes.data.includes("intlShippingAlert"));
+        assert("Studio HTML includes applyChinaShippingBtn", editorRes.data.includes("applyChinaShippingBtn"));
 
         // Test 15: POST /api/save-edited-image (Canvas edited image disk persistence)
         const sampleBase64 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=";
@@ -266,6 +272,20 @@ async function runTest() {
         assert("Voltage is recommended priority", getSpecificPriority('Voltage') === 'recommended');
         assert("Color is recommended priority", getSpecificPriority('Color') === 'recommended');
 
+        // Test 20b: Logistics Origin Engine
+        const { detectShippingLogistics } = require('./cleaner');
+        const temuLogistics = detectShippingLogistics({ source: 'temu', title: 'Mini Cordless Screwdriver' });
+        assert("Logistics engine flags Temu as international", temuLogistics.isInternational === true);
+        assert("Logistics engine recommends 5 business days handling for China", temuLogistics.handlingTimeDays === 5);
+        assert("Logistics engine selects StandardShippingFromOutsideUS for China", temuLogistics.shippingService === 'StandardShippingFromOutsideUS');
+        assert("Logistics engine specifies China location", temuLogistics.itemLocation === 'China');
+        assert("Logistics engine includes defect warning message", temuLogistics.warningMessage.includes('eBay late-delivery defects'));
+
+        const usLogistics = detectShippingLogistics({ source: 'amazon', title: 'Dewalt 20V Drill' });
+        assert("Logistics engine flags Amazon as domestic", usLogistics.isInternational === false);
+        assert("Logistics engine selects USPS Ground Advantage for domestic", usLogistics.shippingService === 'USPSGroundAdvantage');
+        assert("Logistics engine sets 3 days handling for domestic", usLogistics.handlingTimeDays === 3);
+
         // Test 21: ZonbayTemplates Storefront Showcase (User's Preferred Layout)
         const { renderStorefrontShowcase } = require('./templates');
         const customStoreConfig = {
@@ -333,6 +353,20 @@ async function runTest() {
         assert("Mockup contains eBay Money Back Guarantee", buyerMockup.includes("eBay Money Back Guarantee"));
         assert("Mockup contains official Item Specifics grid with Brand and MPN", buyerMockup.includes("Item specifics") && buyerMockup.includes("MP00205A") && buyerMockup.includes("MOTOPOWER"));
         assert("Mockup contains embedded seller description template", buyerMockup.includes("Description from seller") && buyerMockup.includes("ZONBAY STOREFRONT SHOWCASE TEMPLATE"));
+
+        // Test 23b: China / International Live Buyer Mockup
+        const chinaMockForMockup = {
+            title: "Temu Mini Screwdriver",
+            price: "12.99",
+            shippingService: "StandardShippingFromOutsideUS",
+            dispatchTimeMax: "5",
+            location: "China",
+            isInternational: true
+        };
+        const chinaBuyerMockup = renderEbayBuyerPageMockup(chinaMockForMockup, "<p>China description</p>", customStoreConfig);
+        assert("China mockup displays International Transit badge", chinaBuyerMockup.includes("International Transit (7-19 days)"));
+        assert("China mockup notes 5 business days handling time", chinaBuyerMockup.includes("Includes 5 business days handling time"));
+        assert("China mockup displays China location", chinaBuyerMockup.includes("China"));
 
         // Test 24: Multi-Platform Inventory Base & Two-Step Workflow
         const inventorySavePayload = {

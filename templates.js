@@ -417,12 +417,30 @@
         }
         const heroImgUrl = images[0];
 
-        // Calculate dynamic delivery range
+        // Calculate dynamic delivery range based on handling time + transit time
+        const handlingDays = parseInt(product.dispatchTimeMax !== undefined ? product.dispatchTimeMax : (product.shippingPolicy?.handlingTimeDays || 3), 10);
+        const isOutsideUs = (shippingService && shippingService.includes('OutsideUS')) || 
+                            (location && location.toLowerCase().includes('china')) || 
+                            Boolean(product.isInternational);
+
+        // Transit buffer: Outside US = 7-19 business days (or 11-35 for Economy); US domestic = 2-5 business days
+        let transitMinDays = 2;
+        let transitMaxDays = 5;
+        if (isOutsideUs) {
+            if (shippingService && shippingService.includes('Economy')) {
+                transitMinDays = 11;
+                transitMaxDays = 30;
+            } else {
+                transitMinDays = 7;
+                transitMaxDays = 19;
+            }
+        }
+
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const now = new Date();
-        const d1 = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
-        const d2 = new Date(now.getTime() + 6 * 24 * 60 * 60 * 1000);
+        const d1 = new Date(now.getTime() + (handlingDays + transitMinDays) * 24 * 60 * 60 * 1000);
+        const d2 = new Date(now.getTime() + (handlingDays + transitMaxDays) * 24 * 60 * 60 * 1000);
         const deliveryRange = `${days[d1.getDay()]}, ${months[d1.getMonth()]} ${d1.getDate()} and ${days[d2.getDay()]}, ${months[d2.getMonth()]} ${d2.getDate()}`;
 
         // Specifics formatting (2 key-value pairs per row = 4 columns on desktop)
@@ -588,13 +606,19 @@
               <span style="color: #707070; width: 75px; flex-shrink: 0;">Shipping:</span>
               <div>
                 ${shippingCostVal === 0 ? '<strong style="color: #1a7f37;">FREE Standard Shipping</strong>' : '<strong>$' + shippingCostVal.toFixed(2) + ' Standard Shipping</strong>'} via ${esc(shippingService)}
-                <div style="color: #707070; font-size: 12px; margin-top: 2px;">Item location: ${esc(location)} | Ships to: United States and many other countries</div>
+                <div style="color: #707070; font-size: 12px; margin-top: 2px;">
+                  Item location: <strong>${esc(location)}</strong> | Ships to: United States and many other countries
+                  ${isOutsideUs ? '<span style="display:inline-block; margin-left:6px; background:#fffbeb; color:#b45309; border:1px solid #fde68a; font-size:11px; padding:1px 6px; border-radius:3px; font-weight:600;">🌏 International Transit (7-19 days)</span>' : ''}
+                </div>
               </div>
             </div>
 
             <div style="display: flex; gap: 12px; margin-bottom: 10px;">
               <span style="color: #707070; width: 75px; flex-shrink: 0;">Delivery:</span>
-              <div>Estimated between <strong>${deliveryRange}</strong></div>
+              <div>
+                Estimated between <strong>${deliveryRange}</strong>
+                ${isOutsideUs ? '<span style="font-size: 11.5px; color: #6b7280; display: block; margin-top: 2px;">Includes ' + handlingDays + ' business days handling time from overseas dispatch.</span>' : ''}
+              </div>
             </div>
 
             <div style="display: flex; gap: 12px; margin-bottom: 10px;">

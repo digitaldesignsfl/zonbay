@@ -78,7 +78,7 @@ function detectEbayCategory(titleText = '') {
     return { id: '', name: 'NEEDS_MANUAL_CATEGORY', verified: false };
 }
 
-const { cleanProductData } = require('./cleaner');
+const { cleanProductData, detectShippingLogistics } = require('./cleaner');
 const { renderStorefrontShowcase } = require('./templates');
 
 function mapItemSpecifics(specs = {}) {
@@ -135,6 +135,8 @@ async function processProduct() {
             storeUrl: rawData.storeUrl || 'https://www.ebay.com/usr'
         });
 
+        const logistics = detectShippingLogistics(rawData);
+
         const optimizedPackage = {
             title: optimizedTitle,
             categoryId: cat.id,
@@ -143,7 +145,20 @@ async function processProduct() {
             itemSpecifics: Object.entries(cleaned.productSpecs).map(([name, value]) => ({ name, value: String(value) })),
             htmlDescription: htmlDesc,
             localImages: downloadedImages,
-            shippingPolicy: { type: "Standard", handlingTimeDays: 3, cost: 0.00 },
+            isInternational: logistics.isInternational,
+            originCountry: logistics.originCountry,
+            shippingPolicy: {
+                type: logistics.shippingType,
+                handlingTimeDays: logistics.handlingTimeDays,
+                service: logistics.shippingService,
+                location: logistics.itemLocation,
+                cost: parseFloat(logistics.shippingCost)
+            },
+            shippingService: logistics.shippingService,
+            shippingType: logistics.shippingType,
+            shippingCost: logistics.shippingCost,
+            dispatchTimeMax: logistics.handlingTimeDays,
+            location: logistics.itemLocation,
             returnPolicy: { returnsAccepted: false },
             paymentPolicy: { requireInstantPayment: true }
         };

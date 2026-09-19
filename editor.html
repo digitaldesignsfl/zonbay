@@ -274,6 +274,73 @@
       gap: 6px;
     }
 
+    /* International Origin Warning Alert */
+    .intl-shipping-alert {
+      background: #fffbeb;
+      border: 1px solid #f59e0b;
+      border-left: 5px solid #d97706;
+      border-radius: 6px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 5px rgba(217, 119, 6, 0.1);
+      display: none;
+    }
+    .intl-alert-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .intl-alert-title {
+      font-weight: 700;
+      font-size: 13px;
+      color: #92400e;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .intl-alert-body {
+      font-size: 12px;
+      color: #78350f;
+      line-height: 1.45;
+      margin-bottom: 10px;
+    }
+    .intl-alert-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .btn-alert-action {
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s;
+    }
+    .btn-alert-china {
+      background: #d97706;
+      color: white;
+    }
+    .btn-alert-china:hover { background: #b45309; }
+    .btn-alert-us {
+      background: #ffffff;
+      color: #1e3a8a;
+      border: 1px solid #93c5fd;
+    }
+    .btn-alert-us:hover { background: #eff6ff; }
+    .btn-alert-dismiss {
+      background: transparent;
+      color: #92400e;
+      border: none;
+      cursor: pointer;
+      font-size: 11.5px;
+      text-decoration: underline;
+      padding: 4px;
+    }
+
     /* Profit Dashboard */
     .profit-stats {
       display: grid;
@@ -667,17 +734,45 @@
         <div class="card-title">🛡️ eBay Store Policies (Shipping, Payment & Returns)</div>
 
         <!-- Shipping Policy Box -->
-        <div class="policy-box">
+        <div class="policy-box" id="shippingPolicyBox">
           <div class="policy-box-title">🚚 Shipping Policy & Fulfillment</div>
+
+          <!-- International Shipping Origin Warning Alert -->
+          <div id="intlShippingAlert" class="intl-shipping-alert">
+            <div class="intl-alert-header">
+              <span class="intl-alert-title">
+                <span>🇨🇳 ⚠️</span> International Origin Detected: Shipping from China (Temu / Supplier)
+              </span>
+              <button type="button" class="btn-alert-dismiss" id="dismissIntlAlertBtn" title="Dismiss warning">✕ Dismiss</button>
+            </div>
+            <div class="intl-alert-body" id="intlAlertBodyText">
+              Products sourced from Temu or overseas suppliers ship from China (7–19 business days transit). Standard 1–3 day domestic handling will trigger <strong>eBay late-delivery defects</strong> and violate eBay's <strong>Item Location policy</strong>. To protect your seller rating, we automatically set Handling Time to <strong>5 Business Days</strong>, Shipping Service to <strong>Standard Shipping from Outside US (7-19 business days)</strong>, and Location to <strong>China</strong>.
+            </div>
+            <div class="intl-alert-actions">
+              <button type="button" class="btn-alert-action btn-alert-china" id="applyChinaShippingBtn">⚡ Apply Recommended China Settings</button>
+              <button type="button" class="btn-alert-action btn-alert-us" id="resetUsShippingBtn">🇺🇸 Override to US Domestic</button>
+              <span style="font-size: 11px; color: #92400e; margin-left: 4px;">(Protects your eBay account from defect strikes)</span>
+            </div>
+          </div>
+
           <div class="form-row">
             <div class="form-col">
               <label>Shipping Carrier Service</label>
               <select id="shippingService">
-                <option value="USPSGroundAdvantage" selected>USPS Ground Advantage (2-5 business days)</option>
-                <option value="USPSPriority">USPS Priority Mail (1-3 business days)</option>
-                <option value="USPSPriorityFlatRateEnvelope">USPS Priority Flat Rate Envelope</option>
-                <option value="UPSGround">UPS Ground (1-5 business days)</option>
-                <option value="FedExHomeDelivery">FedEx Home Delivery</option>
+                <!-- International / Outside US Services -->
+                <optgroup label="🌏 International Shipping (Temu / China Suppliers)">
+                  <option value="StandardShippingFromOutsideUS">Standard Shipping from Outside US (7-19 business days - Temu/China)</option>
+                  <option value="EconomyShippingFromOutsideUS">Economy Shipping from Outside US (11-35 business days)</option>
+                  <option value="ExpeditedShippingFromOutsideUS">Expedited Shipping from Outside US (1-4 business days)</option>
+                </optgroup>
+                <!-- US Domestic Services -->
+                <optgroup label="🇺🇸 US Domestic Shipping (Amazon / US Suppliers)">
+                  <option value="USPSGroundAdvantage" selected>USPS Ground Advantage (2-5 business days)</option>
+                  <option value="USPSPriority">USPS Priority Mail (1-3 business days)</option>
+                  <option value="USPSPriorityFlatRateEnvelope">USPS Priority Flat Rate Envelope</option>
+                  <option value="UPSGround">UPS Ground (1-5 business days)</option>
+                  <option value="FedExHomeDelivery">FedEx Home Delivery</option>
+                </optgroup>
               </select>
             </div>
             <div class="form-col" style="flex: 0 0 160px;">
@@ -700,13 +795,17 @@
                 <option value="0">0 Business Days (Same Day Handling)</option>
                 <option value="1">1 Business Day</option>
                 <option value="2">2 Business Days</option>
-                <option value="3" selected>3 Business Days (Standard)</option>
-                <option value="5">5 Business Days</option>
+                <option value="3" selected>3 Business Days (Standard Domestic)</option>
+                <option value="5">5 Business Days (Recommended for Temu / China)</option>
+                <option value="7">7 Business Days (Extended Cross-Border)</option>
+                <option value="10">10 Business Days</option>
+                <option value="15">15 Business Days</option>
+                <option value="20">20 Business Days</option>
               </select>
             </div>
             <div class="form-col">
               <label>Item Location (*Location: City, State, Zip)</label>
-              <input type="text" id="itemLocation" value="United States" placeholder="e.g. Miami, FL 33101">
+              <input type="text" id="itemLocation" value="United States" placeholder="e.g. Miami, FL 33101 or China">
             </div>
           </div>
         </div>

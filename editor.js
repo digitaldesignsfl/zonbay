@@ -258,12 +258,37 @@ function applyLoadedProduct(data) {
     document.getElementById('listingPrice').value = finalPrice;
     document.getElementById('listingQuantity').value = product.quantity || '1';
 
-    // Policies
-    if (product.shippingService) document.getElementById('shippingService').value = product.shippingService;
-    if (product.shippingType) document.getElementById('shippingType').value = product.shippingType;
-    if (product.shippingCost !== undefined) document.getElementById('shippingCost').value = product.shippingCost;
-    if (product.dispatchTimeMax !== undefined) document.getElementById('dispatchTimeMax').value = product.dispatchTimeMax;
-    if (product.location) document.getElementById('itemLocation').value = product.location;
+    // Logistics & Origin Detection (China / Temu vs US Domestic)
+    let logistics = { isInternational: false };
+    if (typeof ZonbayCleaner !== 'undefined' && typeof ZonbayCleaner.detectShippingLogistics === 'function') {
+        logistics = ZonbayCleaner.detectShippingLogistics(data);
+    }
+    product.isInternational = (data.isInternational !== undefined) ? data.isInternational : logistics.isInternational;
+    product.originCountry = data.originCountry || logistics.originCountry || 'US';
+
+    const intlAlertEl = document.getElementById('intlShippingAlert');
+    if (intlAlertEl) {
+        if (product.isInternational) {
+            intlAlertEl.style.display = 'block';
+            const alertBodyText = document.getElementById('intlAlertBodyText');
+            if (alertBodyText && logistics.warningMessage) {
+                alertBodyText.innerText = logistics.warningMessage;
+            }
+        } else {
+            intlAlertEl.style.display = 'none';
+        }
+    }
+
+    // Policies: Apply detected logistics defaults if not explicitly provided
+    const defaultShippingService = product.isInternational ? 'StandardShippingFromOutsideUS' : 'USPSGroundAdvantage';
+    const defaultDispatchTime = product.isInternational ? '5' : '3';
+    const defaultLocation = product.isInternational ? 'China' : 'United States';
+
+    document.getElementById('shippingService').value = product.shippingService || defaultShippingService;
+    document.getElementById('shippingType').value = product.shippingType || 'Flat';
+    document.getElementById('shippingCost').value = (product.shippingCost !== undefined) ? product.shippingCost : '0.00';
+    document.getElementById('dispatchTimeMax').value = (product.dispatchTimeMax !== undefined) ? String(product.dispatchTimeMax) : defaultDispatchTime;
+    document.getElementById('itemLocation').value = product.location || defaultLocation;
     if (product.immediatePayRequired !== undefined) document.getElementById('immediatePayRequired').value = product.immediatePayRequired;
     if (product.returnsAcceptedOption) document.getElementById('returnsAcceptedOption').value = product.returnsAcceptedOption;
 
@@ -756,7 +781,9 @@ function compileCurrentProduct() {
         costPrice: product.costPrice || (product.cost ? String(product.cost) : '0.00'),
         quantity: document.getElementById('listingQuantity').value.trim(),
         
-        // Policies
+        // Policies & Logistics
+        isInternational: product.isInternational || (document.getElementById('shippingService').value.includes('OutsideUS')),
+        originCountry: product.originCountry || (document.getElementById('shippingService').value.includes('OutsideUS') ? 'China' : 'US'),
         shippingService: document.getElementById('shippingService').value,
         shippingType: document.getElementById('shippingType').value,
         shippingCost: document.getElementById('shippingCost').value,
@@ -878,6 +905,43 @@ function setupEventListeners() {
                 el.addEventListener('change', triggerAutoSave);
             }
         });
+
+    // International Shipping Banner Controls
+    const applyChinaBtn = document.getElementById('applyChinaShippingBtn');
+    if (applyChinaBtn) {
+        applyChinaBtn.addEventListener('click', () => {
+            document.getElementById('shippingService').value = 'StandardShippingFromOutsideUS';
+            document.getElementById('dispatchTimeMax').value = '5';
+            document.getElementById('itemLocation').value = 'China';
+            product.isInternational = true;
+            product.originCountry = 'China';
+            triggerAutoSave();
+            updateInlineTemplatePreview();
+            showToast("🇨🇳 Recommended China logistics applied: 5d handling, outside-US transit!");
+        });
+    }
+
+    const resetUsBtn = document.getElementById('resetUsShippingBtn');
+    if (resetUsBtn) {
+        resetUsBtn.addEventListener('click', () => {
+            document.getElementById('shippingService').value = 'USPSGroundAdvantage';
+            document.getElementById('dispatchTimeMax').value = '3';
+            document.getElementById('itemLocation').value = 'United States';
+            product.isInternational = false;
+            product.originCountry = 'US';
+            triggerAutoSave();
+            updateInlineTemplatePreview();
+            showToast("🇺🇸 Reset to US Domestic: USPS Ground Advantage & 3d handling.");
+        });
+    }
+
+    const dismissIntlBtn = document.getElementById('dismissIntlAlertBtn');
+    if (dismissIntlBtn) {
+        dismissIntlBtn.addEventListener('click', () => {
+            const banner = document.getElementById('intlShippingAlert');
+            if (banner) banner.style.display = 'none';
+        });
+    }
 
     // Clutter cleaner button
     const cleanBtn = document.getElementById('cleanClutterBtn');

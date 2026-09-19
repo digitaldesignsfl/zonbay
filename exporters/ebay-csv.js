@@ -161,11 +161,29 @@ function convertProductToCsvRow(product) {
     const conditionId = product.conditionId || '1000';
     const quantity = product.quantity ? String(product.quantity) : '1';
     const immediatePay = product.immediatePayRequired !== undefined ? String(product.immediatePayRequired) : (product.immediatePay !== undefined ? String(product.immediatePay) : '1');
-    const location = product.location || 'United States';
+
+    // Supplier origin logistics fallback (Temu / China vs US domestic)
+    let logistics = null;
+    if (typeof ZonbayCleaner !== 'undefined' && typeof ZonbayCleaner.detectShippingLogistics === 'function') {
+        logistics = ZonbayCleaner.detectShippingLogistics(product);
+    } else if (typeof require !== 'undefined') {
+        try {
+            const { detectShippingLogistics } = require('../cleaner');
+            logistics = detectShippingLogistics(product);
+        } catch (e) {}
+    }
+
+    const defaultLocation = (logistics && logistics.isInternational) ? logistics.itemLocation : 'United States';
+    const defaultService = (logistics && logistics.isInternational) ? logistics.shippingService : 'USPSGroundAdvantage';
+    const defaultDispatch = (logistics && logistics.isInternational) ? String(logistics.handlingTimeDays) : '3';
+
+    const location = product.location || defaultLocation;
     const shippingType = product.shippingType || 'Flat';
-    const shippingService = product.shippingService || 'USPSGroundAdvantage';
+    const shippingService = product.shippingService || defaultService;
     const shippingCost = product.shippingCost !== undefined ? String(product.shippingCost).replace(/[^0-9.]/g, '') : '0.00';
-    const dispatchTime = product.dispatchTimeMax !== undefined ? String(product.dispatchTimeMax) : (product.shippingPolicy?.handlingTimeDays !== undefined ? String(product.shippingPolicy.handlingTimeDays) : '3');
+    const dispatchTime = product.dispatchTimeMax !== undefined 
+        ? String(product.dispatchTimeMax) 
+        : (product.shippingPolicy?.handlingTimeDays !== undefined ? String(product.shippingPolicy.handlingTimeDays) : defaultDispatch);
     const returnsAccepted = product.returnsAcceptedOption || (product.returnPolicy?.returnsAccepted ? 'ReturnsAccepted' : 'ReturnsNotAccepted');
 
     const row = [

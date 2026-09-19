@@ -270,12 +270,85 @@
         };
     }
 
+    /**
+     * Detects supplier shipping origin and generates recommended eBay logistics settings.
+     * International suppliers (e.g. Temu, AliExpress, DHgate) require extended handling time
+     * and outside-US shipping services to comply with eBay policy and prevent late delivery defects.
+     */
+    function detectShippingLogistics(product = {}) {
+        const source = String(product.source || product.sourcePlatform || '').toLowerCase();
+        const url = String(product.url || product.sourceUrl || product.itemUrl || '').toLowerCase();
+        const origin = String(product.originCountry || product.countryOfOrigin || '').toLowerCase();
+        
+        let specCountry = '';
+        if (product.productSpecs && typeof product.productSpecs === 'object') {
+            specCountry = String(
+                product.productSpecs['Country/Region of Manufacture'] ||
+                product.productSpecs['Country of Origin'] ||
+                product.productSpecs['Origin'] || ''
+            ).toLowerCase();
+        }
+
+        const isChinaSupplier = (
+            source === 'temu' ||
+            source === 'aliexpress' ||
+            source === 'dhgate' ||
+            source === 'shein' ||
+            source === 'taobao' ||
+            source === '1688' ||
+            source === 'alibaba' ||
+            url.includes('temu.com') ||
+            url.includes('aliexpress.com') ||
+            url.includes('dhgate.com') ||
+            url.includes('shein.com') ||
+            url.includes('taobao.com') ||
+            url.includes('1688.com') ||
+            url.includes('alibaba.com') ||
+            origin === 'china' ||
+            origin === 'cn' ||
+            specCountry.includes('china')
+        );
+
+        if (isChinaSupplier) {
+            return {
+                isInternational: true,
+                originCountry: 'China',
+                originCountryName: 'China (Overseas Supplier)',
+                handlingTimeDays: 5,
+                shippingService: 'StandardShippingFromOutsideUS',
+                shippingServiceName: 'Standard Shipping from Outside US (7-19 business days)',
+                itemLocation: 'China',
+                shippingCost: '0.00',
+                shippingType: 'Flat',
+                estimatedTransitDaysMin: 7,
+                estimatedTransitDaysMax: 19,
+                warningMessage: 'International Origin Detected: Shipping from China (Temu / Supplier). Extended handling time (5 business days) and outside-US shipping service have been auto-applied to prevent eBay late-delivery defects and comply with Item Location policy.'
+            };
+        }
+
+        return {
+            isInternational: false,
+            originCountry: 'US',
+            originCountryName: 'United States (Domestic)',
+            handlingTimeDays: 3,
+            shippingService: 'USPSGroundAdvantage',
+            shippingServiceName: 'USPS Ground Advantage (2-5 business days)',
+            itemLocation: 'United States',
+            shippingCost: '0.00',
+            shippingType: 'Flat',
+            estimatedTransitDaysMin: 2,
+            estimatedTransitDaysMax: 5,
+            warningMessage: ''
+        };
+    }
+
     return {
         cleanItemSpecifics,
         cleanDescriptionText,
         cleanTitle,
         cleanBulletPoints,
         cleanProductData,
+        detectShippingLogistics,
         getSpecificPriority,
         normalizeSpecificKey,
         isCorruptedValue,
