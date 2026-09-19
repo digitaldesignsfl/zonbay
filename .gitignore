@@ -3,12 +3,5 @@ ebay_tokens.json
 downloads/
 .DS_Store
 Thumbs.db
-swarm_messages.json
-swarm_secret.json
-aura_lattice_state.json
-swarm_crates/
-mmcl/target/
-*.node
 bin/
 *.exe
-_dalton_quarantine/
