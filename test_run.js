@@ -451,11 +451,89 @@ ${uniqueRfcId},"Impact Driver, 20V Cordless ""Pro Edition""",${uniqueRfcSku},79.
         assert("editor.js defines autoDetectCategory", editorJsContentRes.data.includes("function autoDetectCategory"));
         assert("editor.js defines top-level updateInlineTemplatePreview", editorJsContentRes.data.includes("function updateInlineTemplatePreview()"));
 
+        // Test 32: AliExpress Extractor Module & International Logistics Detection
+        const { extractAliExpressProduct } = require('./extractors/aliexpress');
+        assert("AliExpress extractor exports extractAliExpressProduct function", typeof extractAliExpressProduct === 'function');
+        
+        const aliLogistics = detectShippingLogistics({
+            source: 'aliexpress',
+            sourcePlatform: 'AliExpress',
+            url: 'https://www.aliexpress.us/item/3256806543210987.html'
+        });
+        assert("AliExpress shipping logistics detected as International", aliLogistics.isInternational === true);
+        assert("AliExpress handling time defaulted to 5 days", aliLogistics.handlingTimeDays === 5);
+        assert("AliExpress shipping service set to StandardShippingFromOutsideUS", aliLogistics.shippingService === 'StandardShippingFromOutsideUS');
+        assert("AliExpress item location defaulted to China", aliLogistics.itemLocation === 'China');
+
+        // Test 33: Inventory Bulk Status Update (POST /api/inventory/bulk-status)
+        const bulkId1 = 'RUN-BULK-1-' + Date.now();
+        const bulkId2 = 'RUN-BULK-2-' + Date.now();
+        await axios.post(`${baseUrl}/api/inventory/save`, {
+            id: bulkId1,
+            title: 'Bulk Test Product One - AliExpress Sourced',
+            price: '18.99',
+            cost: '4.50',
+            sku: 'SKU-BLK-1',
+            status: 'DRAFT',
+            sourcePlatform: 'AliExpress',
+            originCountry: 'China',
+            isInternational: true
+        });
+        await axios.post(`${baseUrl}/api/inventory/save`, {
+            id: bulkId2,
+            title: 'Bulk Test Product Two - Amazon Sourced',
+            price: '29.99',
+            cost: '12.00',
+            sku: 'SKU-BLK-2',
+            status: 'DRAFT',
+            sourcePlatform: 'Amazon',
+            originCountry: 'US',
+            isInternational: false
+        });
+
+        const bulkApproveRes = await axios.post(`${baseUrl}/api/inventory/bulk-status`, {
+            ids: [bulkId1, bulkId2],
+            status: 'APPROVED'
+        });
+        assert("Bulk status APPROVED returns 200", bulkApproveRes.status === 200 && bulkApproveRes.data.success);
+        assert("Bulk status updated 2 items", bulkApproveRes.data.updatedCount === 2);
+
+        const bulkLiveRes = await axios.post(`${baseUrl}/api/inventory/bulk-status`, {
+            ids: [bulkId1],
+            status: 'LIVE_ON_EBAY'
+        });
+        assert("Bulk status LIVE_ON_EBAY returns 200", bulkLiveRes.status === 200 && bulkLiveRes.data.updatedCount === 1);
+
+        const checkItem1 = await axios.get(`${baseUrl}/api/inventory/${bulkId1}`);
+        assert("Bulk updated item has LIVE_ON_EBAY status and uploadedAt", checkItem1.data.status === 'LIVE_ON_EBAY' && Boolean(checkItem1.data.uploadedAt));
+
+        // Test 34: Inventory Bulk CSV Export (POST /api/inventory/bulk-export-csv)
+        const bulkCsvRes = await axios.post(`${baseUrl}/api/inventory/bulk-export-csv`, {
+            ids: [bulkId1, bulkId2]
+        });
+        assert("Bulk CSV export returns 200", bulkCsvRes.status === 200);
+        assert("Bulk CSV header has text/csv", bulkCsvRes.headers['content-type'].includes('text/csv'));
+        assert("Bulk CSV contains item 1 and item 2 titles", bulkCsvRes.data.includes('Bulk Test Product One') && bulkCsvRes.data.includes('Bulk Test Product Two'));
+        assert("Bulk CSV handles international shipping for item 1", bulkCsvRes.data.includes('China') || bulkCsvRes.data.includes('StandardShippingFromOutsideUS'));
+
+        // Test 35: Inventory Bulk Delete (POST /api/inventory/bulk-delete)
+        const bulkDeleteRes = await axios.post(`${baseUrl}/api/inventory/bulk-delete`, {
+            ids: [bulkId1, bulkId2]
+        });
+        assert("Bulk delete returns 200", bulkDeleteRes.status === 200 && bulkDeleteRes.data.success);
+        assert("Bulk delete deleted 2 items", bulkDeleteRes.data.deletedCount === 2);
+
+        const deletedCheck1 = await axios.get(`${baseUrl}/api/inventory/${bulkId1}`).catch(e => e.response);
+        const deletedCheck2 = await axios.get(`${baseUrl}/api/inventory/${bulkId2}`).catch(e => e.response);
+        assert("Deleted bulk items return 404", deletedCheck1.status === 404 && deletedCheck2.status === 404);
+
         // Cleanup
         await axios.delete(`${baseUrl}/api/inventory/RUN-TEST-001`).catch(() => {});
         await axios.delete(`${baseUrl}/api/inventory/${uniqueRfcId}`).catch(() => {});
         await axios.delete(`${baseUrl}/api/inventory/${uniqueStoreId}`).catch(() => {});
         await axios.delete(`${baseUrl}/api/inventory/${uniqueCsvId}`).catch(() => {});
+        await axios.delete(`${baseUrl}/api/inventory/${bulkId1}`).catch(() => {});
+        await axios.delete(`${baseUrl}/api/inventory/${bulkId2}`).catch(() => {});
 
     } catch (err) {
         console.error("❌ Unexpected test exception:", err.message);

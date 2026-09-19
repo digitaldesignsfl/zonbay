@@ -4,6 +4,7 @@ const path = require('path');
 const { exec } = require('child_process');
 const axios = require('axios');
 const { appendHistory, getHistory } = require('./logger');
+const { generateEbaySellerHubCsv } = require('./csv-exporter');
 
 const app = express();
 const PORT = 3000;
@@ -526,6 +527,128 @@ app.post('/api/inventory/quick-update', (req, res) => {
             success: true,
             message: `Updated ${item.title.slice(0, 30)}...`,
             item,
+            stats: calculateInventoryStats(items)
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Bulk update status (e.g. APPROVED, LIVE_ON_EBAY, DRAFT)
+app.post('/api/inventory/bulk-status', (req, res) => {
+    try {
+        const { ids, status } = req.body;
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ error: "Array of item IDs is required." });
+        }
+        if (!status) {
+            return res.status(400).json({ error: "Target status is required." });
+        }
+
+        const validStatuses = ['DRAFT', 'APPROVED', 'LIVE_ON_EBAY'];
+        const normalizedStatus = status.toUpperCase();
+        if (!validStatuses.includes(normalizedStatus)) {
+            return res.status(400).json({ error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` });
+        }
+
+        const items = getInventoryDatabase();
+        const idSet = new Set(ids.map(String));
+        let updatedCount = 0;
+
+        items.forEach(item => {
+            if (idSet.has(String(item.id)) || idSet.has(String(item.sku)) || idSet.has(String(item.sourceId))) {
+                item.status = normalizedStatus;
+                item.updatedAt = new Date().toISOString();
+                if (normalizedStatus === 'LIVE_ON_EBAY' && !item.uploadedAt) {
+                    item.uploadedAt = new Date().toISOString();
+                }
+                updatedCount++;
+            }
+        });
+
+        saveInventoryDatabase(items);
+        appendHistory('INVENTORY_BULK_STATUS_UPDATE', { count: updatedCount, status: normalizedStatus });
+
+        res.status(200).json({
+            success: true,
+            message: `Updated status of ${updatedCount} items to ${normalizedStatus}.`,
+            updatedCount,
+            stats: calculateInventoryStats(items)
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Bulk export CSV
+app.post('/api/inventory/bulk-export-csv', (req, res) => {
+    try {
+        const { ids } = req.body || {};
+        const items = getInventoryDatabase();
+        let targetItems = items;
+
+        if (Array.isArray(ids) && ids.length > 0) {
+            const idSet = new Set(ids.map(String));
+            targetItems = items.filter(i => idSet.has(String(i.id)) || idSet.has(String(i.sku)) || idSet.has(String(i.sourceId)));
+        }
+
+        if (targetItems.length === 0) {
+            return res.status(404).json({ error: "No matching inventory items found to export." });
+        }
+
+        const prods = targetItems.map(item => ({
+            ...item,
+            ...(item.productData || {}),
+            id: item.id,
+            sku: item.sku || item.id,
+            title: item.title || (item.productData && item.productData.title),
+            brand: item.brand || (item.productData && item.productData.brand) || 'Unbranded',
+            price: item.sellingPrice || (item.productData && item.productData.price) || '0.00',
+            sellingPrice: item.sellingPrice || (item.productData && item.productData.price) || '0.00',
+            costPrice: item.costPrice || (item.productData && item.productData.costPrice) || '0.00',
+            quantity: item.quantity || (item.productData && item.productData.quantity) || 1,
+            mainImgUrl: (item.productData && item.productData.mainImgUrl) || item.mainImage || '',
+            alternateImages: (item.productData && item.productData.alternateImages) || (item.mainImage ? [item.mainImage] : []),
+            sourcePlatform: item.sourcePlatform || (item.productData && item.productData.sourcePlatform) || 'Manual',
+            sourceId: item.sourceId || (item.productData && item.productData.sourceId) || '',
+            isInternational: item.isInternational !== undefined ? item.isInternational : (item.productData && item.productData.isInternational),
+            originCountry: item.originCountry || (item.productData && item.productData.originCountry)
+        }));
+
+        const csvText = generateEbaySellerHubCsv(prods);
+
+        appendHistory('INVENTORY_BULK_CSV_EXPORT', { count: targetItems.length });
+
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="ebay_bulk_listings_${Date.now()}.csv"`);
+        res.status(200).send(csvText);
+    } catch (err) {
+        res.status(500).json({ error: "Failed to generate bulk CSV: " + err.message });
+    }
+});
+
+// Bulk delete items
+app.post('/api/inventory/bulk-delete', (req, res) => {
+    try {
+        const { ids } = req.body;
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ error: "Array of item IDs is required." });
+        }
+
+        let items = getInventoryDatabase();
+        const initialCount = items.length;
+        const idSet = new Set(ids.map(String));
+
+        items = items.filter(i => !idSet.has(String(i.id)) && !idSet.has(String(i.sku)) && !idSet.has(String(i.sourceId)));
+        const deletedCount = initialCount - items.length;
+
+        saveInventoryDatabase(items);
+        appendHistory('INVENTORY_BULK_DELETE', { deletedCount });
+
+        res.status(200).json({
+            success: true,
+            message: `Deleted ${deletedCount} items from inventory.`,
+            deletedCount,
             stats: calculateInventoryStats(items)
         });
     } catch (err) {

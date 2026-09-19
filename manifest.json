@@ -12,6 +12,8 @@
   "host_permissions": [
     "*://*.amazon.com/*",
     "*://*.temu.com/*",
+    "*://*.aliexpress.com/*",
+    "*://*.aliexpress.us/*",
     "*://*.ebay.com/*",
     "http://localhost:3000/*"
   ],

@@ -486,6 +486,11 @@
             color: #c2410c;
             border: 1px solid #ffedd5;
         }
+        .badge-platform-aliexpress {
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fee2e2;
+        }
         .badge-platform-amazon {
             background: #fffbeb;
             color: #b45309;
@@ -795,9 +800,15 @@
                         <select id="filterPlatformSelect">
                             <option value="ALL">🌐 All Platforms</option>
                             <option value="Temu">🟠 Temu</option>
+                            <option value="AliExpress">🔴 AliExpress</option>
                             <option value="Amazon">🔶 Amazon</option>
                             <option value="eBay Store">🔵 eBay Store</option>
                             <option value="Manual Entry">✍️ Manual Entry</option>
+                        </select>
+                        <select id="filterOriginSelect">
+                            <option value="ALL">🌍 All Origins</option>
+                            <option value="CHINA">🇨🇳 China / Int'l (5d)</option>
+                            <option value="US">🇺🇸 US Stock (1d)</option>
                         </select>
                         <select id="filterStatusSelect">
                             <option value="ALL">⚡ All Statuses</option>
@@ -833,6 +844,9 @@
                     <table class="inventory-table">
                         <thead>
                             <tr>
+                                <th style="width: 38px; text-align: center;">
+                                    <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)" title="Select all visible items">
+                                </th>
                                 <th style="width: 72px;">Photo</th>
                                 <th style="min-width: 320px;">Product & Specifics</th>
                                 <th>Source</th>
@@ -846,12 +860,25 @@
                         </thead>
                         <tbody id="inventoryTableBody">
                             <tr>
-                                <td colspan="9" style="text-align: center; padding: 40px; color: var(--slate-400);">
+                                <td colspan="10" style="text-align: center; padding: 40px; color: var(--slate-400);">
                                     ⏳ Loading inventory database...
                                 </td>
                             </tr>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Floating Bulk Action Bar -->
+                <div id="bulkActionBar" style="display: none; position: sticky; bottom: 16px; background: #0b1f3a; color: white; padding: 12px 20px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); margin-top: 15px; align-items: center; justify-content: space-between; gap: 15px; z-index: 1000; border: 1px solid #1e3a8a;">
+                    <div style="display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 13px;">
+                        <span id="bulkSelectedCount">0 items selected</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn btn-outline btn-sm" style="color: white; border-color: #3b82f6; background: rgba(59,130,246,0.15);" onclick="bulkExportCsv()">📥 Export Selected CSV</button>
+                        <button class="btn btn-sm" style="background: #f59e0b; color: #1e1b4b;" onclick="bulkSetStatus('APPROVED')">🟡 Mark Approved</button>
+                        <button class="btn btn-emerald btn-sm" onclick="bulkSetStatus('LIVE_ON_EBAY')">🚀 Mark Live on eBay</button>
+                        <button class="btn btn-danger-outline btn-sm" style="background: rgba(239,68,68,0.2); color: #fca5a5; border-color: #ef4444;" onclick="bulkDeleteSelected()">🗑️ Delete Selected</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1110,9 +1137,125 @@
             }
         }
 
+        let selectedItemIds = new Set();
+
+        function toggleSelectAll(checked) {
+            const checkboxes = document.querySelectorAll('.item-select-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = checked;
+                const id = String(cb.dataset.id);
+                if (checked) {
+                    selectedItemIds.add(id);
+                } else {
+                    selectedItemIds.delete(id);
+                }
+            });
+            updateBulkActionBar();
+        }
+
+        function onItemCheckboxChange(itemId, checked) {
+            const id = String(itemId);
+            if (checked) {
+                selectedItemIds.add(id);
+            } else {
+                selectedItemIds.delete(id);
+            }
+            const allCbs = document.querySelectorAll('.item-select-checkbox');
+            const selectAllCb = document.getElementById('selectAllCheckbox');
+            if (selectAllCb) {
+                selectAllCb.checked = allCbs.length > 0 && Array.from(allCbs).every(cb => cb.checked);
+            }
+            updateBulkActionBar();
+        }
+
+        function updateBulkActionBar() {
+            const bar = document.getElementById('bulkActionBar');
+            const countEl = document.getElementById('bulkSelectedCount');
+            const count = selectedItemIds.size;
+            if (count > 0) {
+                if (bar) bar.style.display = 'flex';
+                if (countEl) countEl.innerText = `${count} item${count > 1 ? 's' : ''} selected`;
+            } else {
+                if (bar) bar.style.display = 'none';
+            }
+        }
+
+        async function bulkExportCsv() {
+            const ids = Array.from(selectedItemIds);
+            if (ids.length === 0) {
+                alert("Please select at least one item to export.");
+                return;
+            }
+            try {
+                const res = await fetch(`${API_BASE}/api/inventory/bulk-export-csv`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids })
+                });
+                if (!res.ok) throw new Error("Bulk export failed");
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `zonbay_bulk_listings_${Date.now()}.csv`;
+                a.click();
+                showToast(`📥 Exported ${ids.length} listings to CSV!`);
+            } catch (e) {
+                alert(e.message);
+            }
+        }
+
+        async function bulkSetStatus(status) {
+            const ids = Array.from(selectedItemIds);
+            if (ids.length === 0) return;
+            const label = status === 'LIVE_ON_EBAY' ? 'LIVE on eBay' : status;
+            if (!confirm(`Mark ${ids.length} selected items as ${label}?`)) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/inventory/bulk-status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids, status })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || "Bulk update failed");
+                showToast(`✅ ${data.message}`);
+                selectedItemIds.clear();
+                const selectAllCb = document.getElementById('selectAllCheckbox');
+                if (selectAllCb) selectAllCb.checked = false;
+                updateBulkActionBar();
+                fetchLiveInventory();
+            } catch (e) {
+                alert(e.message);
+            }
+        }
+
+        async function bulkDeleteSelected() {
+            const ids = Array.from(selectedItemIds);
+            if (ids.length === 0) return;
+            if (!confirm(`Are you sure you want to permanently delete ${ids.length} selected items from your inventory?`)) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/inventory/bulk-delete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || "Bulk delete failed");
+                showToast(`🗑️ ${data.message}`);
+                selectedItemIds.clear();
+                const selectAllCb = document.getElementById('selectAllCheckbox');
+                if (selectAllCb) selectAllCb.checked = false;
+                updateBulkActionBar();
+                fetchLiveInventory();
+            } catch (e) {
+                alert(e.message);
+            }
+        }
+
         function applyInventoryFilters() {
             const query = (document.getElementById('inventorySearchInput')?.value || '').toLowerCase().trim();
             const platform = document.getElementById('filterPlatformSelect')?.value || 'ALL';
+            const origin = document.getElementById('filterOriginSelect')?.value || 'ALL';
             const status = document.getElementById('filterStatusSelect')?.value || 'ALL';
             const category = document.getElementById('filterCategorySelect')?.value || 'ALL';
             const sortBy = document.getElementById('sortInventorySelect')?.value || 'newest';
@@ -1133,7 +1276,17 @@
                 const itemCat = (item.categoryName || (item.productData && item.productData.categoryName) || '').toLowerCase();
                 const matchesCategory = (category === 'ALL') || (itemCat === category.toLowerCase());
 
-                return matchesQuery && matchesPlatform && matchesStatus && matchesCategory;
+                const isChina = itemPlatform.includes('temu') ||
+                                itemPlatform.includes('aliexpress') ||
+                                (item.originCountry && item.originCountry.toLowerCase() === 'china') ||
+                                (item.productData && (item.productData.isInternational || item.productData.originCountry === 'China' || (item.productData.shippingService && item.productData.shippingService.includes('OutsideUS')))) ||
+                                (item.sourceUrl && (item.sourceUrl.includes('temu.com') || item.sourceUrl.includes('aliexpress.com') || item.sourceUrl.includes('dhgate.com')));
+
+                let matchesOrigin = true;
+                if (origin === 'CHINA') matchesOrigin = isChina;
+                else if (origin === 'US') matchesOrigin = !isChina;
+
+                return matchesQuery && matchesPlatform && matchesStatus && matchesCategory && matchesOrigin;
             });
 
             // Sorting
@@ -1162,7 +1315,7 @@
             if (!items || items.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="9">
+                        <td colspan="10">
                             <div class="empty-state">
                                 <div class="empty-state-icon">📦</div>
                                 <h4>No Products Found</h4>
@@ -1175,6 +1328,7 @@
                         </td>
                     </tr>
                 `;
+                updateBulkActionBar();
                 return;
             }
 
@@ -1197,10 +1351,13 @@
                 let platformClass = 'badge-platform-manual';
                 const pLow = platform.toLowerCase();
                 if (pLow.includes('temu')) platformClass = 'badge-platform-temu';
+                else if (pLow.includes('aliexpress')) platformClass = 'badge-platform-aliexpress';
                 else if (pLow.includes('amazon')) platformClass = 'badge-platform-amazon';
                 else if (pLow.includes('ebay')) platformClass = 'badge-platform-ebay';
 
                 const isChina = pLow.includes('temu') ||
+                                pLow.includes('aliexpress') ||
+                                (item.originCountry && item.originCountry.toLowerCase() === 'china') ||
                                 (item.productData && (item.productData.isInternational || item.productData.originCountry === 'China' || (item.productData.shippingService && item.productData.shippingService.includes('OutsideUS')))) ||
                                 (item.sourceUrl && (item.sourceUrl.includes('temu.com') || item.sourceUrl.includes('aliexpress.com') || item.sourceUrl.includes('dhgate.com')));
 
@@ -1216,19 +1373,23 @@
                 const sourceUrl = item.sourceUrl || (item.productData && item.productData.url) || '';
                 const sourceId = item.sourceId || item.id;
                 const supplierLink = sourceUrl ? `<a href="${sourceUrl}" target="_blank" style="color: var(--primary); text-decoration: none;" title="Open on supplier site">🔗 Sourced</a>` : '';
+                const isSelected = selectedItemIds.has(String(item.id));
 
                 return `
-                    <tr>
+                    <tr style="${isSelected ? 'background: #f0f7ff;' : ''}">
+                        <td style="text-align: center;">
+                            <input type="checkbox" class="item-select-checkbox" data-id="${item.id}" ${isSelected ? 'checked' : ''} onchange="onItemCheckboxChange('${item.id}', this.checked)">
+                        </td>
                         <td>
                             <div class="photo-container" onclick="openQuickView('${item.id}')" style="cursor: pointer;" title="Click to view photos">
                                 ${img ? `
                                      <img src="${img}" alt="Product" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'no-photo-box\\'>📷<span>No Photo</span></div>';">
                                     ${imagesCount > 1 ? `<span class="photo-count-badge">📷 ${imagesCount}</span>` : ''}
                                 ` : `
-                                    <div class="no-photo-box">
-                                        <span style="font-size: 18px;">📷</span>
-                                        <span>No Photo</span>
-                                    </div>
+                                     <div class="no-photo-box">
+                                         <span style="font-size: 18px;">📷</span>
+                                         <span>No Photo</span>
+                                     </div>
                                 `}
                             </div>
                         </td>
@@ -1281,11 +1442,19 @@
                     </tr>
                 `;
             }).join('');
+
+            const allCbs = document.querySelectorAll('.item-select-checkbox');
+            const selectAllCb = document.getElementById('selectAllCheckbox');
+            if (selectAllCb) {
+                selectAllCb.checked = allCbs.length > 0 && Array.from(allCbs).every(cb => cb.checked);
+            }
+            updateBulkActionBar();
         }
 
         function resetFilters() {
             document.getElementById('inventorySearchInput').value = '';
             document.getElementById('filterPlatformSelect').value = 'ALL';
+            document.getElementById('filterOriginSelect').value = 'ALL';
             document.getElementById('filterStatusSelect').value = 'ALL';
             document.getElementById('filterCategorySelect').value = 'ALL';
             document.getElementById('sortInventorySelect').value = 'newest';
@@ -1645,6 +1814,7 @@
         // Search & Filter event listeners
         document.getElementById('inventorySearchInput')?.addEventListener('input', applyInventoryFilters);
         document.getElementById('filterPlatformSelect')?.addEventListener('change', applyInventoryFilters);
+        document.getElementById('filterOriginSelect')?.addEventListener('change', applyInventoryFilters);
         document.getElementById('filterStatusSelect')?.addEventListener('change', applyInventoryFilters);
         document.getElementById('filterCategorySelect')?.addEventListener('change', applyInventoryFilters);
         document.getElementById('sortInventorySelect')?.addEventListener('change', applyInventoryFilters);

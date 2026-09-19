@@ -95,6 +95,32 @@ function renderProductDataInPopup(data) {
         });
     }
 
+    // Logistics & Origin Detection (China / Temu / AliExpress vs US Domestic)
+    let logistics = { isInternational: false };
+    if (typeof ZonbayCleaner !== 'undefined' && typeof ZonbayCleaner.detectShippingLogistics === 'function') {
+        logistics = ZonbayCleaner.detectShippingLogistics(currentProduct);
+    }
+    currentProduct.isInternational = (data.isInternational !== undefined) ? data.isInternational : logistics.isInternational;
+    currentProduct.originCountry = data.originCountry || logistics.originCountry || 'US';
+    currentProduct.shippingService = currentProduct.shippingService || (currentProduct.isInternational ? 'StandardShippingFromOutsideUS' : 'USPSGroundAdvantage');
+    currentProduct.dispatchTimeMax = (currentProduct.dispatchTimeMax !== undefined) ? currentProduct.dispatchTimeMax : (currentProduct.isInternational ? 5 : 3);
+    currentProduct.location = currentProduct.location || (currentProduct.isInternational ? 'China' : 'United States');
+
+    const logisticsBox = document.getElementById('popupLogisticsBox');
+    if (logisticsBox) {
+        if (currentProduct.isInternational) {
+            logisticsBox.style.display = 'block';
+            const originTitle = document.getElementById('popupOriginTitle');
+            const originDesc = document.getElementById('popupOriginDesc');
+            const handlingBadge = document.getElementById('popupHandlingBadge');
+            if (originTitle) originTitle.innerText = `🇨🇳 ${logistics.originCountryName || 'Overseas Origin: China'}`;
+            if (handlingBadge) handlingBadge.innerText = `${logistics.handlingTimeDays || 5}d Handling`;
+            if (originDesc && logistics.warningMessage) originDesc.innerText = logistics.warningMessage;
+        } else {
+            logisticsBox.style.display = 'none';
+        }
+    }
+
     const preview = document.getElementById('productPreview');
     if (preview) preview.style.display = 'block';
 
@@ -169,8 +195,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 platEl.innerText = '🛍️ Temu detected';
                 const goodsMatch = url.match(/-g-(\d+)\.html/);
                 if (goodsMatch) idEl.innerText = `Goods: ${goodsMatch[1]}`;
+            } else if (url.includes('aliexpress.com') || url.includes('aliexpress.us')) {
+                platEl.innerText = '🔴 AliExpress detected';
+                const aliMatch = url.match(/item\/(\d+)\.html/i) || url.match(/[?&]itemId=(\d+)/i) || url.match(/\/(\d{10,})\.html/i);
+                if (aliMatch) idEl.innerText = `Item: ${aliMatch[1]}`;
             } else {
-                platEl.innerText = '🌐 Open Amazon or Temu product';
+                platEl.innerText = '🌐 Open Amazon, Temu, or AliExpress';
                 idEl.innerText = '';
             }
         }
@@ -194,6 +224,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (url.includes('temu.com')) {
                 extractorFunc = extractTemuProduct;
+            } else if (url.includes('aliexpress.com') || url.includes('aliexpress.us')) {
+                extractorFunc = extractAliExpressProduct;
             } else {
                 extractorFunc = extractAmazonProduct; // default Amazon
             }
