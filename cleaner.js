@@ -293,13 +293,17 @@
             source === 'temu' ||
             source === 'aliexpress' ||
             source === 'dhgate' ||
+            source === 'cjdropshipping' ||
+            source.includes('cj drop') ||
             source === 'shein' ||
             source === 'taobao' ||
             source === '1688' ||
             source === 'alibaba' ||
             url.includes('temu.com') ||
             url.includes('aliexpress.com') ||
+            url.includes('aliexpress.us') ||
             url.includes('dhgate.com') ||
+            url.includes('cjdropshipping.com') ||
             url.includes('shein.com') ||
             url.includes('taobao.com') ||
             url.includes('1688.com') ||
@@ -310,10 +314,11 @@
         );
 
         if (isChinaSupplier) {
+            const supplierLabel = product.sourcePlatform || product.source || 'China / Overseas';
             return {
                 isInternational: true,
                 originCountry: 'China',
-                originCountryName: 'China (Overseas Supplier)',
+                originCountryName: `China (${supplierLabel})`,
                 handlingTimeDays: 5,
                 shippingService: 'StandardShippingFromOutsideUS',
                 shippingServiceName: 'Standard Shipping from Outside US (7-19 business days)',
@@ -322,7 +327,7 @@
                 shippingType: 'Flat',
                 estimatedTransitDaysMin: 7,
                 estimatedTransitDaysMax: 19,
-                warningMessage: 'International Origin Detected: Shipping from China (Temu / Supplier). Extended handling time (5 business days) and outside-US shipping service have been auto-applied to prevent eBay late-delivery defects and comply with Item Location policy.'
+                warningMessage: `International Origin Detected: Shipping from overseas supplier (${supplierLabel}). Extended handling time (5 business days) and outside-US shipping service have been auto-applied to prevent eBay late-delivery defects and comply with Item Location policy.`
             };
         }
 

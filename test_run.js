@@ -527,6 +527,58 @@ ${uniqueRfcId},"Impact Driver, 20V Cordless ""Pro Edition""",${uniqueRfcSku},79.
         const deletedCheck2 = await axios.get(`${baseUrl}/api/inventory/${bulkId2}`).catch(e => e.response);
         assert("Deleted bulk items return 404", deletedCheck1.status === 404 && deletedCheck2.status === 404);
 
+        // Test 36: Walmart Extractor Module & Domestic Logistics
+        const { extractWalmartProduct } = require('./extractors/walmart');
+        assert("Walmart extractor exports extractWalmartProduct function", typeof extractWalmartProduct === 'function');
+        const wmtLogistics = detectShippingLogistics({
+            source: 'walmart',
+            sourcePlatform: 'Walmart',
+            url: 'https://www.walmart.com/ip/Dewalt-20V-Max-Cordless-Drill-Driver-Kit/12345678'
+        });
+        assert("Walmart shipping logistics detected as Domestic US", wmtLogistics.isInternational === false);
+        assert("Walmart item location defaulted to United States", wmtLogistics.itemLocation === 'United States');
+        assert("Walmart handling time set to 3 days", wmtLogistics.handlingTimeDays === 3);
+        assert("Walmart shipping service set to USPS Ground Advantage", wmtLogistics.shippingService === 'USPSGroundAdvantage');
+
+        // Test 37: Home Depot Extractor Module & Domestic Logistics
+        const { extractHomeDepotProduct } = require('./extractors/homedepot');
+        assert("Home Depot extractor exports extractHomeDepotProduct function", typeof extractHomeDepotProduct === 'function');
+        const hdLogistics = detectShippingLogistics({
+            source: 'homedepot',
+            sourcePlatform: 'Home Depot',
+            url: 'https://www.homedepot.com/p/Milwaukee-M18-Cordless-Brushless-Drill/987654321'
+        });
+        assert("Home Depot shipping logistics detected as Domestic US", hdLogistics.isInternational === false);
+        assert("Home Depot item location defaulted to United States", hdLogistics.itemLocation === 'United States');
+        assert("Home Depot handling time set to 3 days", hdLogistics.handlingTimeDays === 3);
+        assert("Home Depot shipping service set to USPS Ground Advantage", hdLogistics.shippingService === 'USPSGroundAdvantage');
+
+        // Test 38: DHgate Extractor Module & International Logistics
+        const { extractDHgateProduct } = require('./extractors/dhgate');
+        assert("DHgate extractor exports extractDHgateProduct function", typeof extractDHgateProduct === 'function');
+        const dhLogistics = detectShippingLogistics({
+            source: 'dhgate',
+            sourcePlatform: 'DHgate',
+            url: 'https://www.dhgate.com/product/wholesale-rgb-led-strip-light/567891234.html'
+        });
+        assert("DHgate shipping logistics detected as International", dhLogistics.isInternational === true);
+        assert("DHgate item location defaulted to China", dhLogistics.itemLocation === 'China');
+        assert("DHgate handling time defaulted to 5 days", dhLogistics.handlingTimeDays === 5);
+        assert("DHgate shipping service set to StandardShippingFromOutsideUS", dhLogistics.shippingService === 'StandardShippingFromOutsideUS');
+
+        // Test 39: CJ Dropshipping Extractor Module & International Logistics
+        const { extractCJDropshippingProduct } = require('./extractors/cjdropshipping');
+        assert("CJ Dropshipping extractor exports extractCJDropshippingProduct function", typeof extractCJDropshippingProduct === 'function');
+        const cjLogistics = detectShippingLogistics({
+            source: 'cjdropshipping',
+            sourcePlatform: 'CJ Dropshipping',
+            url: 'https://cjdropshipping.com/product-detail/smart-fitness-tracker-watch?pid=cjd-102938475'
+        });
+        assert("CJ Dropshipping shipping logistics detected as International", cjLogistics.isInternational === true);
+        assert("CJ Dropshipping item location defaulted to China", cjLogistics.itemLocation === 'China');
+        assert("CJ Dropshipping handling time defaulted to 5 days", cjLogistics.handlingTimeDays === 5);
+        assert("CJ Dropshipping shipping service set to StandardShippingFromOutsideUS", cjLogistics.shippingService === 'StandardShippingFromOutsideUS');
+
         // Cleanup
         await axios.delete(`${baseUrl}/api/inventory/RUN-TEST-001`).catch(() => {});
         await axios.delete(`${baseUrl}/api/inventory/${uniqueRfcId}`).catch(() => {});

@@ -491,6 +491,26 @@
             color: #b91c1c;
             border: 1px solid #fee2e2;
         }
+        .badge-platform-walmart {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+        }
+        .badge-platform-homedepot {
+            background: #fff7ed;
+            color: #c2410c;
+            border: 1px solid #fed7aa;
+        }
+        .badge-platform-dhgate {
+            background: #fdf2f8;
+            color: #be185d;
+            border: 1px solid #fbcfe8;
+        }
+        .badge-platform-cjdropshipping {
+            background: #faf5ff;
+            color: #7e22ce;
+            border: 1px solid #f3e8ff;
+        }
         .badge-platform-amazon {
             background: #fffbeb;
             color: #b45309;
@@ -799,9 +819,13 @@
                         </div>
                         <select id="filterPlatformSelect">
                             <option value="ALL">🌐 All Platforms</option>
+                            <option value="Amazon">🔶 Amazon</option>
+                            <option value="Walmart">🟦 Walmart</option>
+                            <option value="Home Depot">🟧 Home Depot</option>
                             <option value="Temu">🟠 Temu</option>
                             <option value="AliExpress">🔴 AliExpress</option>
-                            <option value="Amazon">🔶 Amazon</option>
+                            <option value="DHgate">🏮 DHgate</option>
+                            <option value="CJ Dropshipping">📦 CJ Dropshipping</option>
                             <option value="eBay Store">🔵 eBay Store</option>
                             <option value="Manual Entry">✍️ Manual Entry</option>
                         </select>
@@ -1278,9 +1302,13 @@
 
                 const isChina = itemPlatform.includes('temu') ||
                                 itemPlatform.includes('aliexpress') ||
+                                itemPlatform.includes('dhgate') ||
+                                itemPlatform.includes('cj drop') ||
+                                itemPlatform.includes('cjdropshipping') ||
+                                itemPlatform.includes('shein') ||
                                 (item.originCountry && item.originCountry.toLowerCase() === 'china') ||
                                 (item.productData && (item.productData.isInternational || item.productData.originCountry === 'China' || (item.productData.shippingService && item.productData.shippingService.includes('OutsideUS')))) ||
-                                (item.sourceUrl && (item.sourceUrl.includes('temu.com') || item.sourceUrl.includes('aliexpress.com') || item.sourceUrl.includes('dhgate.com')));
+                                (item.sourceUrl && (item.sourceUrl.includes('temu.com') || item.sourceUrl.includes('aliexpress.com') || item.sourceUrl.includes('dhgate.com') || item.sourceUrl.includes('cjdropshipping.com') || item.sourceUrl.includes('shein.com')));
 
                 let matchesOrigin = true;
                 if (origin === 'CHINA') matchesOrigin = isChina;
@@ -1352,14 +1380,22 @@
                 const pLow = platform.toLowerCase();
                 if (pLow.includes('temu')) platformClass = 'badge-platform-temu';
                 else if (pLow.includes('aliexpress')) platformClass = 'badge-platform-aliexpress';
+                else if (pLow.includes('walmart')) platformClass = 'badge-platform-walmart';
+                else if (pLow.includes('home depot') || pLow.includes('homedepot')) platformClass = 'badge-platform-homedepot';
+                else if (pLow.includes('dhgate')) platformClass = 'badge-platform-dhgate';
+                else if (pLow.includes('cj drop') || pLow.includes('cjdropshipping')) platformClass = 'badge-platform-cjdropshipping';
                 else if (pLow.includes('amazon')) platformClass = 'badge-platform-amazon';
                 else if (pLow.includes('ebay')) platformClass = 'badge-platform-ebay';
 
                 const isChina = pLow.includes('temu') ||
                                 pLow.includes('aliexpress') ||
+                                pLow.includes('dhgate') ||
+                                pLow.includes('cj drop') ||
+                                pLow.includes('cjdropshipping') ||
+                                pLow.includes('shein') ||
                                 (item.originCountry && item.originCountry.toLowerCase() === 'china') ||
                                 (item.productData && (item.productData.isInternational || item.productData.originCountry === 'China' || (item.productData.shippingService && item.productData.shippingService.includes('OutsideUS')))) ||
-                                (item.sourceUrl && (item.sourceUrl.includes('temu.com') || item.sourceUrl.includes('aliexpress.com') || item.sourceUrl.includes('dhgate.com')));
+                                (item.sourceUrl && (item.sourceUrl.includes('temu.com') || item.sourceUrl.includes('aliexpress.com') || item.sourceUrl.includes('dhgate.com') || item.sourceUrl.includes('cjdropshipping.com') || item.sourceUrl.includes('shein.com')));
 
                 const originBadge = isChina
                     ? `<span class="pill-chip" style="background:#fff7ed; color:#c2410c; border:1px solid #fed7aa; margin-top:4px; font-size:10.5px; display:inline-flex;" title="Extended transit (7-19d) - 5d handling">🇨🇳 China Int'l</span>`

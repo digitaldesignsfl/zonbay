@@ -11,9 +11,13 @@
   ],
   "host_permissions": [
     "*://*.amazon.com/*",
+    "*://*.walmart.com/*",
+    "*://*.homedepot.com/*",
     "*://*.temu.com/*",
     "*://*.aliexpress.com/*",
     "*://*.aliexpress.us/*",
+    "*://*.dhgate.com/*",
+    "*://*.cjdropshipping.com/*",
     "*://*.ebay.com/*",
     "http://localhost:3000/*"
   ],

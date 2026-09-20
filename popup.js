@@ -191,6 +191,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 platEl.innerText = '🛒 Amazon detected';
                 const asinMatch = url.match(/(?:dp|gp\/product|product)\/([A-Z0-9]{10})/i);
                 if (asinMatch) idEl.innerText = `ASIN: ${asinMatch[1].toUpperCase()}`;
+            } else if (url.includes('walmart.com')) {
+                platEl.innerText = '🟦 Walmart detected';
+                const wmtMatch = url.match(/\/ip\/(?:[^\/]+\/)?(\d+)/i) || url.match(/[?&]id=(\d+)/i);
+                if (wmtMatch) idEl.innerText = `Item: ${wmtMatch[1]}`;
+            } else if (url.includes('homedepot.com')) {
+                platEl.innerText = '🟧 Home Depot detected';
+                const hdMatch = url.match(/\/p\/(?:[^\/]+\/)?(\d+)/i) || url.match(/[?&]id=(\d+)/i);
+                if (hdMatch) idEl.innerText = `Item: ${hdMatch[1]}`;
             } else if (url.includes('temu.com')) {
                 platEl.innerText = '🛍️ Temu detected';
                 const goodsMatch = url.match(/-g-(\d+)\.html/);
@@ -199,8 +207,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 platEl.innerText = '🔴 AliExpress detected';
                 const aliMatch = url.match(/item\/(\d+)\.html/i) || url.match(/[?&]itemId=(\d+)/i) || url.match(/\/(\d{10,})\.html/i);
                 if (aliMatch) idEl.innerText = `Item: ${aliMatch[1]}`;
+            } else if (url.includes('dhgate.com')) {
+                platEl.innerText = '🏮 DHgate detected';
+                const dhMatch = url.match(/product\/[^\/]+\/(\d+)\.html/i) || url.match(/\/(\d{8,})\.html/i) || url.match(/[?&]itemcode=(\d+)/i);
+                if (dhMatch) idEl.innerText = `Code: ${dhMatch[1]}`;
+            } else if (url.includes('cjdropshipping.com')) {
+                platEl.innerText = '📦 CJ Dropshipping detected';
+                const cjMatch = url.match(/[?&]pid=([a-zA-Z0-9-]+)/i) || url.match(/product-detail\/([a-zA-Z0-9-]+)/i);
+                if (cjMatch) idEl.innerText = `PID: ${cjMatch[1]}`;
             } else {
-                platEl.innerText = '🌐 Open Amazon, Temu, or AliExpress';
+                platEl.innerText = '🌐 Open Amazon, Walmart, Home Depot, Temu, AliExpress, DHgate, or CJ';
                 idEl.innerText = '';
             }
         }
@@ -226,6 +242,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 extractorFunc = extractTemuProduct;
             } else if (url.includes('aliexpress.com') || url.includes('aliexpress.us')) {
                 extractorFunc = extractAliExpressProduct;
+            } else if (url.includes('walmart.com')) {
+                extractorFunc = extractWalmartProduct;
+            } else if (url.includes('homedepot.com')) {
+                extractorFunc = extractHomeDepotProduct;
+            } else if (url.includes('dhgate.com')) {
+                extractorFunc = extractDHgateProduct;
+            } else if (url.includes('cjdropshipping.com')) {
+                extractorFunc = extractCJDropshippingProduct;
             } else {
                 extractorFunc = extractAmazonProduct; // default Amazon
             }
