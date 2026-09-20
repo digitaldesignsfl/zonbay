@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "test": "node test_run.js",
+    "test:verify": "node test_verification_suite.js",
     "optimize": "node optimize.js",
     "upload-images": "node upload-images.js"
   },

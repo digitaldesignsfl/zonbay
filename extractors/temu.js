@@ -61,7 +61,7 @@ function extractTemuProduct() {
         if (!src || typeof src !== 'string') return '';
         // Upgrade webp/downscaled thumbnails to higher resolution if formatted with imageView2
         if (src.includes('imageView2')) {
-            return src.replace(/imageView2\/\d\/[wh]\/\d+/gi, 'imageView2/2/w/1000/q/90/format/jpg');
+            return src.replace(/imageView2\/.*$/i, 'imageView2/2/w/1000/q/90/format/jpg');
         }
         return src;
     }

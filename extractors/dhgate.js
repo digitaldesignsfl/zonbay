@@ -124,6 +124,19 @@ function extractDHgateProduct() {
         }
     });
 
+    if (images.length < 2) {
+        const fallbackImgs = document.querySelectorAll('img[src*="dhgate.com"], img[src*="dhresource.com"]');
+        fallbackImgs.forEach(img => {
+            const src = img.getAttribute('data-src') || img.getAttribute('src');
+            if (src && !isJunkOrUnrelated(img, src)) {
+                const hiRes = cleanDHgateImg(src);
+                if (hiRes && !images.includes(hiRes)) {
+                    images.push(hiRes);
+                }
+            }
+        });
+    }
+
     // 6. Product Specs & Properties
     const productSpecs = {
         'Brand': brand,

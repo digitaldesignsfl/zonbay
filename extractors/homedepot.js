@@ -121,6 +121,19 @@ function extractHomeDepotProduct() {
         }
     });
 
+    if (images.length < 2) {
+        const fallbackImgs = document.querySelectorAll('img[src*="thdstatic.com"], img[data-src*="thdstatic.com"]');
+        fallbackImgs.forEach(img => {
+            const src = img.getAttribute('src') || img.getAttribute('data-src');
+            if (src && !isJunkOrUnrelated(img, src)) {
+                const hiRes = cleanHomeDepotImg(src);
+                if (hiRes && !images.includes(hiRes)) {
+                    images.push(hiRes);
+                }
+            }
+        });
+    }
+
     // 6. Product Specs & Features Table
     const productSpecs = {
         'Brand': brand,

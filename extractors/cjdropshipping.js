@@ -122,6 +122,19 @@ function extractCJDropshippingProduct() {
         }
     });
 
+    if (images.length < 2) {
+        const fallbackImgs = document.querySelectorAll('img[src*="wshoto.com"], img[src*="cjdropshipping.com"], img[src*="aliyuncs.com"]');
+        fallbackImgs.forEach(img => {
+            const src = img.getAttribute('data-src') || img.getAttribute('src');
+            if (src && !isJunkOrUnrelated(img, src)) {
+                const hiRes = cleanCJImg(src);
+                if (hiRes && !images.includes(hiRes)) {
+                    images.push(hiRes);
+                }
+            }
+        });
+    }
+
     // 6. Product Specs & Properties
     const productSpecs = {
         'Brand': brand,
