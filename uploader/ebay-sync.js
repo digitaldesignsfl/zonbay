@@ -158,6 +158,42 @@
         return listings;
     }
 
+    async function transmitListingsToDatabase(listings) {
+        // Method 1: Try extension background service worker (avoids Chrome Private Network Access prompt on ebay.com)
+        if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+            try {
+                const response = await new Promise((resolve, reject) => {
+                    chrome.runtime.sendMessage({ action: 'SYNC_EBAY_LISTINGS', listings }, res => {
+                        if (chrome.runtime.lastError) {
+                            return reject(new Error(chrome.runtime.lastError.message));
+                        }
+                        if (res && res.success) {
+                            return resolve(res.data);
+                        }
+                        return reject(new Error(res?.error || 'Background sync failed'));
+                    });
+                });
+                return response;
+            } catch (bgErr) {
+                console.warn('[Zonbay] Background worker sync fallback:', bgErr.message);
+            }
+        }
+
+        // Method 2: Fallback to direct HTTP fetch
+        const res = await fetch('http://localhost:3000/api/inventory/sync-ebay', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ listings })
+        });
+
+        if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.error || `Server responded with status ${res.status}`);
+        }
+
+        return await res.json();
+    }
+
     async function syncAllListingsToLocalDatabase() {
         const btn = document.getElementById('zonbay-trigger-sync-btn');
         const statusEl = document.getElementById('zonbay-sync-status');
@@ -190,18 +226,8 @@
         try {
             if (statusEl) statusEl.innerText = `Transmitting ${listings.length} listings to Zonbay Base...`;
 
-            const res = await fetch('http://localhost:3000/api/inventory/sync-ebay', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ listings })
-            });
+            const data = await transmitListingsToDatabase(listings);
 
-            if (!res.ok) {
-                const errData = await res.json().catch(() => ({}));
-                throw new Error(errData.error || `Server responded with status ${res.status}`);
-            }
-
-            const data = await res.json();
             if (statusEl) {
                 statusEl.style.background = '#d4edda';
                 statusEl.style.color = '#155724';
@@ -217,7 +243,7 @@
             if (statusEl) {
                 statusEl.style.background = '#f8d7da';
                 statusEl.style.color = '#721c24';
-                statusEl.innerText = `Error: ${err.message}. Ensure 'node server.js' is running on port 3000.`;
+                statusEl.innerText = `Error: ${err.message}. If prompted by Chrome, click 'Allow' to connect with local server.`;
             }
             if (btn) {
                 btn.disabled = false;
