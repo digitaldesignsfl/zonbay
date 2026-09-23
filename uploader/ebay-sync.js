@@ -71,46 +71,90 @@
         const rows = Array.from(document.querySelectorAll('tbody tr, div[role="row"], .sh-table__row, .table-row'));
 
         rows.forEach((row) => {
-            const link = row.querySelector('a[href*="/itm/"]');
-            if (!link) return;
+            const itmLinks = Array.from(row.querySelectorAll('a[href*="/itm/"], a[href*="ebay.com/itm"]'));
+            
+            // Extract item ID
+            let itemId = '';
+            for (const l of itmLinks) {
+                const href = l.getAttribute('href') || '';
+                const m = href.match(/\/itm\/(?:[^\/]+\/)?(\d+)/);
+                if (m && m[1]) {
+                    itemId = m[1];
+                    break;
+                }
+            }
+            if (!itemId) {
+                const textMatch = row.innerText.match(/\b(1\d{11})\b/);
+                if (textMatch) itemId = textMatch[1];
+            }
+            if (!itemId || listings.some(l => l.itemId === itemId)) return;
 
-            const href = link.getAttribute('href') || '';
-            const idMatch = href.match(/\/itm\/(?:[^\/]+\/)?(\d+)/);
-            if (!idMatch || !idMatch[1]) return;
-
-            const itemId = idMatch[1];
-            if (listings.some(l => l.itemId === itemId)) return;
-
-            const title = (link.innerText || link.getAttribute('title') || '').trim();
-            if (!title) return;
-
-            let price = '0.00';
-            const priceEl = row.querySelector('.item-price, [class*="price"], .grid-price, span[class*="price"]');
-            if (priceEl) {
-                const match = priceEl.innerText.replace(/,/g, '').match(/\$?([0-9]+\.[0-9]{2})/);
-                if (match) price = match[1];
-            } else {
-                const textMatch = row.innerText.replace(/,/g, '').match(/\$([0-9]+\.[0-9]{2})/);
-                if (textMatch) price = textMatch[1];
+            // Extract Title: Look for a link with substantive text
+            let title = '';
+            for (const l of itmLinks) {
+                const txt = (l.innerText || '').trim();
+                if (txt && txt.length > 5 && !txt.match(/^(edit|sell similar|view|promoted|research prices|buy it now)$/i)) {
+                    title = txt.replace(/\s+/g, ' ').trim();
+                    break;
+                }
+            }
+            if (!title) {
+                const rowLinks = Array.from(row.querySelectorAll('a'));
+                for (const l of rowLinks) {
+                    const txt = (l.innerText || '').trim();
+                    if (txt && txt.length > 10 && !txt.match(/^(edit|sell similar|view|promoted|research prices|more)$/i)) {
+                        title = txt.replace(/\s+/g, ' ').trim();
+                        break;
+                    }
+                }
+            }
+            if (!title) {
+                const titleCandidate = row.querySelector('[data-column="title"], .item-title, .title, [class*="itemTitle"], [class*="item-title"]');
+                if (titleCandidate) {
+                    const txt = titleCandidate.innerText.replace(/\s+/g, ' ').trim();
+                    if (txt.length > 5) title = txt;
+                }
+            }
+            if (!title) {
+                title = `eBay Item #${itemId}`;
             }
 
+            // Extract Image
+            let imageUrl = '';
+            const img = row.querySelector('img[src*="i.ebayimg.com"], img[src*="ebayimg"], img');
+            if (img) {
+                imageUrl = img.getAttribute('src') || img.getAttribute('data-src') || '';
+                if (imageUrl) {
+                    imageUrl = imageUrl.replace(/s-l\d+\.(?:jpg|png|webp)/i, 's-l500.jpg');
+                }
+            }
+
+            // Extract Price
+            let price = '0.00';
+            const priceEl = row.querySelector('[data-column="currentPrice"], [data-column="price"], .item-price, [class*="price"], .sh-table__cell--price');
+            if (priceEl) {
+                const m = priceEl.innerText.replace(/,/g, '').match(/\$?\s*([0-9]+\.[0-9]{2})/);
+                if (m) price = m[1];
+            }
+            if (price === '0.00') {
+                const m = row.innerText.replace(/,/g, '').match(/\$\s*([0-9]+\.[0-9]{2})/);
+                if (m) price = m[1];
+            }
+
+            // Extract Quantity
             let quantity = 1;
-            const qtyEl = row.querySelector('.item-quantity, [class*="quantity"], [data-column="quantity"]');
+            const qtyEl = row.querySelector('[data-column="availableQuantity"], [data-column="quantity"], .item-quantity, [class*="quantity"]');
             if (qtyEl) {
                 const qMatch = qtyEl.innerText.match(/\b([0-9]+)\b/);
                 if (qMatch) quantity = parseInt(qMatch[1], 10);
             }
 
+            // Extract SKU / Custom Label
             let sku = itemId;
-            const skuEl = row.querySelector('.item-sku, [class*="sku"], [class*="custom-label"], [data-column="customLabel"]');
+            const skuEl = row.querySelector('[data-column="customLabel"], [data-column="sku"], .item-sku, [class*="custom-label"], [class*="sku"]');
             if (skuEl && skuEl.innerText.trim()) {
-                sku = skuEl.innerText.trim();
-            }
-
-            let imageUrl = '';
-            const img = row.querySelector('img[src*="i.ebayimg.com"], img');
-            if (img) {
-                imageUrl = img.getAttribute('src') || '';
+                const s = skuEl.innerText.replace(/Custom label:\s*/i, '').trim();
+                if (s) sku = s;
             }
 
             listings.push({
@@ -136,20 +180,44 @@
                 if (match && match[1]) {
                     const itemId = match[1];
                     if (!listings.some(l => l.itemId === itemId)) {
-                        const title = (link.innerText || link.getAttribute('title') || `eBay Item #${itemId}`).trim();
-                        if (title.length > 5) {
-                            listings.push({
-                                itemId,
-                                title,
-                                price: '0.00',
-                                quantity: 1,
-                                sku: itemId,
-                                itemUrl: `https://www.ebay.com/itm/${itemId}`,
-                                sourcePlatform: 'eBay Store',
-                                sellingPlatform: 'eBay',
-                                status: 'LIVE_ON_EBAY'
-                            });
+                        const container = link.closest('tr, div[role="row"], li, [class*="row"]') || link.parentElement;
+                        let title = (link.innerText || '').trim();
+                        let price = '0.00';
+                        let imageUrl = '';
+
+                        if (container) {
+                            if (!title || title.length < 5) {
+                                const containerLinks = Array.from(container.querySelectorAll('a'));
+                                for (const cl of containerLinks) {
+                                    const t = (cl.innerText || '').trim();
+                                    if (t && t.length > 5 && !t.match(/^(edit|view)$/i)) {
+                                        title = t;
+                                        break;
+                                    }
+                                }
+                            }
+                            const pm = container.innerText.replace(/,/g, '').match(/\$\s*([0-9]+\.[0-9]{2})/);
+                            if (pm) price = pm[1];
+                            const cImg = container.querySelector('img');
+                            if (cImg) imageUrl = cImg.getAttribute('src') || '';
                         }
+
+                        if (!title || title.length < 3) {
+                            title = link.getAttribute('title') || `eBay Item #${itemId}`;
+                        }
+
+                        listings.push({
+                            itemId,
+                            title,
+                            price,
+                            quantity: 1,
+                            sku: itemId,
+                            imageUrl,
+                            itemUrl: `https://www.ebay.com/itm/${itemId}`,
+                            sourcePlatform: 'eBay Store',
+                            sellingPlatform: 'eBay',
+                            status: 'LIVE_ON_EBAY'
+                        });
                     }
                 }
             });
