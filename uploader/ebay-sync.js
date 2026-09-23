@@ -64,99 +64,231 @@
         });
     }
 
+    function findListingContainers() {
+        const containers = [];
+
+        // Strategy 1: Table rows in tbody or table (excluding header thead / th)
+        const trs = Array.from(document.querySelectorAll('table tbody tr, table tr, [role="row"], .sh-table__row'));
+        for (const tr of trs) {
+            if (tr.querySelector('th') || tr.closest('thead')) continue;
+            const text = tr.innerText || '';
+            const hasItm = tr.querySelector('a[href*="/itm/"], a[href*="ebay.com/itm"]');
+            const has12Digits = /\b[0-9]{12}\b/.test(text);
+            const hasCheckbox = tr.querySelector('input[type="checkbox"]');
+            if (hasItm || (has12Digits && (tr.querySelectorAll('td, [role="cell"]').length >= 2 || text.includes('$')))) {
+                containers.push(tr);
+            }
+        }
+        if (containers.length > 0) return containers;
+
+        // Strategy 2: Upward traversal from /itm/ links or 12-digit listing IDs
+        const itemAnchors = Array.from(document.querySelectorAll('a[href*="/itm/"]'));
+        const seen = new Set();
+        for (const a of itemAnchors) {
+            let curr = a.parentElement;
+            let bestContainer = null;
+            while (curr && curr !== document.body && curr !== document.documentElement) {
+                if (curr.tagName === 'TR' || curr.getAttribute('role') === 'row') {
+                    bestContainer = curr;
+                    break;
+                }
+                const text = curr.innerText || '';
+                if (/\$\s*[0-9]+(?:\.[0-9]{2})?/.test(text) && curr.querySelectorAll('a, button, img').length >= 3) {
+                    bestContainer = curr;
+                }
+                curr = curr.parentElement;
+            }
+            if (bestContainer && !seen.has(bestContainer)) {
+                seen.add(bestContainer);
+                containers.push(bestContainer);
+            }
+        }
+        return containers;
+    }
+
     function extractActiveListingsFromPage() {
         const listings = [];
+        const seenItemIds = new Set();
+        const containers = findListingContainers();
 
-        // 1. Check Seller Hub standard table rows
-        const rows = Array.from(document.querySelectorAll('tbody tr, div[role="row"], .sh-table__row, .table-row'));
-
-        rows.forEach((row) => {
-            const itmLinks = Array.from(row.querySelectorAll('a[href*="/itm/"], a[href*="ebay.com/itm"]'));
-            
-            // Extract item ID
+        containers.forEach((container) => {
+            // 1. Extract Item ID
             let itemId = '';
-            for (const l of itmLinks) {
-                const href = l.getAttribute('href') || '';
-                const m = href.match(/\/itm\/(?:[^\/]+\/)?(\d+)/);
-                if (m && m[1]) {
-                    itemId = m[1];
-                    break;
-                }
-            }
-            if (!itemId) {
-                const textMatch = row.innerText.match(/\b(1\d{11})\b/);
-                if (textMatch) itemId = textMatch[1];
-            }
-            if (!itemId || listings.some(l => l.itemId === itemId)) return;
 
-            // Extract Title: Look for a link with substantive text
-            let title = '';
-            for (const l of itmLinks) {
-                const txt = (l.innerText || '').trim();
-                if (txt && txt.length > 5 && !txt.match(/^(edit|sell similar|view|promoted|research prices|buy it now)$/i)) {
-                    title = txt.replace(/\s+/g, ' ').trim();
-                    break;
+            // Checkbox value or data attribute
+            const cb = container.querySelector('input[type="checkbox"]');
+            if (cb) {
+                const val = (cb.value || '').trim();
+                if (/^[0-9]{12}$/.test(val)) itemId = val;
+                if (!itemId) {
+                    const dId = cb.getAttribute('data-listing-id') || cb.getAttribute('data-item-id') || cb.getAttribute('data-id');
+                    if (dId && /^[0-9]{12}$/.test(dId)) itemId = dId;
                 }
             }
-            if (!title) {
-                const rowLinks = Array.from(row.querySelectorAll('a'));
-                for (const l of rowLinks) {
-                    const txt = (l.innerText || '').trim();
-                    if (txt && txt.length > 10 && !txt.match(/^(edit|sell similar|view|promoted|research prices|more)$/i)) {
-                        title = txt.replace(/\s+/g, ' ').trim();
+
+            // /itm/ links in row
+            if (!itemId) {
+                const itmLinks = Array.from(container.querySelectorAll('a[href*="/itm/"], a[href*="ebay.com/itm"]'));
+                for (const l of itmLinks) {
+                    const href = l.getAttribute('href') || '';
+                    const m = href.match(/\/itm\/(?:[^\/]+\/)?(\d{10,14})/);
+                    if (m && m[1]) {
+                        itemId = m[1];
                         break;
                     }
                 }
             }
-            if (!title) {
-                const titleCandidate = row.querySelector('[data-column="title"], .item-title, .title, [class*="itemTitle"], [class*="item-title"]');
-                if (titleCandidate) {
-                    const txt = titleCandidate.innerText.replace(/\s+/g, ' ').trim();
-                    if (txt.length > 5) title = txt;
+
+            // Regex from text (eBay listing IDs are 12 digits, often shown after '·')
+            if (!itemId) {
+                const textMatch = container.innerText.match(/\b([0-9]{12})\b/);
+                if (textMatch) itemId = textMatch[1];
+            }
+
+            if (!itemId || seenItemIds.has(itemId)) return;
+
+            // 2. Extract Product Title
+            let title = '';
+            const titleCandidates = [];
+
+            // A. Anchors in container with substantive text
+            const links = Array.from(container.querySelectorAll('a'));
+            for (const a of links) {
+                const txt = (a.innerText || '').replace(/\s+/g, ' ').trim();
+                if (!txt || txt.length < 8) continue;
+                // Exclude pure numbers, item ID, and system buttons
+                if (/^[0-9\s·.-]+$/.test(txt)) continue;
+                if (/^(edit|sell similar|view|promoted|research prices|buy it now|actions|more|send offers|status|customize table|all filters|eligible)$/i.test(txt)) continue;
+                titleCandidates.push({ text: txt, priority: a.getAttribute('href')?.includes('/itm/') ? 100 : 50 });
+            }
+
+            // B. Specific item title selectors
+            const titleEl = container.querySelector('[data-column="title"], [data-column="item"], .item-title, .title, [class*="itemTitle"], [class*="item-title"], .sh-table__cell--item, .sh-item-title');
+            if (titleEl) {
+                // If titleEl contains child anchors, extract text from non-action children
+                const cleanTxt = titleEl.innerText.split('\n')
+                    .map(l => l.trim())
+                    .filter(l => l.length >= 8 && !/^[0-9\s·.-]+$/.test(l) && !/^(buy it now|auction|edit|sell similar|promoted|research)/i.test(l))
+                    .join(' ')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+                if (cleanTxt && cleanTxt.length >= 8) {
+                    titleCandidates.push({ text: cleanTxt, priority: 80 });
                 }
             }
+
+            // Pick the best candidate (highest priority then longest length)
+            if (titleCandidates.length > 0) {
+                titleCandidates.sort((a, b) => (b.priority - a.priority) || (b.text.length - a.text.length));
+                title = titleCandidates[0].text;
+            }
+
+            // C. Fallback: Parse substantive lines from container text before the item ID
+            if (!title) {
+                const lines = container.innerText.split('\n')
+                    .map(l => l.trim())
+                    .filter(l => l.length >= 8 && !/^[0-9\s·.-]+$/.test(l) && !/^(edit|sell similar|promoted|buy it now|current price|\$|actions)/i.test(l));
+                if (lines.length > 0) {
+                    title = lines[0];
+                }
+            }
+
             if (!title) {
                 title = `eBay Item #${itemId}`;
             }
 
-            // Extract Image
+            // 3. Extract High-Resolution Product Image
             let imageUrl = '';
-            const img = row.querySelector('img[src*="i.ebayimg.com"], img[src*="ebayimg"], img');
-            if (img) {
-                imageUrl = img.getAttribute('src') || img.getAttribute('data-src') || '';
-                if (imageUrl) {
-                    imageUrl = imageUrl.replace(/s-l\d+\.(?:jpg|png|webp)/i, 's-l500.jpg');
+            const imgs = Array.from(container.querySelectorAll('img'));
+            for (const img of imgs) {
+                const candidates = [
+                    img.currentSrc,
+                    img.getAttribute('src'),
+                    img.getAttribute('data-src'),
+                    img.getAttribute('data-lazy-src'),
+                    img.getAttribute('data-highres'),
+                    img.src
+                ].filter(Boolean);
+
+                // Handle srcset if present
+                const srcset = img.getAttribute('srcset');
+                if (srcset) {
+                    const setUrls = srcset.split(',').map(s => s.trim().split(/\s+/)[0]).filter(Boolean);
+                    candidates.push(...setUrls);
+                }
+
+                for (let u of candidates) {
+                    if (!u) continue;
+                    // Ignore spacer gifs, data SVGs, icons, and loaders
+                    if (u.includes('s_1x2.gif') || u.includes('blank.gif') || u.includes('spacer.gif') || u.startsWith('data:image') || u.includes('/cr/v/c1/')) {
+                        continue;
+                    }
+                    if (u.startsWith('//')) u = 'https:' + u;
+                    // Upgrade thumbnail to 500px high-res master asset
+                    u = u.replace(/s-l\d+\.(?:jpg|png|webp)/i, 's-l500.jpg');
+                    imageUrl = u;
+                    break;
+                }
+                if (imageUrl && imageUrl.includes('ebayimg.com')) break;
+            }
+
+            // Check CSS background-image if no img tag succeeded
+            if (!imageUrl) {
+                const bgEls = Array.from(container.querySelectorAll('[style*="ebayimg"], [style*="background"]'));
+                for (const el of bgEls) {
+                    const style = el.getAttribute('style') || '';
+                    const bgMatch = style.match(/url\(['"]?(https?:\/\/[^'")]+ebayimg\.com[^'")]+)['"]?\)/i);
+                    if (bgMatch) {
+                        imageUrl = bgMatch[1].replace(/s-l\d+\.(?:jpg|png|webp)/i, 's-l500.jpg');
+                        break;
+                    }
                 }
             }
 
-            // Extract Price
+            // 4. Extract Authentic Selling Price
             let price = '0.00';
-            const priceEl = row.querySelector('[data-column="currentPrice"], [data-column="price"], .item-price, [class*="price"], .sh-table__cell--price');
+            const priceEl = container.querySelector('[data-column="currentPrice"], [data-column="price"], .item-price, [class*="price"], .sh-table__cell--price');
             if (priceEl) {
-                const m = priceEl.innerText.replace(/,/g, '').match(/\$?\s*([0-9]+\.[0-9]{2})/);
-                if (m) price = m[1];
+                const m = priceEl.innerText.replace(/,/g, '').match(/\$?\s*([0-9]+(?:\.[0-9]{2})?)/);
+                if (m && parseFloat(m[1]) > 0) price = parseFloat(m[1]).toFixed(2);
             }
             if (price === '0.00') {
-                const m = row.innerText.replace(/,/g, '').match(/\$\s*([0-9]+\.[0-9]{2})/);
-                if (m) price = m[1];
+                // Search cells that start with dollar sign
+                const cells = Array.from(container.querySelectorAll('td, [role="cell"], [role="gridcell"]'));
+                for (const c of cells) {
+                    const txt = c.innerText.trim();
+                    const pm = txt.replace(/,/g, '').match(/^\$?\s*([0-9]+\.[0-9]{2})/);
+                    if (pm && parseFloat(pm[1]) > 0) {
+                        price = parseFloat(pm[1]).toFixed(2);
+                        break;
+                    }
+                }
+            }
+            if (price === '0.00') {
+                const m = container.innerText.replace(/,/g, '').match(/\$\s*([0-9]+\.[0-9]{2})/);
+                if (m && parseFloat(m[1]) > 0) price = parseFloat(m[1]).toFixed(2);
             }
 
-            // Extract Quantity
+            // 5. Extract Quantity
             let quantity = 1;
-            const qtyEl = row.querySelector('[data-column="availableQuantity"], [data-column="quantity"], .item-quantity, [class*="quantity"]');
+            const qtyEl = container.querySelector('[data-column="availableQuantity"], [data-column="quantity"], .item-quantity, [class*="quantity"]');
             if (qtyEl) {
                 const qMatch = qtyEl.innerText.match(/\b([0-9]+)\b/);
                 if (qMatch) quantity = parseInt(qMatch[1], 10);
             }
 
-            // Extract SKU / Custom Label
+            // 6. Extract SKU / Custom Label
             let sku = itemId;
-            const skuEl = row.querySelector('[data-column="customLabel"], [data-column="sku"], .item-sku, [class*="custom-label"], [class*="sku"]');
+            const skuEl = container.querySelector('[data-column="customLabel"], [data-column="sku"], .item-sku, [class*="custom-label"], [class*="sku"]');
             if (skuEl && skuEl.innerText.trim()) {
                 const s = skuEl.innerText.replace(/Custom label:\s*/i, '').trim();
                 if (s) sku = s;
+            } else {
+                const labelMatch = container.innerText.match(/Custom label:\s*([^\n\r]+)/i);
+                if (labelMatch && labelMatch[1].trim()) sku = labelMatch[1].trim();
             }
 
+            seenItemIds.add(itemId);
             listings.push({
                 itemId,
                 title,
@@ -171,35 +303,41 @@
             });
         });
 
-        // 2. Fallback: Search all item links on page if table structure is non-standard
+        // Fallback: If containers were not found, extract from all /itm/ links
         if (listings.length === 0) {
             const allLinks = Array.from(document.querySelectorAll('a[href*="/itm/"]'));
             allLinks.forEach(link => {
                 const href = link.getAttribute('href') || '';
-                const match = href.match(/\/itm\/(?:[^\/]+\/)?(\d+)/);
+                const match = href.match(/\/itm\/(?:[^\/]+\/)?(\d{10,14})/);
                 if (match && match[1]) {
                     const itemId = match[1];
-                    if (!listings.some(l => l.itemId === itemId)) {
-                        const container = link.closest('tr, div[role="row"], li, [class*="row"]') || link.parentElement;
+                    if (!seenItemIds.has(itemId)) {
+                        seenItemIds.add(itemId);
+                        const rowAncestor = link.closest('tr') || link.closest('[role="row"]') || link.parentElement;
                         let title = (link.innerText || '').trim();
                         let price = '0.00';
                         let imageUrl = '';
 
-                        if (container) {
+                        if (rowAncestor) {
                             if (!title || title.length < 5) {
-                                const containerLinks = Array.from(container.querySelectorAll('a'));
-                                for (const cl of containerLinks) {
+                                const rowLinks = Array.from(rowAncestor.querySelectorAll('a'));
+                                for (const cl of rowLinks) {
                                     const t = (cl.innerText || '').trim();
-                                    if (t && t.length > 5 && !t.match(/^(edit|view)$/i)) {
+                                    if (t && t.length > 5 && !t.match(/^(edit|view|buy it now)$/i) && !/^[0-9]+$/.test(t)) {
                                         title = t;
                                         break;
                                     }
                                 }
                             }
-                            const pm = container.innerText.replace(/,/g, '').match(/\$\s*([0-9]+\.[0-9]{2})/);
+                            const pm = rowAncestor.innerText.replace(/,/g, '').match(/\$\s*([0-9]+\.[0-9]{2})/);
                             if (pm) price = pm[1];
-                            const cImg = container.querySelector('img');
-                            if (cImg) imageUrl = cImg.getAttribute('src') || '';
+                            const cImg = rowAncestor.querySelector('img[src*="ebayimg.com"], img');
+                            if (cImg) {
+                                const src = cImg.getAttribute('src') || cImg.getAttribute('data-src') || '';
+                                if (src && !src.includes('s_1x2.gif')) {
+                                    imageUrl = src.replace(/s-l\d+\.(?:jpg|png|webp)/i, 's-l500.jpg');
+                                }
+                            }
                         }
 
                         if (!title || title.length < 3) {
@@ -320,12 +458,18 @@
         }
     }
 
-    setTimeout(() => {
-        const found = extractActiveListingsFromPage();
-        if (found.length > 0 || window.location.href.includes('/sh/lst/active')) {
-            createSyncBanner(found.length);
-        }
-    }, 1500);
+    if (typeof window !== 'undefined' && typeof document !== 'undefined' && typeof chrome !== 'undefined') {
+        setTimeout(() => {
+            try {
+                const found = extractActiveListingsFromPage();
+                if (found.length > 0 || (window.location && window.location.href.includes('/sh/lst/active'))) {
+                    createSyncBanner(found.length);
+                }
+            } catch (e) {
+                console.warn('[Zonbay] Banner init skipped:', e.message);
+            }
+        }, 1500);
+    }
 
     if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
         chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
@@ -341,5 +485,18 @@
                 return true;
             }
         });
+    }
+
+    // Expose helpers on window for direct devtools console access
+    if (typeof window !== 'undefined') {
+        window.zonbayExtractListings = extractActiveListingsFromPage;
+        window.zonbaySyncStore = syncAllListingsToLocalDatabase;
+    }
+
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = {
+            extractActiveListingsFromPage,
+            findListingContainers
+        };
     }
 })();

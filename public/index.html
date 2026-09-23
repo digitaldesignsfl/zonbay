@@ -1027,11 +1027,17 @@
                 </p>
                 <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 16px;">
                     <div style="border: 1px solid var(--slate-200); border-radius: 8px; padding: 16px; background: var(--slate-50);">
-                        <h4 style="margin: 0 0 6px 0; color: var(--primary);">⚡ Method 1: 1-Click Seller Hub Sync (Extension)</h4>
-                        <p style="margin: 0 0 12px 0; font-size: 12.5px; color: var(--slate-600);">
-                            Opens your active listings in eBay Seller Hub. The Zonbay content script automatically extracts each active listing and transmits it to your database.
+                        <h4 style="margin: 0 0 6px 0; color: var(--primary);">⚡ Method 1: Seller Hub Live Sync (Extension or Instant Script)</h4>
+                        <p style="margin: 0 0 10px 0; font-size: 12.5px; color: var(--slate-600);">
+                            Syncs your live store items listing-by-listing with full titles, high-resolution master photos, and real selling prices.
                         </p>
-                        <button class="btn btn-sm" onclick="triggerSellerHubSyncTab()">🚀 Open Seller Hub Active Listings</button>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button class="btn btn-sm" onclick="triggerSellerHubSyncTab()">🚀 Open Seller Hub Active Listings</button>
+                            <button class="btn btn-outline btn-sm" onclick="copyInstantSyncScript(this)">📋 Copy 1-Click Console Sync Script</button>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 11.5px; color: var(--slate-500); background: #f8fafc; border: 1px dashed var(--slate-300); padding: 8px 10px; border-radius: 6px;">
+                            💡 <em>Tip: If already on your eBay page, click <strong>"Copy 1-Click Console Sync Script"</strong>, press <kbd style="background:#e2e8f0; padding:1px 4px; border-radius:3px;">F12</kbd> (Console) on eBay, paste, and press Enter to instantly sync all 104+ items with photos!</em>
+                        </div>
                     </div>
 
                     <div style="border: 1px solid var(--slate-200); border-radius: 8px; padding: 16px; background: var(--slate-50);">
@@ -1734,6 +1740,118 @@
         function triggerSellerHubSyncTab() {
             window.open('https://www.ebay.com/sh/lst/active', '_blank');
             closeEbaySyncModal();
+        }
+
+        function copyInstantSyncScript(btn) {
+            const script = `(async function() {
+    console.log('[Zonbay] Extracting active store listings from page...');
+    const trs = Array.from(document.querySelectorAll('table tbody tr, table tr, [role="row"], .sh-table__row'));
+    const items = [];
+    const seen = new Set();
+    trs.forEach(tr => {
+        if (tr.querySelector('th') || tr.closest('thead')) return;
+        const cb = tr.querySelector('input[type="checkbox"]');
+        let itemId = cb ? (cb.value || cb.getAttribute('data-listing-id') || cb.getAttribute('data-item-id') || cb.getAttribute('data-id')) : '';
+        if (!itemId || !/^\\d{12}$/.test(itemId)) {
+            const m = (tr.innerText || '').match(/\\b([0-9]{12})\\b/);
+            if (m) itemId = m[1];
+        }
+        if (!itemId) {
+            const l = tr.querySelector('a[href*="/itm/"]');
+            if (l) {
+                const lm = (l.getAttribute('href') || '').match(/\\/itm\\/(?:[^\\/]+\\/)?(\\d{10,14})/);
+                if (lm) itemId = lm[1];
+            }
+        }
+        if (!itemId || seen.has(itemId)) return;
+        seen.add(itemId);
+
+        // Title
+        let title = '';
+        const links = Array.from(tr.querySelectorAll('a'));
+        for (const a of links) {
+            const t = (a.innerText || '').replace(/\\s+/g, ' ').trim();
+            if (t.length >= 8 && !/^[0-9\\s·.-]+$/.test(t) && !/^(edit|sell similar|view|promoted|research prices|buy it now|actions|more)$/i.test(t)) {
+                title = t;
+                break;
+            }
+        }
+        if (!title) {
+            const lines = (tr.innerText || '').split('\\n').map(l => l.trim()).filter(l => l.length >= 8 && !/^[0-9\\s·.-]+$/.test(l) && !/^(edit|sell similar|promoted|buy it now|\\$)/i.test(l));
+            if (lines.length > 0) title = lines[0];
+        }
+
+        // Image
+        let imageUrl = '';
+        const imgs = Array.from(tr.querySelectorAll('img'));
+        for (const img of imgs) {
+            const src = img.currentSrc || img.getAttribute('src') || img.getAttribute('data-src') || img.getAttribute('data-lazy-src') || img.src || '';
+            if (src && !src.includes('s_1x2.gif') && !src.startsWith('data:image') && !src.includes('blank.gif')) {
+                imageUrl = src.replace(/s-l\\d+\\.(?:jpg|png|webp)/i, 's-l500.jpg');
+                if (imageUrl.startsWith('//')) imageUrl = 'https:' + imageUrl;
+                break;
+            }
+        }
+
+        // Price
+        let price = '0.00';
+        const pm = (tr.innerText || '').replace(/,/g, '').match(/\\$\\s*([0-9]+\\.[0-9]{2})/);
+        if (pm) price = pm[1];
+
+        // Quantity
+        let quantity = 1;
+        const qm = (tr.innerText || '').match(/\\b([0-9]+)\\b/);
+
+        // SKU
+        let sku = itemId;
+        const lblMatch = (tr.innerText || '').match(/Custom label:\\s*([^\\n\\r]+)/i);
+        if (lblMatch && lblMatch[1].trim()) sku = lblMatch[1].trim();
+
+        items.push({
+            itemId,
+            title: title || ('eBay Item #' + itemId),
+            price,
+            quantity: 1,
+            sku,
+            imageUrl,
+            itemUrl: 'https://www.ebay.com/itm/' + itemId,
+            sourcePlatform: 'eBay Store',
+            sellingPlatform: 'eBay',
+            status: 'LIVE_ON_EBAY'
+        });
+    });
+
+    console.log(\`[Zonbay] Found \${items.length} active listings. Transmitting to Zonbay Base...\`);
+    if (items.length === 0) {
+        alert('⚠️ No active listings found on this page. Make sure you are on https://www.ebay.com/sh/lst/active');
+        return;
+    }
+
+    try {
+        const res = await fetch('http://localhost:3000/api/inventory/sync-ebay', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ listings: items })
+        });
+        const data = await res.json();
+        alert(\`🎉 Success! Synced \${items.length} listings with real titles & photos! Total in database: \${data.totalItems}\\n\\nNow refresh http://localhost:3000 to see your updated catalog!\`);
+    } catch (err) {
+        alert('Sync error: ' + err.message + '. Ensure node server.js is running.');
+    }
+})();`;
+            navigator.clipboard.writeText(script).then(() => {
+                const oldText = btn.innerText;
+                btn.innerText = '✅ Script Copied to Clipboard!';
+                btn.style.borderColor = '#10b981';
+                btn.style.color = '#059669';
+                setTimeout(() => {
+                    btn.innerText = oldText;
+                    btn.style.borderColor = '';
+                    btn.style.color = '';
+                }, 3000);
+            }).catch(e => {
+                prompt("Copy this script manually:", script);
+            });
         }
 
         async function triggerApiSync() {

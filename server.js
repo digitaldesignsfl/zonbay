@@ -673,40 +673,86 @@ app.post('/api/inventory/sync-ebay', (req, res) => {
             if (!rawId) return;
 
             const itemId = String(rawId).trim();
-            const title = ebayItem.title || ebayItem.Title || 'eBay Active Listing';
-            const price = parseFloat(ebayItem.price || ebayItem.sellingPrice || ebayItem.StartPrice || ebayItem['Price'] || 0).toFixed(2);
+            const title = (ebayItem.title || ebayItem.Title || '').trim();
+            const rawPrice = ebayItem.price || ebayItem.sellingPrice || ebayItem.StartPrice || ebayItem['Price'] || 0;
+            const price = parseFloat(rawPrice || 0).toFixed(2);
             const qty = parseInt(ebayItem.quantity || ebayItem['Quantity available'] || ebayItem.Quantity || 1, 10);
             const sku = ebayItem.sku || ebayItem['Custom label (SKU)'] || ebayItem.customSku || itemId;
             const itemUrl = ebayItem.itemUrl || `https://www.ebay.com/itm/${itemId}`;
-            const mainImg = ebayItem.imageUrl || ebayItem.mainImage || (ebayItem.imageUrls && ebayItem.imageUrls[0]) || '';
+            let mainImg = ebayItem.imageUrl || ebayItem.mainImage || (ebayItem.imageUrls && ebayItem.imageUrls[0]) || '';
+            if (mainImg) {
+                if (mainImg.includes('s_1x2.gif') || mainImg.includes('spacer.gif') || mainImg.startsWith('data:image')) {
+                    mainImg = '';
+                } else {
+                    mainImg = mainImg.replace(/s-l\d+\.(?:jpg|png|webp)/i, 's-l500.jpg');
+                    if (mainImg.startsWith('//')) mainImg = 'https:' + mainImg;
+                }
+            }
             const brand = ebayItem.brand || 'Unbranded';
-            const cost = ebayItem.costPrice || ebayItem.cost || '0.00';
-
-            const fin = calculateFinancials(cost, price, qty);
 
             const existingIdx = items.findIndex(i => String(i.id) === itemId || String(i.sourceId) === itemId || (i.sku && String(i.sku) === sku));
 
+            // Preserve cost if user already configured wholesale cost
+            const existingCost = existingIdx >= 0 ? (items[existingIdx].costPrice || '0.00') : '0.00';
+            const cost = (ebayItem.costPrice && ebayItem.costPrice !== '0.00') ? ebayItem.costPrice : existingCost;
+
+            const fin = calculateFinancials(cost, price, qty);
+
             if (existingIdx >= 0) {
-                // Update live metrics from store
-                items[existingIdx].title = title;
-                items[existingIdx].sellingPrice = fin.sellingPrice;
+                // Update title if incoming title is substantive
+                if (title && !title.startsWith('eBay Item #')) {
+                    items[existingIdx].title = title;
+                } else if (!items[existingIdx].title || items[existingIdx].title.startsWith('eBay Item #')) {
+                    if (title) items[existingIdx].title = title;
+                }
+
+                // Update price and financials if valid price received
+                if (parseFloat(price) > 0 || parseFloat(items[existingIdx].sellingPrice || 0) === 0) {
+                    items[existingIdx].sellingPrice = fin.sellingPrice;
+                    items[existingIdx].estimatedFees = fin.estimatedFees;
+                    items[existingIdx].estimatedProfit = fin.estimatedProfit;
+                    items[existingIdx].profitMarginPercent = fin.profitMarginPercent;
+                }
                 items[existingIdx].quantity = fin.quantity;
-                items[existingIdx].estimatedFees = fin.estimatedFees;
-                items[existingIdx].estimatedProfit = fin.estimatedProfit;
-                items[existingIdx].profitMarginPercent = fin.profitMarginPercent;
                 items[existingIdx].status = 'LIVE_ON_EBAY';
                 items[existingIdx].sourcePlatform = items[existingIdx].sourcePlatform || 'eBay Store';
                 items[existingIdx].sellingPlatform = 'eBay';
                 items[existingIdx].syncedAt = new Date().toISOString();
                 items[existingIdx].updatedAt = new Date().toISOString();
-                if (mainImg && !items[existingIdx].mainImage) items[existingIdx].mainImage = mainImg;
+
+                // Update image if valid high-res image received
+                if (mainImg) {
+                    items[existingIdx].mainImage = mainImg;
+                    items[existingIdx].imagesCount = Math.max(1, items[existingIdx].imagesCount || 1);
+                }
+
+                if (sku && sku !== itemId) {
+                    items[existingIdx].sku = sku;
+                }
+
+                // Keep productData in sync
+                if (!items[existingIdx].productData) items[existingIdx].productData = {};
+                if (title && !title.startsWith('eBay Item #')) {
+                    items[existingIdx].productData.title = title;
+                }
+                if (parseFloat(price) > 0) {
+                    items[existingIdx].productData.price = fin.sellingPrice;
+                }
+                if (mainImg) {
+                    if (!items[existingIdx].productData.alternateImages || items[existingIdx].productData.alternateImages.length === 0) {
+                        items[existingIdx].productData.alternateImages = [mainImg];
+                    } else if (!items[existingIdx].productData.alternateImages[0] || items[existingIdx].productData.alternateImages[0].includes('s_1x2.gif')) {
+                        items[existingIdx].productData.alternateImages[0] = mainImg;
+                    }
+                }
                 updatedCount++;
             } else {
                 // Add new store item listing-by-listing
+                const newItemTitle = title || `eBay Item #${itemId}`;
                 const newItem = {
                     id: itemId,
                     sku: sku,
-                    title: title,
+                    title: newItemTitle,
                     brand: brand,
                     sourcePlatform: 'eBay Store',
                     sourceId: itemId,
@@ -726,7 +772,7 @@ app.post('/api/inventory/sync-ebay', (req, res) => {
                     syncedAt: new Date().toISOString(),
                     uploadedAt: new Date().toISOString(),
                     productData: {
-                        title: title,
+                        title: newItemTitle,
                         price: fin.sellingPrice,
                         sourceId: itemId,
                         sourceUrl: itemUrl,

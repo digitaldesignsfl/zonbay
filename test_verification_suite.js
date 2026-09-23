@@ -23,6 +23,7 @@ const { extractTemuProduct } = require('./extractors/temu');
 const { extractAliExpressProduct } = require('./extractors/aliexpress');
 const { extractDHgateProduct } = require('./extractors/dhgate');
 const { extractCJDropshippingProduct } = require('./extractors/cjdropshipping');
+const { extractActiveListingsFromPage } = require('./uploader/ebay-sync');
 
 let testsPassed = 0;
 let testsFailed = 0;
@@ -237,8 +238,8 @@ class MockDocument {
         return this.root.querySelectorAll(selector);
     }
 
-    createElement(tagName) {
-        return new MockElement(tagName);
+    createElement(tagName, attrs = {}, text = '') {
+        return new MockElement(tagName, attrs, text);
     }
 }
 
@@ -250,8 +251,6 @@ function runWithMockContext(url, title, setupFn, extractorFn) {
         document: doc
     };
 
-    setupFn(doc);
-
     // Bind globals temporarily for extractor execution
     const prevDoc = global.document;
     const prevWin = global.window;
@@ -259,6 +258,7 @@ function runWithMockContext(url, title, setupFn, extractorFn) {
     global.window = win;
 
     try {
+        setupFn(doc);
         return extractorFn();
     } finally {
         global.document = prevDoc;
@@ -657,9 +657,110 @@ async function startSuite() {
     assert("CSV Export: Row generates valid escaped CSV string", typeof rowDomestic === 'string' && rowDomestic.includes('DeWalt'));
     assert("CSV Export: Price formatted properly", rowDomestic.includes('99.00'));
 
+    // =========================================================================
+    // SECTION 5: EBAY SELLER HUB ACTIVE LISTINGS EXTRACTOR & SYNC INTEGRATION
+    // =========================================================================
+    console.log("\n▶ [5/5] Verifying eBay Seller Hub Active Store Extractor & Sync...\n");
+
+    const ebayListings = runWithMockContext('https://www.ebay.com/sh/lst/active', 'Active Listings | Seller Hub | eBay', (doc) => {
+        const table = doc.createElement('table');
+        const tbody = doc.createElement('tbody');
+        table.appendChild(tbody);
+
+        // Row 1: Adapter Plug
+        const tr1 = doc.createElement('tr', { class: 'sh-table__row' });
+        const td1_cb = doc.createElement('td');
+        const cb1 = doc.createElement('input', { type: 'checkbox', value: '188684774337' });
+        td1_cb.appendChild(cb1);
+
+        const td1_actions = doc.createElement('td');
+        const btn1 = doc.createElement('button', {}, 'Edit');
+        td1_actions.appendChild(btn1);
+
+        const td1_item = doc.createElement('td');
+        const imgLink1 = doc.createElement('a', { href: 'https://www.ebay.com/itm/188684774337' });
+        const img1 = doc.createElement('img', { src: 'https://i.ebayimg.com/thumbs/images/g/adapter/s-l96.jpg' });
+        imgLink1.appendChild(img1);
+        td1_item.appendChild(imgLink1);
+
+        const titleLink1 = doc.createElement('a', { href: 'https://www.ebay.com/itm/188684774337' }, 'Auto Drive RV Electrical Adapter Plug 30A Male to 15A Female ADAPT15F30M');
+        td1_item.appendChild(titleLink1);
+        const sub1 = doc.createElement('span', {}, 'Buy It Now · 188684774337');
+        td1_item.appendChild(sub1);
+
+        const td1_price = doc.createElement('td', {}, '$14.99 Buy It Now or Best Offer');
+        const td1_qty = doc.createElement('td', {}, '1');
+
+        tr1.appendChild(td1_cb);
+        tr1.appendChild(td1_actions);
+        tr1.appendChild(td1_item);
+        tr1.appendChild(td1_price);
+        tr1.appendChild(td1_qty);
+        tbody.appendChild(tr1);
+
+        // Row 2: Camco Generator Adapter (with lazy load data-src and spacer gif)
+        const tr2 = doc.createElement('tr', { class: 'sh-table__row' });
+        const td2_cb = doc.createElement('td');
+        const cb2 = doc.createElement('input', { type: 'checkbox', value: '188684715795' });
+        td2_cb.appendChild(cb2);
+
+        const td2_actions = doc.createElement('td');
+        const btn2 = doc.createElement('button', {}, 'Edit');
+        td2_actions.appendChild(btn2);
+
+        const td2_item = doc.createElement('td');
+        const imgLink2 = doc.createElement('a', { href: 'https://www.ebay.com/itm/188684715795' });
+        const img2 = doc.createElement('img', { 
+            src: 'https://ir.ebaystatic.com/cr/v/c1/s_1x2.gif', 
+            'data-src': 'https://i.ebayimg.com/thumbs/images/g/camco/s-l140.jpg' 
+        });
+        imgLink2.appendChild(img2);
+        td2_item.appendChild(imgLink2);
+
+        const titleLink2 = doc.createElement('a', { href: 'https://www.ebay.com/itm/188684715795' }, 'Camco PowerGrip Generator Adapter 4-Prong 30A 125/250V 7500W 30-50-4-G');
+        td2_item.appendChild(titleLink2);
+        const sub2 = doc.createElement('span', {}, 'Buy It Now · 188684715795');
+        td2_item.appendChild(sub2);
+
+        const td2_price = doc.createElement('td', {}, '$29.99 Buy It Now or Best Offer');
+        const td2_qty = doc.createElement('td', {}, '3');
+
+        tr2.appendChild(td2_cb);
+        tr2.appendChild(td2_actions);
+        tr2.appendChild(td2_item);
+        tr2.appendChild(td2_price);
+        tr2.appendChild(td2_qty);
+        tbody.appendChild(tr2);
+
+        doc.body.appendChild(table);
+    }, () => extractActiveListingsFromPage());
+
+    assert("eBay Extractor: Discovers all active listings in Seller Hub table", ebayListings.length === 2, `(Found: ${ebayListings.length})`);
+    
+    const item1 = ebayListings.find(l => l.itemId === '188684774337');
+    assert("eBay Extractor: Identifies 12-digit Item ID correctly", !!item1 && item1.itemId === '188684774337');
+    assert("eBay Extractor: Extracts true product title instead of placeholder", !!item1 && item1.title === 'Auto Drive RV Electrical Adapter Plug 30A Male to 15A Female ADAPT15F30M');
+    assert("eBay Extractor: Extracts selling price from table cell", !!item1 && item1.price === '14.99');
+    assert("eBay Extractor: Upgrades thumbnail to 500px master image asset", !!item1 && item1.imageUrl === 'https://i.ebayimg.com/thumbs/images/g/adapter/s-l500.jpg');
+
+    const item2 = ebayListings.find(l => l.itemId === '188684715795');
+    assert("eBay Extractor: Discards spacer gif and resolves lazy data-src image", !!item2 && item2.imageUrl === 'https://i.ebayimg.com/thumbs/images/g/camco/s-l500.jpg');
+    assert("eBay Extractor: Extracts second listing title & price cleanly", !!item2 && item2.title.includes('Camco PowerGrip') && item2.price === '29.99');
+
+    // Test Server-side Ingestion Endpoint /api/inventory/sync-ebay
+    try {
+        const syncRes = await axios.post('http://localhost:3000/api/inventory/sync-ebay', {
+            listings: ebayListings
+        });
+        assert("Server Sync API: Ingests Seller Hub active listings cleanly", syncRes.status === 200 && syncRes.data.success);
+        assert("Server Sync API: Reports total database count accurately", syncRes.data.totalItems >= 2);
+    } catch (apiErr) {
+        assert("Server Sync API: Ingests Seller Hub active listings cleanly", false, `(${apiErr.message})`);
+    }
+
     console.log("\n══════════════════════════════════════════════════════════════════════");
     console.log(` 📊 VERIFICATION COMPLETE: ${testsPassed} Passed, ${testsFailed} Failed`);
-    console.log(" ✅ All 7 Extractors, Studio Features & Safe CSV Exporters Verified!");
+    console.log(" ✅ All 7 Extractors, Studio Features, Safe CSV & Store Syncer Verified!");
     console.log(" 🔒 ZERO Live eBay Account Posts Executed (Account 100% Protected)");
     console.log("══════════════════════════════════════════════════════════════════════\n");
 
