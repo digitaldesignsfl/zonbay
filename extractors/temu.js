@@ -33,19 +33,63 @@ function extractTemuProduct() {
         goodsId = `TEMU-${Date.now()}`;
     }
 
-    // 3. Price Detection
+    // 3. Price Detection & Range Resolution
     let price = '0.00';
-    const metaPrice = document.querySelector('meta[property="product:price:amount"]')?.getAttribute('content');
-    if (metaPrice && !isNaN(parseFloat(metaPrice))) {
-        price = parseFloat(metaPrice).toFixed(2);
-    } else {
-        const priceEls = document.querySelectorAll('[data-testid="goods-price"], .goods-price, span[class*="price"]');
-        for (const el of priceEls) {
-            const match = el.innerText.match(/\$?\s*([0-9]+\.[0-9]{2})/);
-            if (match) {
-                price = match[1];
-                break;
+    let candidatePrices = [];
+
+    // 3A. Check meta tags
+    const metaPrice = document.querySelector('meta[property="product:price:amount"]')?.getAttribute('content') || 
+                      document.querySelector('meta[property="og:price:amount"]')?.getAttribute('content') ||
+                      document.querySelector('[itemprop="price"]')?.getAttribute('content');
+    if (metaPrice && !isNaN(parseFloat(metaPrice)) && parseFloat(metaPrice) > 0) {
+        candidatePrices.push(parseFloat(metaPrice));
+    }
+
+    // 3B. Check active DOM price elements
+    const priceEls = document.querySelectorAll('[data-testid="goods-price"], .goods-price, [class*="price"], [class*="Price"]');
+    priceEls.forEach(el => {
+        const text = el.innerText || el.textContent || '';
+        const matches = text.match(/\$?\s*([0-9]+(?:\.[0-9]{1,2})?)/g);
+        if (matches) {
+            matches.forEach(m => {
+                const val = parseFloat(m.replace(/[^0-9.]/g, ''));
+                if (!isNaN(val) && val > 0.50 && val < 5000) {
+                    candidatePrices.push(val);
+                }
+            });
+        }
+    });
+
+    // 3C. Parse Script tags for Temu JSON structures (Prices in cents, e.g. 1066 = $10.66)
+    try {
+        const scripts = document.querySelectorAll('script');
+        scripts.forEach(s => {
+            const content = s.textContent || '';
+            if (content.includes('price') || content.includes('goods')) {
+                // Match patterns like "min_on_sale_price":1066 or "normal_price":1066 or "sale_price":1066
+                const scriptMatches = content.match(/"(?:min_on_sale_price|normal_price|sale_price|activity_price|raw_price)":\s*(\d+)/g);
+                if (scriptMatches) {
+                    scriptMatches.forEach(sm => {
+                        const numMatch = sm.match(/\d+/);
+                        if (numMatch) {
+                            const valInCents = parseInt(numMatch[0], 10);
+                            if (valInCents > 50 && valInCents < 500000) {
+                                const valInDollars = valInCents / 100;
+                                candidatePrices.push(valInDollars);
+                            }
+                        }
+                    });
+                }
             }
+        });
+    } catch (e) {}
+
+    // Resolve final price: Filter candidates and pick Math.max() to protect dropship margins
+    if (candidatePrices.length > 0) {
+        const valid = candidatePrices.filter(p => p >= 0.75);
+        if (valid.length > 0) {
+            // Take Math.max to avoid picking cheap accessory variations (e.g. $1.54 vs $10.66)
+            price = Math.max(...valid).toFixed(2);
         }
     }
 

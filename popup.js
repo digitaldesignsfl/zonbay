@@ -134,8 +134,8 @@ function renderProductDataInPopup(data) {
     const totalImgs = (currentProduct.alternateImages || []).length || (currentProduct.imageList || []).length || 1;
     if (countEl) countEl.innerText = `🖼️ ${totalImgs} High-Res Photos`;
 
-    const sourcePrice = document.getElementById('sourcePriceDisplay');
-    if (sourcePrice) sourcePrice.innerText = `$${currentProduct.price || '0.00'}`;
+    const sourcePriceInput = document.getElementById('sourcePriceInput');
+    if (sourcePriceInput) sourcePriceInput.value = currentProduct.price || '0.00';
 
     const titleInput = document.getElementById('listingTitle');
     const cleanTitle = (currentProduct.title || '').replace(/\s+/g, ' ').trim();
@@ -292,6 +292,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // 3. UI Inputs & Dynamic Recalculation
+    const sourcePriceInput = document.getElementById('sourcePriceInput');
+    if (sourcePriceInput) {
+        sourcePriceInput.addEventListener('input', () => {
+            if (!currentProduct) return;
+            const newCost = parseFloat(sourcePriceInput.value) || 0;
+            currentProduct.price = newCost;
+            
+            // Reset custom listing price so calculatePricing auto-fills with margin
+            const listingPriceInput = document.getElementById('listingPrice');
+            if (listingPriceInput && document.activeElement !== listingPriceInput) {
+                listingPriceInput.value = '';
+            }
+            
+            calculatePricing();
+            if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+                chrome.storage.local.set({ lastScrapedProduct: currentProduct }).catch(() => {});
+            }
+        });
+    }
+
     const titleInput = document.getElementById('listingTitle');
     if (titleInput) titleInput.addEventListener('input', updateCharCounter);
 
