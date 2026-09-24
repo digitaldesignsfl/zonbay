@@ -23,6 +23,8 @@ function extractTemuProduct() {
     if (!rawTitle) {
         rawTitle = document.title.split('|')[0].split('-')[0].trim();
     }
+    // Clean eBay search-inhibiting characters (commas, slashes, pipes)
+    rawTitle = rawTitle.replace(/[,/\\|;:_]/g, ' ').replace(/\s+/g, ' ').trim();
 
     // 2. Goods / Item ID
     let goodsId = '';
@@ -33,67 +35,183 @@ function extractTemuProduct() {
         goodsId = `TEMU-${Date.now()}`;
     }
 
-    // 3. Price Detection & Range Resolution
-    let price = '0.00';
-    let candidatePrices = [];
-
-    // 3A. Check meta tags
-    const metaPrice = document.querySelector('meta[property="product:price:amount"]')?.getAttribute('content') || 
-                      document.querySelector('meta[property="og:price:amount"]')?.getAttribute('content') ||
-                      document.querySelector('[itemprop="price"]')?.getAttribute('content');
-    if (metaPrice && !isNaN(parseFloat(metaPrice)) && parseFloat(metaPrice) > 0) {
-        candidatePrices.push(parseFloat(metaPrice));
+    // Helper: detect if an element is strikethrough (list price / was price / reference price)
+    function isStrikethrough(el) {
+        if (!el) return false;
+        if (['DEL', 'STRIKE', 'S'].includes(el.tagName)) return true;
+        if (el.closest && el.closest('del, strike, s, [class*="origin"], [class*="was"], [class*="reference"], [class*="market"], [class*="line-through"], [style*="line-through"]')) {
+            return true;
+        }
+        try {
+            if (typeof window !== 'undefined' && window.getComputedStyle) {
+                const cs = window.getComputedStyle(el);
+                if (cs.textDecorationLine?.includes('line-through') || cs.textDecoration?.includes('line-through')) return true;
+            }
+        } catch (e) {}
+        return false;
     }
 
-    // 3B. Check active DOM price elements
-    const priceEls = document.querySelectorAll('[data-testid="goods-price"], .goods-price, [class*="price"], [class*="Price"]');
-    priceEls.forEach(el => {
-        const text = el.innerText || el.textContent || '';
-        const matches = text.match(/\$?\s*([0-9]+(?:\.[0-9]{1,2})?)/g);
-        if (matches) {
-            matches.forEach(m => {
-                const val = parseFloat(m.replace(/[^0-9.]/g, ''));
-                if (!isNaN(val) && val > 0.50 && val < 5000) {
-                    candidatePrices.push(val);
+    // 3. Price Detection (Active Selected DOM Price First)
+    let price = '0.00';
+
+    // Tier 1: Dedicated Active Goods Price Element ([data-testid="goods-price"], .goods-price)
+    const primaryPriceEls = document.querySelectorAll('[data-testid="goods-price"], .goods-price, [class*="goods-price"], [class*="goodsPrice"]');
+    for (const el of primaryPriceEls) {
+        if (isStrikethrough(el)) continue;
+        const text = (el.innerText || el.textContent || '').trim();
+        const match = text.match(/\$?\s*([0-9]+\.[0-9]{2})/);
+        if (match) {
+            const val = parseFloat(match[1]);
+            if (val >= 0.50 && val < 5000) {
+                price = val.toFixed(2);
+                break;
+            }
+        }
+    }
+
+    // Tier 2: Next to Discount Badge (% OFF) in the Main Product Header
+    // On Temu, the active sale price (e.g. $10.66 or $23.48) is directly beside the discount percentage badge (e.g. 33% OFF)
+    if (price === '0.00') {
+        const allElements = Array.from(document.querySelectorAll('*'));
+        const discountEls = allElements.filter(el => {
+            if (el.children && el.children.length > 0) return false;
+            return /\b\d+%\s*OFF\b/i.test(el.innerText || el.textContent || '');
+        });
+        for (const dEl of discountEls) {
+            let container = dEl.parentElement;
+            for (let depth = 0; depth < 4 && container; depth++) {
+                const textNodes = Array.from(container.querySelectorAll('*')).filter(node => {
+                    if (node.children && node.children.length > 0) return false;
+                    if (isStrikethrough(node)) return false;
+                    const t = (node.innerText || node.textContent || '').trim();
+                    return /^\$?\s*\d+(?:\.\d{1,2})?$/.test(t);
+                });
+                for (const n of textNodes) {
+                    const match = (n.innerText || n.textContent || '').match(/\$?\s*([0-9]+\.[0-9]{2})/);
+                    if (match) {
+                        const val = parseFloat(match[1]);
+                        if (val >= 0.50 && val < 5000) {
+                            price = val.toFixed(2);
+                            break;
+                        }
+                    }
+                }
+                if (price !== '0.00') break;
+                container = container.parentElement;
+            }
+            if (price !== '0.00') break;
+        }
+    }
+
+    // Tier 3: Meta tags (product:price:amount, og:price:amount)
+    if (price === '0.00') {
+        const metaPrice = document.querySelector('meta[property="product:price:amount"]')?.getAttribute('content') ||
+                          document.querySelector('meta[property="og:price:amount"]')?.getAttribute('content') ||
+                          document.querySelector('[itemprop="price"]')?.getAttribute('content');
+        if (metaPrice && !isNaN(parseFloat(metaPrice)) && parseFloat(metaPrice) > 0.50) {
+            price = parseFloat(metaPrice).toFixed(2);
+        }
+    }
+
+    // Tier 4: Fallback to scanning product header elements for dollar values (strictly excluding strikethroughs)
+    if (price === '0.00') {
+        const headerArea = document.querySelector('main, [class*="goods-detail"], [class*="detail-header"]') || document.body;
+        const priceSpans = headerArea.querySelectorAll('span, div, p');
+        for (const el of priceSpans) {
+            if (el.children && el.children.length > 0) continue;
+            if (isStrikethrough(el)) continue;
+            const match = (el.innerText || el.textContent || '').match(/^\$?\s*([0-9]+\.[0-9]{2})$/);
+            if (match) {
+                const val = parseFloat(match[1]);
+                if (val >= 0.50 && val < 5000) {
+                    price = val.toFixed(2);
+                    break;
+                }
+            }
+        }
+    }
+
+    // 4. Variations Extraction
+    const variations = [];
+    let selectedVariationStr = '';
+
+    try {
+        const knownLabels = ['color', 'size', 'style', 'model', 'specification', 'type', 'pattern'];
+        const groupElements = [];
+
+        const variantContainers = document.querySelectorAll('[class*="skuProp"], [class*="sku-prop"], [class*="spec-prop"], [data-testid*="sku"]');
+        variantContainers.forEach(c => groupElements.push(c));
+
+        if (groupElements.length === 0) {
+            const allHeadings = document.querySelectorAll('div, span, p, h3, h4');
+            allHeadings.forEach(h => {
+                if (h.children && h.children.length > 2) return;
+                const txt = (h.innerText || h.textContent || '').trim().toLowerCase();
+                if (knownLabels.includes(txt) && !h.closest('footer, nav, [class*="review"], [class*="comment"]')) {
+                    const parent = h.parentElement;
+                    if (parent && !groupElements.includes(parent)) {
+                        groupElements.push(parent);
+                    }
                 }
             });
         }
-    });
 
-    // 3C. Parse Script tags for Temu JSON structures (Prices in cents, e.g. 1066 = $10.66)
-    try {
-        const scripts = document.querySelectorAll('script');
-        scripts.forEach(s => {
-            const content = s.textContent || '';
-            if (content.includes('price') || content.includes('goods')) {
-                // Match patterns like "min_on_sale_price":1066 or "normal_price":1066 or "sale_price":1066
-                const scriptMatches = content.match(/"(?:min_on_sale_price|normal_price|sale_price|activity_price|raw_price)":\s*(\d+)/g);
-                if (scriptMatches) {
-                    scriptMatches.forEach(sm => {
-                        const numMatch = sm.match(/\d+/);
-                        if (numMatch) {
-                            const valInCents = parseInt(numMatch[0], 10);
-                            if (valInCents > 50 && valInCents < 500000) {
-                                const valInDollars = valInCents / 100;
-                                candidatePrices.push(valInDollars);
-                            }
-                        }
-                    });
+        const selectedParts = [];
+
+        groupElements.forEach(group => {
+            let groupName = '';
+            const labelEl = group.querySelector('[class*="title"], [class*="name"], [class*="label"], h3, h4, span');
+            if (labelEl) {
+                const t = (labelEl.innerText || labelEl.textContent || '').trim();
+                const matched = knownLabels.find(l => t.toLowerCase().includes(l));
+                groupName = matched ? matched.charAt(0).toUpperCase() + matched.slice(1) : t.split('\n')[0].replace(/[:：]/g, '').trim();
+            }
+            if (!groupName || groupName.length > 20) groupName = 'Option';
+
+            const optionEls = group.querySelectorAll('button, [role="radio"], [class*="item"], [class*="btn"], [class*="sku"], [class*="spec"]');
+            const options = [];
+            let groupSelected = '';
+
+            optionEls.forEach(opt => {
+                if (opt.closest('button, [role="radio"]') && opt.closest('button, [role="radio"]') !== opt) return;
+                let optText = (opt.getAttribute('title') || opt.getAttribute('aria-label') || opt.innerText || opt.textContent || '').trim();
+                optText = optText.replace(/\b(HOT|SALE|\d+%\s*OFF)\b/gi, '').replace(/\s+/g, ' ').trim();
+                if (!optText || optText.length > 30) return;
+
+                if (!options.includes(optText)) {
+                    options.push(optText);
                 }
+
+                const isSelected = opt.getAttribute('aria-checked') === 'true' || 
+                                   opt.getAttribute('aria-selected') === 'true' ||
+                                   opt.className.includes('selected') ||
+                                   opt.className.includes('active') ||
+                                   opt.className.includes('checked') ||
+                                   opt.querySelector('svg, [class*="check"], [class*="selected"]');
+                if (isSelected && !groupSelected) {
+                    groupSelected = optText;
+                }
+            });
+
+            if (options.length > 0) {
+                if (!groupSelected) groupSelected = options[0];
+                selectedParts.push(groupSelected);
+                variations.push({
+                    name: groupName,
+                    options: options,
+                    selected: groupSelected
+                });
             }
         });
-    } catch (e) {}
 
-    // Resolve final price: Filter candidates and pick Math.max() to protect dropship margins
-    if (candidatePrices.length > 0) {
-        const valid = candidatePrices.filter(p => p >= 0.75);
-        if (valid.length > 0) {
-            // Take Math.max to avoid picking cheap accessory variations (e.g. $1.54 vs $10.66)
-            price = Math.max(...valid).toFixed(2);
+        if (selectedParts.length > 0) {
+            selectedVariationStr = selectedParts.join(' / ');
         }
+    } catch (e) {
+        console.warn('Error extracting Temu variations:', e);
     }
 
-    // 4. Brand / Seller
+    // 5. Brand / Seller
     let brand = 'Unbranded';
     const mallEl = document.querySelector('[data-testid="mall-name"], .mall-name, a[href*="mall"]');
     if (mallEl && mallEl.innerText) {
@@ -188,6 +306,8 @@ function extractTemuProduct() {
         title: rawTitle,
         brand: brand,
         price: price,
+        variations: variations,
+        selectedVariation: selectedVariationStr,
         currency: 'USD',
         mainImgUrl: images[0] || '',
         alternateImages: images.slice(0, 12),

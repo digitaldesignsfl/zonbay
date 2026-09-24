@@ -137,6 +137,34 @@ function renderProductDataInPopup(data) {
     const sourcePriceInput = document.getElementById('sourcePriceInput');
     if (sourcePriceInput) sourcePriceInput.value = currentProduct.price || '0.00';
 
+    // Render variations if detected
+    const varBox = document.getElementById('variationsBox');
+    const varCount = document.getElementById('varCountText');
+    const varSelected = document.getElementById('varSelectedBadge');
+    const varList = document.getElementById('varListDisplay');
+
+    if (varBox && currentProduct.variations && currentProduct.variations.length > 0) {
+        varBox.style.display = 'block';
+        let totalCombos = 1;
+        currentProduct.variations.forEach(v => {
+            if (v.options && v.options.length) totalCombos *= v.options.length;
+        });
+        const summaryParts = currentProduct.variations.map(v => `${v.options.length} ${v.name}s`).join(' × ');
+        if (varCount) varCount.innerText = `${totalCombos} options (${summaryParts})`;
+        if (varSelected) varSelected.innerText = `Selected: ${currentProduct.selectedVariation || currentProduct.variations.map(v => v.selected).filter(Boolean).join(' / ') || 'Default'}`;
+        if (varList) {
+            varList.innerHTML = currentProduct.variations.map(v => {
+                const optsHtml = v.options.map(opt => {
+                    const isSel = (opt === v.selected);
+                    return `<span style="display:inline-block; padding:1px 5px; margin:1px 2px; border-radius:3px; background:${isSel ? '#166534' : '#fff'}; color:${isSel ? '#fff' : '#14532d'}; border:1px solid ${isSel ? '#166534' : '#86efac'}; font-weight:${isSel ? 'bold' : 'normal'};">${opt}</span>`;
+                }).join(' ');
+                return `<div><strong>${v.name}:</strong> ${optsHtml}</div>`;
+            }).join('');
+        }
+    } else if (varBox) {
+        varBox.style.display = 'none';
+    }
+
     const titleInput = document.getElementById('listingTitle');
     const cleanTitle = (currentProduct.title || '').replace(/\s+/g, ' ').trim();
     if (titleInput) {
