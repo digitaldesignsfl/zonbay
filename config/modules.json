@@ -1,0 +1,18 @@
+{
+  "dropship_sentinel": {
+    "id": "dropship_sentinel",
+    "name": "Dropship Sentinel & Multi-Supplier Redundancy",
+    "enabled": true,
+    "tier": "Add-On",
+    "badge": "🛡️ DROPSHIP PRO",
+    "description": "Multi-supplier replacement tracking, emergency out-of-stock failover, supplier stockout alerts, and $2.99 checkout fee protection."
+  },
+  "domestic_arbitrage": {
+    "id": "domestic_arbitrage",
+    "name": "Domestic Arbitrage & Batch Sourcing Optimizer",
+    "enabled": true,
+    "tier": "Add-On",
+    "badge": "⚖️ ARBITRAGE PRO",
+    "description": "Micro-batch bulk calculator, $30 free shipping threshold optimizer, USPS outbound shipping absorption analyzer, and cash-on-cash ROI engine."
+  }
+}

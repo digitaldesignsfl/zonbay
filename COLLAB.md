@@ -143,7 +143,15 @@ amazon-scraper/
   - **Root Cause of $25.09**: Broad script tag regex was extracting numbers from unrelated recommendation carousels, and `Math.max()` was selecting $25.09 instead of the active on-screen price.
   - **Fix Applied**: Stripped broad script extraction. Refactored `extractTemuProduct()` to target the **Active Visible Sale Price** directly in the DOM (locating the non-strikethrough price adjacent to the discount `% OFF` badge e.g. `$10.66` or `$23.48`).
   - **Variations Extracted & Rendered**: Added `extractVariations()` to parse Color, Size, and selected options (e.g. `Chrome / 8Inch-A`). Added a new interactive `🎨 Variations` container in `popup.html` showing total options, pill badges, and the active selection.
-  - **Test Suite Status**: 100% green (150 in `test_run.js`, 97 in `test_verification_suite.js`).
+  - **Interactive Variation GUI & USPS Ground Advantage Shipping Math (Sep 24, 2026)**:
+    - **Interactive Variation Selection in GUI**: Variation pills are now interactive buttons (`.var-pill`) with clear selected states (`#166534` solid green vs `#ffffff` green border). Clicking any variation pill directly inside the extension popup updates `currentProduct.variations`, `currentProduct.selectedVariation` (e.g. `Black / 10inch`), and `currentProduct.productSpecs` (`Color: Black`, `Size: 10inch`). Background synchronization (`trySyncVariationToPage()`) automatically triggers the corresponding selection on Temu/AliExpress pages, and dynamically re-extracts the updated price and hero photo if variation pricing varies.
+    - **USPS Ground Advantage Outbound Shipping Factored In**:
+      - **Suggested Listing Price Formula**: `suggestedPrice = ((sourceCost + supplierShipping) * (1 + margin)) + outboundShipping` (with minimum safety buffer).
+      - Added `#shippingCostInput` (defaulting to `$4.85` from `financial_rules.json`) directly into the `.price-calculator` in `popup.html`, keeping the GUI ultra-compact without vertical scroll.
+      - **True Net Profit Calculation**: `netProfit = listingPrice - (sourceCost + supplierShipping) - outboundShipping - ebayFee`.
+      - **Manual Override Preserved**: Users can edit either the shipping cost or listing price directly; manual edits calculate real-time net profit and fees without being overwritten.
+    - **Test Coverage**: 26 dedicated variation & pricing unit tests in `test_popup_variations_and_math.js` (100% pass), plus 150/150 in `test_run.js` and 97/97 in `test_verification_suite.js`.
+
 
 
 

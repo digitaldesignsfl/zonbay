@@ -1,0 +1,32 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-09-24",
+  "marketplace": {
+    "ebay": {
+      "defaultFinalValueFeePercent": 13.25,
+      "fixedTransactionFee": 0.3,
+      "notes": "Standard eBay store baseline (~13.25% + .30 fixed fee per order)."
+    }
+  },
+  "shipping": {
+    "domesticUspsGroundAdvantage": {
+      "cost": 4.85,
+      "handlingDays": 3,
+      "serviceCode": "USPSGroundAdvantage",
+      "carrier": "USPS"
+    },
+    "internationalStandard": {
+      "cost": 0,
+      "handlingDays": 5,
+      "serviceCode": "StandardShippingFromOutsideUS",
+      "carrier": "StandardSpeedPAK"
+    }
+  },
+  "sourcing": {
+    "temu": {
+      "subThresholdFee": 2.99,
+      "freeShippingThreshold": 30,
+      "defaultHandlingBufferDays": 5
+    }
+  }
+}

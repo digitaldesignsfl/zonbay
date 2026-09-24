@@ -4,6 +4,9 @@
 
 let currentProduct = null;
 let activeTab = null;
+if (typeof window !== 'undefined') {
+    window.getCurrentProduct = () => currentProduct;
+}
 
 function showStatus(text, type = 'info') {
     const el = document.getElementById('statusMessage');
@@ -29,36 +32,62 @@ function updateCharCounter() {
     }
 }
 
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 function calculatePricing() {
     if (!currentProduct) return;
-    const cost = parseFloat(currentProduct.price) || 0;
+    const sourceCost = parseFloat(currentProduct.price) || 0;
+    const supplierShipping = parseFloat(currentProduct.supplierShipping || 0);
+    const shippingInput = document.getElementById('shippingCostInput');
+    const outboundShipping = shippingInput ? (parseFloat(shippingInput.value) || 0) : 4.85;
+    
+    // Base source cost: supplier price + supplier shipping surcharge (if any)
+    const baseCost = sourceCost + supplierShipping;
+
     const marginSelect = document.getElementById('marginPercent');
     const margin = parseFloat(marginSelect ? marginSelect.value : 40) / 100;
     
     // Auto-calculate suggested listing price if not manually edited
     const listingPriceInput = document.getElementById('listingPrice');
-    let listingPrice = parseFloat(listingPriceInput.value);
+    let listingPrice = parseFloat(listingPriceInput ? listingPriceInput.value : 0);
     
     if (isNaN(listingPrice) || listingPrice <= 0 || document.activeElement !== listingPriceInput) {
-        listingPrice = parseFloat((cost * (1 + margin)).toFixed(2));
-        if (cost > 0 && listingPrice < cost + 5) {
-            listingPrice = parseFloat((cost + 5).toFixed(2)); // minimum $5 buffer
+        // Step 1: Up the profit margin on base source cost
+        // Step 2: Add in USPS Ground Advantage shipping cost
+        let suggestedPrice = (baseCost * (1 + margin)) + outboundShipping;
+        if (baseCost > 0 && suggestedPrice < baseCost + outboundShipping + 2) {
+            suggestedPrice = baseCost + outboundShipping + 2; // minimum safety buffer
         }
-        listingPriceInput.value = listingPrice.toFixed(2);
+        listingPrice = parseFloat(suggestedPrice.toFixed(2));
+        if (listingPriceInput) listingPriceInput.value = listingPrice.toFixed(2);
     }
 
-    // eBay standard fees ~13.25% + $0.30 insertion/order fee
-    const fee = (listingPrice * 0.1325) + 0.30;
-    const netProfit = listingPrice - cost - fee;
+    // eBay standard fees ~13.25% + $0.30 fixed transaction fee
+    const ebayFee = (listingPrice * 0.1325) + 0.30;
+    
+    // True Net Profit: Listing Price - Base Cost - Outbound Shipping - eBay Fees
+    const totalCost = baseCost + outboundShipping + ebayFee;
+    const netProfit = listingPrice - totalCost;
 
     const feeEl = document.getElementById('estEbayFee');
     const profitEl = document.getElementById('estNetProfit');
 
-    if (feeEl) feeEl.innerText = `-$${fee.toFixed(2)}`;
+    if (feeEl) feeEl.innerText = `-$${ebayFee.toFixed(2)}`;
     if (profitEl) {
         profitEl.innerText = `${netProfit >= 0 ? '+' : ''}$${netProfit.toFixed(2)}`;
         profitEl.style.color = netProfit >= 0 ? '#28a745' : '#dc3545';
     }
+
+    currentProduct.sellingPrice = listingPrice.toFixed(2);
+    currentProduct.shippingCost = outboundShipping.toFixed(2);
 }
 
 function autoDetectCategory(titleText) {
@@ -79,12 +108,173 @@ function autoDetectCategory(titleText) {
     }
 }
 
+function selectVariation(groupName, optionValue) {
+    if (!currentProduct || !currentProduct.variations) return;
+    
+    // 1. Update selected property on target variation group
+    const group = currentProduct.variations.find(v => v.name === groupName);
+    if (group) {
+        group.selected = optionValue;
+    }
+    
+    // 2. Compute combined selection string (e.g. "Black / 10inch")
+    const selectedParts = currentProduct.variations
+        .map(v => v.selected)
+        .filter(Boolean);
+    const selectedStr = selectedParts.join(' / ');
+    currentProduct.selectedVariation = selectedStr;
+    
+    // 3. Update productSpecs for eBay listing specifics
+    if (!currentProduct.productSpecs) currentProduct.productSpecs = {};
+    currentProduct.productSpecs[groupName] = optionValue;
+    const lowerName = groupName.toLowerCase();
+    if (lowerName === 'color' || lowerName === 'colour') {
+        currentProduct.productSpecs['Color'] = optionValue;
+        currentProduct.color = optionValue;
+    } else if (lowerName === 'size') {
+        currentProduct.productSpecs['Size'] = optionValue;
+        currentProduct.size = optionValue;
+    }
+    
+    // 4. Update UI selected badge
+    const varSelected = document.getElementById('varSelectedBadge');
+    if (varSelected) {
+        varSelected.innerText = `Selected: ${selectedStr}`;
+    }
+    
+    // 5. Update pill active styles in DOM immediately
+    const varList = document.getElementById('varListDisplay');
+    if (varList) {
+        const pills = varList.querySelectorAll('.var-pill');
+        pills.forEach(p => {
+            if (p.getAttribute('data-group') === groupName) {
+                if (p.getAttribute('data-value') === optionValue) {
+                    p.classList.add('selected');
+                } else {
+                    p.classList.remove('selected');
+                }
+            }
+        });
+    }
+    
+    // 6. Persist locally to chrome.storage
+    if (typeof window !== 'undefined') {
+        window.currentProduct = currentProduct;
+    }
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.set({ lastScrapedProduct: currentProduct }).catch(() => {});
+    }
+    
+    // 7. Background sync with product page if active
+    trySyncVariationToPage(groupName, optionValue);
+}
+
+function renderVariationPills() {
+    const varList = document.getElementById('varListDisplay');
+    if (!varList || !currentProduct || !currentProduct.variations) return;
+    
+    varList.innerHTML = currentProduct.variations.map(v => {
+        const optsHtml = (v.options || []).map(opt => {
+            const isSel = (opt === v.selected);
+            return `<button type="button" class="var-pill ${isSel ? 'selected' : ''}" data-group="${escapeHtml(v.name)}" data-value="${escapeHtml(opt)}" title="Select ${escapeHtml(opt)}">${escapeHtml(opt)}</button>`;
+        }).join('');
+        return `<div style="margin-bottom:3px;"><strong>${escapeHtml(v.name)}:</strong> <span style="display:inline-flex; flex-wrap:wrap; gap:2px; vertical-align:middle;">${optsHtml}</span></div>`;
+    }).join('');
+    
+    varList.querySelectorAll('.var-pill').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const grp = btn.getAttribute('data-group');
+            const val = btn.getAttribute('data-value');
+            selectVariation(grp, val);
+        });
+    });
+}
+
+async function trySyncVariationToPage(groupName, optionValue) {
+    try {
+        if (!activeTab || !activeTab.id || !activeTab.url) return;
+        const isSupported = activeTab.url.includes('temu.com') || 
+                            activeTab.url.includes('aliexpress.com') || 
+                            activeTab.url.includes('walmart.com') ||
+                            activeTab.url.includes('amazon.com');
+        if (!isSupported) return;
+
+        await chrome.scripting.executeScript({
+            target: { tabId: activeTab.id },
+            args: [groupName, optionValue],
+            function: (grp, val) => {
+                const cleanTarget = String(val).toLowerCase().replace(/[^a-z0-9]/g, '');
+                const clickables = Array.from(document.querySelectorAll('button, [role="radio"], [class*="sku"] [class*="item"], [class*="spec"] [class*="item"], [data-testid*="sku"]'));
+                for (const el of clickables) {
+                    const txt = (el.getAttribute('title') || el.getAttribute('aria-label') || el.innerText || el.textContent || '').trim().toLowerCase();
+                    const cleanTxt = txt.replace(/[^a-z0-9]/g, '');
+                    if (cleanTxt && (cleanTxt === cleanTarget || cleanTxt.includes(cleanTarget) || cleanTarget.includes(cleanTxt))) {
+                        el.click();
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
+
+        setTimeout(async () => {
+            try {
+                let extractorFunc = null;
+                if (activeTab.url.includes('temu.com') && typeof extractTemuProduct === 'function') {
+                    extractorFunc = extractTemuProduct;
+                } else if (activeTab.url.includes('aliexpress.com') && typeof extractAliExpressProduct === 'function') {
+                    extractorFunc = extractAliExpressProduct;
+                }
+                if (extractorFunc) {
+                    const results = await chrome.scripting.executeScript({
+                        target: { tabId: activeTab.id },
+                        function: extractorFunc
+                    });
+                    if (results && results[0] && results[0].result) {
+                        const updated = results[0].result;
+                        if (updated.price && updated.price !== '0.00' && currentProduct) {
+                            const numPrice = parseFloat(updated.price);
+                            if (numPrice > 0) {
+                                currentProduct.price = updated.price;
+                                const srcPriceInput = document.getElementById('sourcePriceInput');
+                                if (srcPriceInput) srcPriceInput.value = updated.price;
+                                
+                                const listingPriceInput = document.getElementById('listingPrice');
+                                if (listingPriceInput && document.activeElement !== listingPriceInput) {
+                                    listingPriceInput.value = '';
+                                }
+                                calculatePricing();
+                            }
+                        }
+                        if (updated.mainImgUrl && currentProduct) {
+                            currentProduct.mainImgUrl = updated.mainImgUrl;
+                            const prevImg = document.getElementById('previewImg');
+                            if (prevImg) prevImg.src = updated.mainImgUrl;
+                        }
+                        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+                            chrome.storage.local.set({ lastScrapedProduct: currentProduct }).catch(() => {});
+                        }
+                    }
+                }
+            } catch(e) {
+                console.warn("Could not sync page price update:", e);
+            }
+        }, 350);
+    } catch(e) {
+        console.warn("trySyncVariationToPage error:", e);
+    }
+}
+
 function renderProductDataInPopup(data) {
     if (!data) return;
     if (typeof ZonbayCleaner !== 'undefined') {
         currentProduct = ZonbayCleaner.cleanProductData(data);
     } else {
         currentProduct = { ...data };
+    }
+    if (typeof window !== 'undefined') {
+        window.currentProduct = currentProduct;
     }
 
     // Auto-apply preferred template if not set
@@ -141,7 +331,6 @@ function renderProductDataInPopup(data) {
     const varBox = document.getElementById('variationsBox');
     const varCount = document.getElementById('varCountText');
     const varSelected = document.getElementById('varSelectedBadge');
-    const varList = document.getElementById('varListDisplay');
 
     if (varBox && currentProduct.variations && currentProduct.variations.length > 0) {
         varBox.style.display = 'block';
@@ -152,15 +341,7 @@ function renderProductDataInPopup(data) {
         const summaryParts = currentProduct.variations.map(v => `${v.options.length} ${v.name}s`).join(' × ');
         if (varCount) varCount.innerText = `${totalCombos} options (${summaryParts})`;
         if (varSelected) varSelected.innerText = `Selected: ${currentProduct.selectedVariation || currentProduct.variations.map(v => v.selected).filter(Boolean).join(' / ') || 'Default'}`;
-        if (varList) {
-            varList.innerHTML = currentProduct.variations.map(v => {
-                const optsHtml = v.options.map(opt => {
-                    const isSel = (opt === v.selected);
-                    return `<span style="display:inline-block; padding:1px 5px; margin:1px 2px; border-radius:3px; background:${isSel ? '#166534' : '#fff'}; color:${isSel ? '#fff' : '#14532d'}; border:1px solid ${isSel ? '#166534' : '#86efac'}; font-weight:${isSel ? 'bold' : 'normal'};">${opt}</span>`;
-                }).join(' ');
-                return `<div><strong>${v.name}:</strong> ${optsHtml}</div>`;
-            }).join('');
-        }
+        renderVariationPills();
     } else if (varBox) {
         varBox.style.display = 'none';
     }
@@ -344,7 +525,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (titleInput) titleInput.addEventListener('input', updateCharCounter);
 
     const marginSelect = document.getElementById('marginPercent');
-    if (marginSelect) marginSelect.addEventListener('change', calculatePricing);
+    if (marginSelect) {
+        marginSelect.addEventListener('change', () => {
+            const listingPriceInput = document.getElementById('listingPrice');
+            if (listingPriceInput && document.activeElement !== listingPriceInput) {
+                listingPriceInput.value = '';
+            }
+            calculatePricing();
+        });
+    }
+
+    const shippingCostInput = document.getElementById('shippingCostInput');
+    if (shippingCostInput) {
+        shippingCostInput.addEventListener('input', () => {
+            if (!currentProduct) return;
+            currentProduct.shippingCost = parseFloat(shippingCostInput.value) || 0;
+            const listingPriceInput = document.getElementById('listingPrice');
+            if (listingPriceInput && document.activeElement !== listingPriceInput) {
+                listingPriceInput.value = '';
+            }
+            calculatePricing();
+            if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+                chrome.storage.local.set({ lastScrapedProduct: currentProduct }).catch(() => {});
+            }
+        });
+    }
 
     const priceInput = document.getElementById('listingPrice');
     if (priceInput) priceInput.addEventListener('input', calculatePricing);
@@ -437,7 +642,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             ...currentProduct,
             title: titleVal,
             price: priceVal,
-            categoryId: categoryId
+            categoryId: categoryId,
+            shippingCost: '0.00' // Free shipping on eBay; USPS shipping cost is baked into listing price
         };
 
         try {
@@ -473,7 +679,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             ...currentProduct,
             title: titleVal,
             price: priceVal,
-            categoryId: categoryId
+            categoryId: categoryId,
+            shippingCost: '0.00' // Free shipping on eBay; USPS shipping cost is baked into listing price
         };
 
         try {
