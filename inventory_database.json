@@ -1,5 +1,83 @@
 [
   {
+    "id": "188684715795",
+    "sku": "188684715795",
+    "title": "Camco PowerGrip Generator Adapter 4-Prong 30A 125/250V 7500W 30-50-4-G",
+    "brand": "Unbranded",
+    "sourcePlatform": "eBay Store",
+    "sourceId": "188684715795",
+    "sourceUrl": "https://www.ebay.com/itm/188684715795",
+    "sellingPlatform": "eBay",
+    "status": "LIVE_ON_EBAY",
+    "costPrice": "0.00",
+    "sellingPrice": "29.99",
+    "quantity": 1,
+    "estimatedFees": "4.27",
+    "estimatedProfit": "25.72",
+    "profitMarginPercent": "85.7",
+    "mainImage": "https://i.ebayimg.com/thumbs/images/g/camco/s-l500.jpg",
+    "imagesCount": 1,
+    "createdAt": "2026-09-24T11:25:59.244Z",
+    "updatedAt": "2026-09-24T11:25:59.244Z",
+    "syncedAt": "2026-09-24T11:25:59.244Z",
+    "uploadedAt": "2026-09-24T11:25:59.244Z",
+    "productData": {
+      "title": "Camco PowerGrip Generator Adapter 4-Prong 30A 125/250V 7500W 30-50-4-G",
+      "price": "29.99",
+      "sourceId": "188684715795",
+      "sourceUrl": "https://www.ebay.com/itm/188684715795",
+      "alternateImages": [
+        "https://i.ebayimg.com/thumbs/images/g/camco/s-l500.jpg"
+      ],
+      "itemSpecifics": [
+        {
+          "name": "Brand",
+          "value": "Unbranded"
+        }
+      ],
+      "bulletPoints": []
+    }
+  },
+  {
+    "id": "188684774337",
+    "sku": "188684774337",
+    "title": "Auto Drive RV Electrical Adapter Plug 30A Male to 15A Female ADAPT15F30M",
+    "brand": "Unbranded",
+    "sourcePlatform": "eBay Store",
+    "sourceId": "188684774337",
+    "sourceUrl": "https://www.ebay.com/itm/188684774337",
+    "sellingPlatform": "eBay",
+    "status": "LIVE_ON_EBAY",
+    "costPrice": "0.00",
+    "sellingPrice": "14.99",
+    "quantity": 1,
+    "estimatedFees": "2.29",
+    "estimatedProfit": "12.70",
+    "profitMarginPercent": "84.7",
+    "mainImage": "https://i.ebayimg.com/thumbs/images/g/adapter/s-l500.jpg",
+    "imagesCount": 1,
+    "createdAt": "2026-09-24T11:25:59.243Z",
+    "updatedAt": "2026-09-24T11:25:59.243Z",
+    "syncedAt": "2026-09-24T11:25:59.243Z",
+    "uploadedAt": "2026-09-24T11:25:59.243Z",
+    "productData": {
+      "title": "Auto Drive RV Electrical Adapter Plug 30A Male to 15A Female ADAPT15F30M",
+      "price": "14.99",
+      "sourceId": "188684774337",
+      "sourceUrl": "https://www.ebay.com/itm/188684774337",
+      "alternateImages": [
+        "https://i.ebayimg.com/thumbs/images/g/adapter/s-l500.jpg"
+      ],
+      "itemSpecifics": [
+        {
+          "name": "Brand",
+          "value": "Unbranded"
+        }
+      ],
+      "bulletPoints": []
+    }
+  },
+  {
     "id": "RUN-RFC-1789768552589",
     "sku": "SKU-RFC-1",
     "title": "Impact Driver, 20V Cordless \"Pro Edition",
@@ -50,7 +128,59 @@
       "bulletPoints": [],
       "longDescription": "",
       "htmlDescription": ""
-    }
+    },
+    "physicalQuantity": 5,
+    "channels": {
+      "ebay": {
+        "isListed": true,
+        "listingId": "RUN-RFC-1789768552589",
+        "price": "79.95",
+        "status": "ACTIVE",
+        "url": "https://www.ebay.com/itm/RUN-RFC-1789768552589",
+        "lastSync": "2026-09-18T21:56:25.637Z"
+      },
+      "mercari": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "poshmark": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "depop": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "etsy": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "facebook": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      }
+    },
+    "salesHistory": []
   },
   {
     "id": "RUN-CSV-1789768552583",
@@ -71,7 +201,7 @@
     "mainImage": "",
     "imagesCount": 0,
     "createdAt": "2026-09-18T21:55:52.585Z",
-    "updatedAt": "2026-09-19T20:02:25.350Z",
+    "updatedAt": "2026-09-24T11:25:47.928Z",
     "syncedAt": "2026-09-18T21:55:52.585Z",
     "uploadedAt": "2026-09-18T21:55:52.585Z",
     "productData": {
@@ -100,7 +230,59 @@
       "bulletPoints": [],
       "longDescription": "",
       "htmlDescription": ""
-    }
+    },
+    "physicalQuantity": 3,
+    "channels": {
+      "ebay": {
+        "isListed": true,
+        "listingId": "RUN-CSV-1789768552583",
+        "price": "55.00",
+        "status": "ACTIVE",
+        "url": "https://www.ebay.com/itm/RUN-CSV-1789768552583",
+        "lastSync": "2026-09-19T20:02:25.350Z"
+      },
+      "mercari": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "poshmark": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "depop": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "etsy": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "facebook": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      }
+    },
+    "salesHistory": []
   },
   {
     "id": "RUN-STORE-1789768552579",
@@ -121,8 +303,8 @@
     "mainImage": "",
     "imagesCount": 0,
     "createdAt": "2026-09-18T21:55:52.581Z",
-    "updatedAt": "2026-09-19T20:02:25.343Z",
-    "syncedAt": "2026-09-19T20:02:25.343Z",
+    "updatedAt": "2026-09-24T11:25:47.923Z",
+    "syncedAt": "2026-09-24T11:25:47.923Z",
     "uploadedAt": "2026-09-18T21:55:52.581Z",
     "productData": {
       "title": "Live eBay Store Product Title From Seller Hub",
@@ -137,7 +319,59 @@
         }
       ],
       "bulletPoints": []
-    }
+    },
+    "physicalQuantity": 2,
+    "channels": {
+      "ebay": {
+        "isListed": true,
+        "listingId": "RUN-STORE-1789768552579",
+        "price": "49.99",
+        "status": "ACTIVE",
+        "url": "https://www.ebay.com/itm/RUN-STORE-1789768552579",
+        "lastSync": "2026-09-19T20:02:25.343Z"
+      },
+      "mercari": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "poshmark": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "depop": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "etsy": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "facebook": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      }
+    },
+    "salesHistory": []
   },
   {
     "id": "605748092322893",
@@ -186,7 +420,59 @@
       },
       "longDescription": "Authentic 3-pack 60W fast-charging braided USB-C cables.",
       "htmlDescription": "<!-- ZONBAY STOREFRONT SHOWCASE TEMPLATE -->\n<div style=\"font-family: sans-serif; max-width: 960px; margin: 0 auto;\"><h2>ZIYKRIY 3pcs 60W Fast Charging USB-C Cables</h2><p>Premium braided nylon construction with high-speed data transfer.</p></div>"
-    }
+    },
+    "physicalQuantity": 3,
+    "channels": {
+      "ebay": {
+        "isListed": true,
+        "listingId": "605748092322893",
+        "price": "19.99",
+        "status": "ACTIVE",
+        "url": "https://www.temu.com/goods.html?goods_id=605748092322893",
+        "lastSync": "2026-09-18T20:41:40.000Z"
+      },
+      "mercari": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "poshmark": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "depop": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "etsy": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "facebook": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      }
+    },
+    "salesHistory": []
   },
   {
     "id": "188646000836",
@@ -228,7 +514,59 @@
         "Voltage": "20 V",
         "Type": "Impact Driver"
       }
-    }
+    },
+    "physicalQuantity": 4,
+    "channels": {
+      "ebay": {
+        "isListed": true,
+        "listingId": "188646000836",
+        "price": "89.99",
+        "status": "ACTIVE",
+        "url": "https://www.ebay.com/itm/188646000836",
+        "lastSync": "2026-09-18T12:00:00.000Z"
+      },
+      "mercari": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "poshmark": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "depop": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "etsy": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "facebook": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      }
+    },
+    "salesHistory": []
   },
   {
     "id": "188646000837",
@@ -270,7 +608,59 @@
         "Outlets": "12",
         "USB Ports": "4"
       }
-    }
+    },
+    "physicalQuantity": 8,
+    "channels": {
+      "ebay": {
+        "isListed": true,
+        "listingId": "188646000837",
+        "price": "27.95",
+        "status": "ACTIVE",
+        "url": "https://www.ebay.com/itm/188646000837",
+        "lastSync": "2026-09-18T12:00:00.000Z"
+      },
+      "mercari": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "poshmark": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "depop": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "etsy": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "facebook": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      }
+    },
+    "salesHistory": []
   },
   {
     "id": "188646000999",
@@ -311,7 +701,59 @@
         "Power": "1500 W",
         "Type": "Heat Gun"
       }
-    }
+    },
+    "physicalQuantity": 5,
+    "channels": {
+      "ebay": {
+        "isListed": true,
+        "listingId": "188646000999",
+        "price": "35.99",
+        "status": "ACTIVE",
+        "url": "https://www.ebay.com/itm/188646000999",
+        "lastSync": "2026-09-18T12:00:00.000Z"
+      },
+      "mercari": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "poshmark": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "depop": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "etsy": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "facebook": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      }
+    },
+    "salesHistory": []
   },
   {
     "id": "B07T9LLC4F",
@@ -353,6 +795,58 @@
         "Voltage": "12 V",
         "Type": "Power Inverter"
       }
-    }
+    },
+    "physicalQuantity": 2,
+    "channels": {
+      "ebay": {
+        "isListed": true,
+        "listingId": "B07T9LLC4F",
+        "price": "89.99",
+        "status": "ACTIVE",
+        "url": "https://www.amazon.com/dp/B07T9LLC4F",
+        "lastSync": "2026-09-18T14:00:00.000Z"
+      },
+      "mercari": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "poshmark": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "depop": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "etsy": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      },
+      "facebook": {
+        "isListed": false,
+        "listingId": null,
+        "price": null,
+        "status": "NOT_LISTED",
+        "url": "",
+        "lastSync": null
+      }
+    },
+    "salesHistory": []
   }
 ]

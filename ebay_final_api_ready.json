@@ -1,16 +1,11 @@
 {
-  "id": "RUN-TEST-001",
-  "sku": "SKU-TEST-001",
-  "title": "DeWalt 20V MAX XR Brushless Impact Driver Bare Tool High Torque",
-  "brand": "DeWalt",
+  "id": "RUN-BULK-2-1790249147948",
+  "title": "Bulk Test Product Two - Amazon Sourced",
+  "price": "29.99",
+  "cost": "12.00",
+  "sku": "SKU-BLK-2",
+  "status": "DRAFT",
   "sourcePlatform": "Amazon",
-  "sourceId": "B018864600",
-  "sourceUrl": "https://www.amazon.com/dp/B018864600",
-  "costPrice": "45.00",
-  "sellingPrice": "89.99",
-  "price": "89.99",
-  "quantity": 4,
-  "alternateImages": [
-    "http://localhost:3000/images/test.jpg"
-  ]
+  "originCountry": "US",
+  "isInternational": false
 }

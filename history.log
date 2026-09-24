@@ -512,3 +512,55 @@
 [2026-09-19T20:02:25.361Z] [CSV_REPORT_IMPORTED] rowsParsed: 1 | addedCount: 1 | updatedCount: 0
 [2026-09-19T20:02:25.376Z] [INVENTORY_ITEM_DELETED] id: RUN-TEST-001
 [2026-09-19T20:02:25.380Z] [INVENTORY_ITEM_DELETED] id: RUN-RFC-1789848145356
+[2026-09-24T11:02:17.778Z] [SCRAPED] title: Shower Head, High Pressure Rainfall/Handheld Shower Combo With Extension Arm, 9 | price: 0.00 | imagesCount: 12
+[2026-09-24T11:02:47.738Z] [SCRAPED] title: Shower Head, High Pressure Rainfall/Handheld Shower Combo With Extension Arm, 9 | price: 0.00 | imagesCount: 12
+[2026-09-24T11:03:56.131Z] [SCRAPED] title: Shower Head, High Pressure Rainfall/Handheld Shower Combo With Extension Arm, 9 | price: 0.00 | imagesCount: 12
+[2026-09-24T11:08:04.135Z] [SCRAPED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1/2-Inch | price: $99.00 | imagesCount: 1
+[2026-09-24T11:08:04.352Z] [OPTIMIZED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1 2 Inch | categoryId: 184655 | categoryName: Cordless Drills | price: 99.00 | imagesCount: 1
+[2026-09-24T11:08:04.353Z] [UPLOADED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1 2 Inch | hostedUrlsCount: 1
+[2026-09-24T11:08:04.360Z] [MANUAL_ENTRY] title: Smart Wi-Fi Power Strip Surge Protector 4 Outlets 4 USB Ports | price: 27.50
+[2026-09-24T11:08:04.361Z] [OPTIMIZED] title: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports | categoryId: 67779 | categoryName: Power Strips & Surge Protectors | price: 27.50 | imagesCount: 0
+[2026-09-24T11:08:04.362Z] [UPLOADED] title: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports | hostedUrlsCount: 0
+[2026-09-24T11:08:04.368Z] [REVISION] itemId: RUN-RFC-1789768552589 | title: Updated 12V 6A Smart Battery Charger - Special Edition | price: 39.99
+[2026-09-24T11:08:05.026Z] [CSV_EXPORT] exportedCount: 1 | firstItemTitle: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports
+[2026-09-24T11:08:05.029Z] [CSV_EXPORT] exportedCount: 1 | firstItemTitle: Custom Anker USB C Cable 6ft Braided Nylon
+[2026-09-24T11:08:05.057Z] [LISTING_APPROVED] id: RUN-TEST-001 | title: DeWalt 20V MAX XR Brushless Impact Driver Bare Tool High Torque | price: 89.99 | totalInventoryCount: 9
+[2026-09-24T11:08:05.063Z] [LISTING_LIVE_ON_EBAY] id: RUN-TEST-001 | title: DeWalt 20V MAX XR Brushless Impact Driver Bare Tool High Torque | method: Seller Hub
+[2026-09-24T11:08:05.067Z] [EBAY_STORE_SYNCED] syncedCount: 1 | addedCount: 0 | updatedCount: 1 | totalInventoryCount: 9
+[2026-09-24T11:08:05.070Z] [CSV_REPORT_IMPORTED] rowsParsed: 1 | addedCount: 0 | updatedCount: 1
+[2026-09-24T11:08:05.076Z] [CSV_REPORT_IMPORTED] rowsParsed: 1 | addedCount: 1 | updatedCount: 0
+[2026-09-24T11:08:05.089Z] [LISTING_APPROVED] id: RUN-BULK-1-1790248085085 | title: Bulk Test Product One - AliExpress Sourced | price: 18.99 | totalInventoryCount: 11
+[2026-09-24T11:08:05.093Z] [LISTING_APPROVED] id: RUN-BULK-2-1790248085085 | title: Bulk Test Product Two - Amazon Sourced | price: 29.99 | totalInventoryCount: 12
+[2026-09-24T11:08:05.096Z] [INVENTORY_BULK_STATUS_UPDATE] count: 2 | status: APPROVED
+[2026-09-24T11:08:05.100Z] [INVENTORY_BULK_STATUS_UPDATE] count: 1 | status: LIVE_ON_EBAY
+[2026-09-24T11:08:05.105Z] [CSV_EXPORT] exportedCount: 2 | firstItemTitle: Bulk Test Product Two - Amazon Sourced
+[2026-09-24T11:08:05.105Z] [INVENTORY_BULK_CSV_EXPORT] count: 2
+[2026-09-24T11:08:05.109Z] [INVENTORY_BULK_DELETE] deletedCount: 2
+[2026-09-24T11:08:05.119Z] [INVENTORY_ITEM_DELETED] id: RUN-TEST-001
+[2026-09-24T11:08:05.122Z] [INVENTORY_ITEM_DELETED] id: RUN-RFC-1790248085073
+[2026-09-24T11:16:36.245Z] [SCRAPED] title: Shower Head, High Pressure Rainfall/Handheld Shower Combo With Extension Arm, 9 | price: 25.09 | imagesCount: 12
+[2026-09-24T11:18:45.257Z] [SCRAPED] title: Shower Head, High Pressure Rainfall/Handheld Shower Combo With Extension Arm, 9 | price: 25.09 | imagesCount: 12
+[2026-09-24T11:25:47.013Z] [SCRAPED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1/2-Inch | price: $99.00 | imagesCount: 1
+[2026-09-24T11:25:47.235Z] [OPTIMIZED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1 2 Inch | categoryId: 184655 | categoryName: Cordless Drills | price: 99.00 | imagesCount: 1
+[2026-09-24T11:25:47.236Z] [UPLOADED] title: Dewalt 20V MAX Cordless Drill Driver Kit Compact 1 2 Inch | hostedUrlsCount: 1
+[2026-09-24T11:25:47.245Z] [MANUAL_ENTRY] title: Smart Wi-Fi Power Strip Surge Protector 4 Outlets 4 USB Ports | price: 27.50
+[2026-09-24T11:25:47.246Z] [OPTIMIZED] title: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports | categoryId: 67779 | categoryName: Power Strips & Surge Protectors | price: 27.50 | imagesCount: 0
+[2026-09-24T11:25:47.247Z] [UPLOADED] title: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports | hostedUrlsCount: 0
+[2026-09-24T11:25:47.253Z] [REVISION] itemId: RUN-RFC-1789768552589 | title: Updated 12V 6A Smart Battery Charger - Special Edition | price: 39.99
+[2026-09-24T11:25:47.873Z] [CSV_EXPORT] exportedCount: 1 | firstItemTitle: Smart Wi Fi Power Strip Surge Protector 4 Outlets USB Ports
+[2026-09-24T11:25:47.877Z] [CSV_EXPORT] exportedCount: 1 | firstItemTitle: Custom Anker USB C Cable 6ft Braided Nylon
+[2026-09-24T11:25:47.910Z] [LISTING_APPROVED] id: RUN-TEST-001 | title: DeWalt 20V MAX XR Brushless Impact Driver Bare Tool High Torque | price: 89.99 | totalInventoryCount: 9
+[2026-09-24T11:25:47.918Z] [LISTING_LIVE_ON_EBAY] id: RUN-TEST-001 | title: DeWalt 20V MAX XR Brushless Impact Driver Bare Tool High Torque | method: Seller Hub
+[2026-09-24T11:25:47.925Z] [EBAY_STORE_SYNCED] syncedCount: 1 | addedCount: 0 | updatedCount: 1 | totalInventoryCount: 9
+[2026-09-24T11:25:47.930Z] [CSV_REPORT_IMPORTED] rowsParsed: 1 | addedCount: 0 | updatedCount: 1
+[2026-09-24T11:25:47.938Z] [CSV_REPORT_IMPORTED] rowsParsed: 1 | addedCount: 1 | updatedCount: 0
+[2026-09-24T11:25:47.951Z] [LISTING_APPROVED] id: RUN-BULK-1-1790249147948 | title: Bulk Test Product One - AliExpress Sourced | price: 18.99 | totalInventoryCount: 11
+[2026-09-24T11:25:47.956Z] [LISTING_APPROVED] id: RUN-BULK-2-1790249147948 | title: Bulk Test Product Two - Amazon Sourced | price: 29.99 | totalInventoryCount: 12
+[2026-09-24T11:25:47.960Z] [INVENTORY_BULK_STATUS_UPDATE] count: 2 | status: APPROVED
+[2026-09-24T11:25:47.964Z] [INVENTORY_BULK_STATUS_UPDATE] count: 1 | status: LIVE_ON_EBAY
+[2026-09-24T11:25:47.969Z] [CSV_EXPORT] exportedCount: 2 | firstItemTitle: Bulk Test Product Two - Amazon Sourced
+[2026-09-24T11:25:47.969Z] [INVENTORY_BULK_CSV_EXPORT] count: 2
+[2026-09-24T11:25:47.973Z] [INVENTORY_BULK_DELETE] deletedCount: 2
+[2026-09-24T11:25:47.985Z] [INVENTORY_ITEM_DELETED] id: RUN-TEST-001
+[2026-09-24T11:25:47.988Z] [INVENTORY_ITEM_DELETED] id: RUN-RFC-1790249147935
+[2026-09-24T11:25:59.245Z] [EBAY_STORE_SYNCED] syncedCount: 2 | addedCount: 2 | updatedCount: 0 | totalInventoryCount: 10
