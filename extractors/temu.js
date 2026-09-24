@@ -35,8 +35,25 @@ function extractTemuProduct() {
         goodsId = `TEMU-${Date.now()}`;
     }
 
+    // Helper: test if an element is styled in orange/red (Temu active sale price color)
+    function isOrangeOrRed(el) {
+        if (!el || typeof window === 'undefined' || !window.getComputedStyle) return false;
+        try {
+            const cs = window.getComputedStyle(el);
+            const color = cs.color || '';
+            const m = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+            if (m) {
+                const r = parseInt(m[1], 10);
+                const g = parseInt(m[2], 10);
+                const b = parseInt(m[3], 10);
+                if (r >= 180 && g <= 140 && b <= 80) return true;
+            }
+        } catch (e) {}
+        return false;
+    }
+
     // Helper: detect if an element is strikethrough (list price / was price / reference price)
-    function isStrikethrough(el) {
+    function isStrikethroughOrOriginal(el) {
         if (!el) return false;
         if (['DEL', 'STRIKE', 'S'].includes(el.tagName)) return true;
         if (el.closest && el.closest('del, strike, s, [class*="origin"], [class*="was"], [class*="reference"], [class*="market"], [class*="line-through"], [style*="line-through"]')) {
@@ -46,6 +63,17 @@ function extractTemuProduct() {
             if (typeof window !== 'undefined' && window.getComputedStyle) {
                 const cs = window.getComputedStyle(el);
                 if (cs.textDecorationLine?.includes('line-through') || cs.textDecoration?.includes('line-through')) return true;
+                // Gray/muted color check (original strikethrough prices on Temu are gray, sale prices are bold orange)
+                const color = cs.color || '';
+                const m = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+                if (m) {
+                    const r = parseInt(m[1], 10);
+                    const g = parseInt(m[2], 10);
+                    const b = parseInt(m[3], 10);
+                    if (Math.abs(r - g) < 25 && Math.abs(g - b) < 25 && r >= 70 && r <= 170) {
+                        return true;
+                    }
+                }
             }
         } catch (e) {}
         return false;
@@ -54,52 +82,103 @@ function extractTemuProduct() {
     // 3. Price Detection (Active Selected DOM Price First)
     let price = '0.00';
 
-    // Tier 1: Dedicated Active Goods Price Element ([data-testid="goods-price"], .goods-price)
-    const primaryPriceEls = document.querySelectorAll('[data-testid="goods-price"], .goods-price, [class*="goods-price"], [class*="goodsPrice"]');
-    for (const el of primaryPriceEls) {
-        if (isStrikethrough(el)) continue;
-        const text = (el.innerText || el.textContent || '').trim();
-        const match = text.match(/\$?\s*([0-9]+\.[0-9]{2})/);
-        if (match) {
-            const val = parseFloat(match[1]);
-            if (val >= 0.50 && val < 5000) {
-                price = val.toFixed(2);
-                break;
-            }
-        }
-    }
+    // Tier 1: Look in the Price Container directly adjacent to the Discount Badge (% OFF)
+    // On Temu, the price row is: [ $16.14 (original strikethrough) ] [ $10.66 (active sale price) ] [ 33% OFF (discount tag) ]
+    const allElements = Array.from(document.querySelectorAll('*'));
+    const discountEls = allElements.filter(el => {
+        if (el.children && el.children.length > 0) return false;
+        return /\b\d+%\s*OFF\b/i.test(el.innerText || el.textContent || '');
+    });
 
-    // Tier 2: Next to Discount Badge (% OFF) in the Main Product Header
-    // On Temu, the active sale price (e.g. $10.66 or $23.48) is directly beside the discount percentage badge (e.g. 33% OFF)
-    if (price === '0.00') {
-        const allElements = Array.from(document.querySelectorAll('*'));
-        const discountEls = allElements.filter(el => {
-            if (el.children && el.children.length > 0) return false;
-            return /\b\d+%\s*OFF\b/i.test(el.innerText || el.textContent || '');
-        });
-        for (const dEl of discountEls) {
-            let container = dEl.parentElement;
-            for (let depth = 0; depth < 4 && container; depth++) {
-                const textNodes = Array.from(container.querySelectorAll('*')).filter(node => {
-                    if (node.children && node.children.length > 0) return false;
-                    if (isStrikethrough(node)) return false;
-                    const t = (node.innerText || node.textContent || '').trim();
-                    return /^\$?\s*\d+(?:\.\d{1,2})?$/.test(t);
-                });
-                for (const n of textNodes) {
-                    const match = (n.innerText || n.textContent || '').match(/\$?\s*([0-9]+\.[0-9]{2})/);
-                    if (match) {
-                        const val = parseFloat(match[1]);
-                        if (val >= 0.50 && val < 5000) {
-                            price = val.toFixed(2);
-                            break;
-                        }
+    for (const dEl of discountEls) {
+        let container = dEl.parentElement;
+        for (let depth = 0; depth < 4 && container; depth++) {
+            const candidates = [];
+            const textNodes = Array.from(container.querySelectorAll('*')).filter(node => {
+                if (node.children && node.children.length > 0) return false;
+                const t = (node.innerText || node.textContent || '').trim();
+                return /^\$?\s*\d+(?:\.\d{1,2})?$/.test(t);
+            });
+
+            textNodes.forEach(node => {
+                const match = (node.innerText || node.textContent || '').match(/\$?\s*([0-9]+\.[0-9]{2})/);
+                if (match) {
+                    const val = parseFloat(match[1]);
+                    if (val >= 0.50 && val < 5000) {
+                        candidates.push({
+                            val: val,
+                            el: node,
+                            isOrange: isOrangeOrRed(node),
+                            isStrikethrough: isStrikethroughOrOriginal(node)
+                        });
                     }
                 }
-                if (price !== '0.00') break;
-                container = container.parentElement;
+            });
+
+            if (candidates.length > 0) {
+                // Priority 1: Orange/red colored price element (Temu's active sale price style)
+                const orangeCand = candidates.find(c => c.isOrange);
+                if (orangeCand) {
+                    price = orangeCand.val.toFixed(2);
+                    break;
+                }
+
+                // Priority 2: Non-strikethrough / non-gray candidates
+                const nonStrike = candidates.filter(c => !c.isStrikethrough);
+                if (nonStrike.length > 0) {
+                    // In a discount row [16.14, 10.66], the sale price is the discounted lower value
+                    const minVal = Math.min(...nonStrike.map(c => c.val));
+                    price = minVal.toFixed(2);
+                    break;
+                } else {
+                    // Priority 3: Between all candidates in a discount row, the sale price is the discounted (lower) one
+                    const minVal = Math.min(...candidates.map(c => c.val));
+                    price = minVal.toFixed(2);
+                    break;
+                }
             }
-            if (price !== '0.00') break;
+            container = container.parentElement;
+        }
+        if (price !== '0.00') break;
+    }
+
+    // Tier 2: Dedicated Goods Price Element ([data-testid="goods-price"], .goods-price)
+    if (price === '0.00') {
+        const primaryPriceEls = document.querySelectorAll('[data-testid="goods-price"], .goods-price, [class*="goods-price"], [class*="goodsPrice"]');
+        for (const el of primaryPriceEls) {
+            const subNodes = Array.from(el.querySelectorAll('*')).filter(n => n.children.length === 0);
+            const foundVals = [];
+            subNodes.forEach(n => {
+                const match = (n.innerText || n.textContent || '').match(/\$?\s*([0-9]+\.[0-9]{2})/);
+                if (match) {
+                    const v = parseFloat(match[1]);
+                    if (v >= 0.50 && v < 5000) {
+                        foundVals.push({ val: v, isOrange: isOrangeOrRed(n), isStrike: isStrikethroughOrOriginal(n) });
+                    }
+                }
+            });
+
+            if (foundVals.length > 0) {
+                const orangeCand = foundVals.find(f => f.isOrange);
+                if (orangeCand) {
+                    price = orangeCand.val.toFixed(2);
+                    break;
+                }
+                const nonStrike = foundVals.filter(f => !f.isStrike);
+                if (nonStrike.length > 0) {
+                    price = Math.min(...nonStrike.map(f => f.val)).toFixed(2);
+                    break;
+                }
+            }
+
+            const fullMatch = (el.innerText || el.textContent || '').match(/\$?\s*([0-9]+\.[0-9]{2})/);
+            if (fullMatch) {
+                const v = parseFloat(fullMatch[1]);
+                if (v >= 0.50 && v < 5000) {
+                    price = v.toFixed(2);
+                    break;
+                }
+            }
         }
     }
 
@@ -119,7 +198,7 @@ function extractTemuProduct() {
         const priceSpans = headerArea.querySelectorAll('span, div, p');
         for (const el of priceSpans) {
             if (el.children && el.children.length > 0) continue;
-            if (isStrikethrough(el)) continue;
+            if (isStrikethroughOrOriginal(el)) continue;
             const match = (el.innerText || el.textContent || '').match(/^\$?\s*([0-9]+\.[0-9]{2})$/);
             if (match) {
                 const val = parseFloat(match[1]);
